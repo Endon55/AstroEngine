@@ -18,6 +18,7 @@ public class GameEngine// implements Runnable
     private final Renderer renderer;
     
     
+    
     public GameEngine(String gameTitle, WindowOptions options, IGameLogic gameLogic) throws Exception
     {
         //gameLoopThread = new Thread(this, "GAME_LOOP_THREAD");
@@ -35,6 +36,8 @@ public class GameEngine// implements Runnable
     
     private void init() throws Exception
     {
+        gameLogic.init();
+        renderer.init();
     }
     
     private void gameLoop() throws Exception
@@ -69,7 +72,7 @@ public class GameEngine// implements Runnable
              
              if(targetFPS <= 0 || deltaFPS >= 1)
              {
-                 renderer.render(window); //add scene
+                 renderer.render(window, gameLogic.getScene()); //add scene
                  deltaFPS--;
                  window.update();
              }
@@ -98,6 +101,9 @@ public class GameEngine// implements Runnable
         } catch(Exception exception)
         {
             exception.printStackTrace();
+        } finally
+        {
+            cleanup();
         }
     }
 }
