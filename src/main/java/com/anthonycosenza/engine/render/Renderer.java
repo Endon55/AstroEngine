@@ -1,13 +1,16 @@
 package com.anthonycosenza.engine.render;
 
-import com.anthonycosenza.engine.game.Scene;
+import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.window.Window;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glViewport;
 
 public class Renderer
@@ -16,6 +19,7 @@ public class Renderer
     public Renderer()
     {
         GL.createCapabilities();
+        glEnable(GL_DEPTH_TEST);
         sceneRenderer = new SceneRenderer();
     }
 
@@ -27,8 +31,8 @@ public class Renderer
     public void render(Window window, Scene scene)
     {
         clear();
-        
         glViewport(0, 0, window.getWidth(), window.getHeight());
+        
         sceneRenderer.render(scene);
 
     }

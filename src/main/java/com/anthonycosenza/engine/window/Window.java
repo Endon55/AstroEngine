@@ -22,6 +22,7 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
@@ -44,6 +45,12 @@ public class Window
     {
         this.title = gameTitle;
     
+        //Initialize GLFW, most GLFW functions won't work before doing this
+        if(!glfwInit())
+        {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
+    
         //Configure GLFW
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -52,18 +59,8 @@ public class Window
         //No idea if useful
         //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        
     
-        //Setup an error callback that prints into System.err
     
-        //Initialize GLFW, most GLFW functions won't work before doing this
-        if(!glfwInit())
-        {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
-    
-
-        
         if(options.width > 0 && options.height > 0)
         {
             this.width = options.width;
@@ -87,10 +84,11 @@ public class Window
         //glfwSetFramebufferSizeCallback(window, (window, width, height) -> resized(width, height));
     
         GLFWErrorCallback.createPrint(System.err).set();
+        
        /* glfwSetErrorCallback((int errorCode, long msgPtr) ->
                 System.out.println("Error code: " + errorCode + ", Message: " + MemoryUtil.memUTF8(msgPtr)));*/
+        
         //Setup a key callback. Will be called anytime a key is pressed, repeated, or released.
-
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) ->
                 keyCallBack(key, action));
         

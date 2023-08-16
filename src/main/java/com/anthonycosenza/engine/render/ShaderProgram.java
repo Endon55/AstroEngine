@@ -32,12 +32,12 @@ public class ShaderProgram
     private int vertexShaderID;
     private int fragmentShaderID;
     
-    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList) throws Exception
+    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList)
     {
         programID = glCreateProgram();
         if(programID == 0)
         {
-            throw new Exception("Could not create Shader");
+            throw new RuntimeException("Could not create Shader");
         }
         
         
@@ -72,7 +72,7 @@ public class ShaderProgram
         return shaderID;
     }
     
-    public void link(List<Integer> shaderModules) throws Exception
+    public void link(List<Integer> shaderModules)
     {
         glLinkProgram(programID);
         if(glGetProgrami(programID, GL_LINK_STATUS) == 0)
@@ -83,21 +83,6 @@ public class ShaderProgram
         shaderModules.forEach(s->glDetachShader(programID, s));
         shaderModules.forEach(GL30::glDeleteShader);
         
-/*        if(vertexShaderID != 0)
-        {
-            glDetachShader(programID, vertexShaderID);
-        }
-        if(fragmentShaderID != 0)
-        {
-            glDetachShader(programID, fragmentShaderID);
-        }
-        //This call is only for debugging, remove for prod
-        glValidateProgram(programID);
-        
-        if(glGetProgrami(programID, GL_VALIDATE_STATUS) == 0)
-        {
-            System.err.println("Warning validating Shader code: " + glGetProgramInfoLog(programID, 1024));
-        }*/
     }
     
     public void bind()
@@ -108,6 +93,12 @@ public class ShaderProgram
     {
         glUseProgram(0);
     }
+    
+    public int getProgramID()
+    {
+        return programID;
+    }
+    
     public void cleanup()
     {
         unbind();

@@ -36,7 +36,7 @@ public class GameEngine// implements Runnable
     
     private void init() throws Exception
     {
-        gameLogic.init();
+        gameLogic.init(window);
         renderer.init();
     }
     
