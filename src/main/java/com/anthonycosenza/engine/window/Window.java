@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.window;
 
+import com.anthonycosenza.engine.MouseInput;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryUtil;
@@ -8,6 +9,7 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_MAXIMIZED;
+import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
@@ -16,13 +18,13 @@ import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
+import static org.lwjgl.glfw.GLFW.glfwGetKey;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
@@ -39,6 +41,7 @@ public class Window
     private String title;
     int width;
     int height;
+    private MouseInput mouseInput;
     
     
     public Window(String gameTitle, WindowOptions options)
@@ -114,6 +117,12 @@ public class Window
         width = arrWidth[0];
         height = arrHeight[0];
         
+        mouseInput = new MouseInput(windowHandle);
+        
+    }
+    public boolean isKeyPressed(int keyCode)
+    {
+        return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
     
     public void keyCallBack(int key, int action)
@@ -138,7 +147,16 @@ public class Window
         glfwSwapBuffers(windowHandle);
     }
     
-   
+    public MouseInput getMouseInput()
+    {
+        return mouseInput;
+    }
+    
+    public long getWindowHandle()
+    {
+        return windowHandle;
+    }
+    
     public boolean shouldClose()
     {
         return glfwWindowShouldClose(windowHandle);

@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.GL_TEXTURE;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -23,8 +25,8 @@ public class SceneRenderer
     public SceneRenderer()
     {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/vertex.vs", GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/fragment.fs", GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/shaders/vertex.vs", GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/shaders/fragment.fs", GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
 
 
@@ -35,27 +37,39 @@ public class SceneRenderer
     {
         uniformsMap = new UniformsMap(shaderProgram.getProgramID());
         uniformsMap.createUniform("projectionMatrix");
+        uniformsMap.createUniform("viewMatrix");
         uniformsMap.createUniform("modelMatrix");
+        uniformsMap.createUniform("texture_sampler");
     }
     
     public void render(Scene scene)
     {
         shaderProgram.bind();
         uniformsMap.setUniform("projectionMatrix", scene.getProjection().getProjectionMatrix());
+        uniformsMap.setUniform("viewMatrix", scene.getCamera().getViewMatrix());
+        
+        uniformsMap.setUniform("texture_sampler", 0);
         
         Collection<Model> models = scene.getModelMap().values();
+        TextureCache textureCache = scene.getTextureCache();
         for(Model model : models)
         {
-            model.getMeshList().forEach(mesh ->
+            List<Entity> entities = model.getEntityList();
+            for(Material material : model.getMaterialList())
             {
-                //Draw mesh
-                glBindVertexArray(mesh.getVaoID());
-                for(Entity entity : model.getEntityList())
+                Texture texture = textureCache.getTexture(material.getTexturePath());
+                glActiveTexture(GL_TEXTURE);
+                texture.bind();
+                for(Mesh mesh : material.getMeshList())
                 {
-                    uniformsMap.setUniform("modelMatrix", entity.getModelMatrix());
-                    glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);
+                    glBindVertexArray(mesh.getVaoID());
+                    for(Entity entity : entities)
+                    {
+                        uniformsMap.setUniform("modelMatrix", entity.getModelMatrix());
+                        glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);
+                    }
                 }
-            });
+            }
         }
 
         

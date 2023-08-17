@@ -74,6 +74,52 @@ public class Mesh
 
     }
     
+    public Mesh(float[] positions, float[] textureCoords, int[] indices, Texture texture)
+    {
+        this.vertexCount = indices.length;
+        vboIDList = new ArrayList<>();
+        
+        vaoID = glGenVertexArrays();
+        glBindVertexArray(vaoID);
+        
+        //Coordinate Data Attribute
+        int positionsVboID = glGenBuffers();
+        vboIDList.add(positionsVboID);
+        FloatBuffer positionsBuffer = MemoryUtil.memAllocFloat(positions.length);
+        positionsBuffer.put(positions).flip();
+        glBindBuffer(GL_ARRAY_BUFFER, positionsVboID);
+        glBufferData(GL_ARRAY_BUFFER, positionsBuffer, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+        
+        //Coordinate Color Attribute
+        int textCoordsVboID = glGenBuffers();
+        vboIDList.add(textCoordsVboID);
+        FloatBuffer textureCoordsBuffer = MemoryUtil.memAllocFloat(textureCoords.length);
+        textureCoordsBuffer.put(textureCoords).flip();
+        glBindBuffer(GL_ARRAY_BUFFER, textCoordsVboID);
+        glBufferData(GL_ARRAY_BUFFER, textureCoordsBuffer, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+        
+        //Coordinate Index Attribute
+        int idxVboID = glGenBuffers();
+        vboIDList.add(idxVboID);
+        IntBuffer indicesBuffer = MemoryUtil.memAllocInt(indices.length);
+        indicesBuffer.put(indices).flip();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, idxVboID);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+        
+        
+        MemoryUtil.memFree(positionsBuffer);
+        MemoryUtil.memFree(textureCoordsBuffer);
+        MemoryUtil.memFree(indicesBuffer);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        
+    }
+    
     public int getVertexCount()
     {
         return vertexCount;

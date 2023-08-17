@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 
 public class UniformsMap
@@ -21,6 +22,16 @@ public class UniformsMap
         uniforms = new HashMap<>();
     }
     
+    private int getUniformLocation(String uniformName)
+    {
+        Integer location = uniforms.get(uniformName);
+        if(location == null)
+        {
+            throw new RuntimeException("Could not find uniform [" + uniformName + "]");
+        }
+        return location;
+    }
+    
     public void createUniform(String uniformName)
     {
         int uniformLocation = glGetUniformLocation(programID, uniformName);
@@ -30,6 +41,12 @@ public class UniformsMap
         }
         uniforms.put(uniformName, uniformLocation);
     }
+    
+    public void setUniform(String uniformName, int value)
+    {
+        glUniform1i(getUniformLocation(uniformName), value);
+    }
+    
     
     public void setUniform(String uniformName, Matrix4f value)
     {

@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.game;
+package com.anthonycosenza.engine.scene;
 
 import org.joml.Matrix4f;
 

@@ -59,13 +59,14 @@ public class GameEngine// implements Runnable
              
              if(targetFPS <= 0 || deltaFPS >= 1)
              {
-                 gameLogic.input(window); //Add Scene and time;
+                 window.getMouseInput().input();
+                 gameLogic.input(window, gameLogic.getScene(), now - initialTime); //Add Scene and time;
              }
             
              if(deltaUpdate >= 1)
              {
                  long diffTimeMillis = now - updateTime;
-                 gameLogic.update(diffTimeMillis); //add window and scene
+                 gameLogic.update(window, gameLogic.getScene(), diffTimeMillis); //add window and scene
                  updateTime = now;
                  deltaUpdate--;
              }

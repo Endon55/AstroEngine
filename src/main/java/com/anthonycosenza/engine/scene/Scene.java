@@ -1,21 +1,25 @@
 package com.anthonycosenza.engine.scene;
 
-import com.anthonycosenza.engine.game.Projection;
-import com.anthonycosenza.engine.render.Mesh;
 import com.anthonycosenza.engine.render.Model;
+import com.anthonycosenza.engine.render.TextureCache;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Scene
 {
-    private final Map<String, Model> modelMap;
+    private Camera camera;
+    private Map<String, Model> modelMap;
     private Projection projection;
+    private TextureCache textureCache;
+    
     
     public Scene(int width, int height)
     {
         modelMap = new HashMap<>();
         projection = new Projection(width, height);
+        textureCache = new TextureCache();
+        camera = new Camera();
     }
     public void addEntity(Entity entity)
     {
@@ -38,6 +42,20 @@ public class Scene
         return projection;
     }
     
+    public TextureCache getTextureCache()
+    {
+        return textureCache;
+    }
+    
+    public Camera getCamera()
+    {
+        return camera;
+    }
+    
+    public void resize(int width, int height)
+    {
+        projection.updateProjMatrix(width, height);
+    }
     
     public void cleanup()
     {
