@@ -1,9 +1,11 @@
 package com.anthonycosenza.engine.render;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
+import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
@@ -19,6 +21,9 @@ import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+import static org.lwjgl.stb.STBImage.stbi_failure_reason;
+import static org.lwjgl.stb.STBImage.stbi_image_free;
+import static org.lwjgl.stb.STBImage.stbi_load;
 
 public class Texture
 {
@@ -33,22 +38,23 @@ public class Texture
     
     public Texture(String texturePath)
     {
-        this.texturePath = texturePath;
-    
-        try
+        try(MemoryStack stack = MemoryStack.stackPush())
         {
-            System.out.println(texturePath);
-            PNGDecoder decoder = new PNGDecoder(Texture.class.getResourceAsStream(texturePath));
-            ByteBuffer buf = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
-            decoder.decode(buf, decoder.getWidth() * 4, PNGDecoder.Format.RGBA);
-            buf.flip();
-            generateTexture(decoder.getWidth(), decoder.getHeight(), buf);
-        } catch(IOException e)
-        {
-            throw new RuntimeException(e);
+            this.texturePath = texturePath;
+            IntBuffer w = stack.mallocInt(1);
+            IntBuffer h = stack.mallocInt(1);
+            IntBuffer channels = stack.mallocInt(1);
+            ByteBuffer buf = stbi_load(texturePath, w, h, channels, 4);
+            if(buf == null)
+            {
+                throw new RuntimeException("Image file [" + texturePath + "] could not be loaded: " + stbi_failure_reason());
+            }
+            int width = w.get();
+            int height = h.get();
+            
+            generateTexture(width, height, buf);
+            stbi_image_free(buf);
         }
-    
-        
     }
     
     

@@ -1,11 +1,14 @@
 package com.anthonycosenza.engine.render;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TextureCache
 {
-    public static final String DEFAULT_TEXTURE = "/models/default/DefaultTexture.png";
+    public static final String DEFAULT_TEXTURE = System.getProperty("user.dir") + "/resources/models/default/DefaultTexture.png";
     
     private Map<String, Texture> textureMap;
     

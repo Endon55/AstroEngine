@@ -11,6 +11,7 @@ public class Camera
     private Vector2f rotation;
     private Vector3f right;
     private Vector3f up;
+    //Matrix that stores the final result that gets sent to the vertex shader
     private Matrix4f viewMatrix;
     
     public Camera()

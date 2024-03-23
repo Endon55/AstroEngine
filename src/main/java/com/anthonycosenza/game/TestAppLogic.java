@@ -1,18 +1,19 @@
 package com.anthonycosenza.game;
 
 import com.anthonycosenza.engine.MouseInput;
-import com.anthonycosenza.engine.game.IGameLogic;
+import com.anthonycosenza.engine.game.IAppLogic;
 import com.anthonycosenza.engine.render.Material;
 import com.anthonycosenza.engine.render.Model;
+import com.anthonycosenza.engine.render.Render;
 import com.anthonycosenza.engine.render.Texture;
 import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.render.Mesh;
 import com.anthonycosenza.engine.window.Window;
-import org.joml.Quaternionf;
 import org.joml.Vector2f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
@@ -22,23 +23,17 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 
-public class TestGame implements IGameLogic
+public class TestAppLogic implements IAppLogic
 {
     private static final float MOUSE_SENSITIVITY = 0.1f;
-    private static final float MOVEMENT_SPEED = 0.05f;
-    Scene scene;
-    Entity cube1;
+    private static final float MOVEMENT_SPEED = 0.005f;
+    private Entity cubeEntity;
+    private float rotation;
     
     @Override
-    public void init(Window window)
+    public void init(Window window, Scene scene, Render render)
     {
-        scene = new Scene(window.getWidth(), window.getHeight());
-        
-        Material material = new Material();
-        Texture texture = scene.getTextureCache().createTexture("/models/MinecraftDirtTexture.png");
-        material.setTexturePath(texture.getTexturePath());
-        
-        Mesh cubeMesh = new Mesh(new float[]{
+        float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
                 // V1
@@ -55,7 +50,7 @@ public class TestGame implements IGameLogic
                 -0.5f, -0.5f, -0.5f,
                 // V7
                 0.5f, -0.5f, -0.5f,
-        
+            
                 // For text coords in top face
                 // V8: V4 repeated
                 -0.5f, 0.5f, -0.5f,
@@ -65,19 +60,19 @@ public class TestGame implements IGameLogic
                 -0.5f, 0.5f, 0.5f,
                 // V11: V3 repeated
                 0.5f, 0.5f, 0.5f,
-        
+            
                 // For text coords in right face
                 // V12: V3 repeated
                 0.5f, 0.5f, 0.5f,
                 // V13: V2 repeated
                 0.5f, -0.5f, 0.5f,
-        
+            
                 // For text coords in left face
                 // V14: V0 repeated
                 -0.5f, 0.5f, 0.5f,
                 // V15: V1 repeated
                 -0.5f, -0.5f, 0.5f,
-        
+            
                 // For text coords in bottom face
                 // V16: V6 repeated
                 -0.5f, -0.5f, -0.5f,
@@ -87,46 +82,39 @@ public class TestGame implements IGameLogic
                 -0.5f, -0.5f, 0.5f,
                 // V19: V2 repeated
                 0.5f, -0.5f, 0.5f,
-        }, new float[]{
-        
-                // Top Face
-                0.25f, 0.25f,
-                0.25f, 0.5f,
-                0.5f, 5f,
-                0.5f, .25f,
-                
-                //Bottom Face
-                0.75f, 0.25f,
-                0.75f, 0.5f,
-                0.75f, 0.75f,
-                1f, 0.25f,
-        
-                //Side 1 Face
+        };
+        float[] textCoords = new float[]{
                 0.0f, 0.0f,
-                0.25f, 0.0f,
-                0.0f, 0.25f,
-                0.25f, 0.25f,
-                
-                //Side 1 Face
+                0.0f, 0.5f,
+                0.5f, 0.5f,
+                0.5f, 0.0f,
+            
                 0.0f, 0.0f,
-                0.25f, 0.0f,
-                0.0f, 0.25f,
-                0.25f, 0.25f,
-        
-                //Side 2 Face
+                0.5f, 0.0f,
+                0.0f, 0.5f,
+                0.5f, 0.5f,
+            
+                // For text coords in top face
+                0.0f, 0.5f,
+                0.5f, 0.5f,
+                0.0f, 1.0f,
+                0.5f, 1.0f,
+            
+                // For text coords in right face
                 0.0f, 0.0f,
-                0.25f, 0.0f,
-                0.0f, 0.25f,
-                0.25f, 0.25f,
-        
-                //Side 3 Face
-                0.0f, 0.0f,
-                0.25f, 0.0f,
-                0.0f, 0.25f,
-                0.25f, 0.25f,
-      
-    
-        },new int[]{
+                0.0f, 0.5f,
+            
+                // For text coords in left face
+                0.5f, 0.0f,
+                0.5f, 0.5f,
+            
+                // For text coords in bottom face
+                0.5f, 0.0f,
+                1.0f, 0.0f,
+                0.5f, 0.5f,
+                1.0f, 0.5f,
+        };
+        int[] indices = new int[]{
                 // Front face
                 0, 1, 3, 3, 1, 2,
                 // Top Face
@@ -138,15 +126,21 @@ public class TestGame implements IGameLogic
                 // Bottom face
                 16, 18, 19, 17, 16, 19,
                 // Back face
-                4, 6, 7, 5, 4, 7}, texture);
+                4, 6, 7, 5, 4, 7,};
+        Texture texture = scene.getTextureCache().createTexture(System.getProperty("user.dir") + "/resources/models/cube/cube.png");
+        Material material = new Material();
+        material.setTexturePath(texture.getTexturePath());
+        List<Material> materialList = new ArrayList<>();
+        materialList.add(material);
     
-        material.getMeshList().add(cubeMesh);
-        
-        scene.addModel("CubeModel", new Model("CubeMesh", List.of(material)));
-        cube1 = new Entity("Cube1", "CubeModel");
-        cube1.setPosition(0.0f, 0.0f, -10f);
-        cube1.updateModelMatrix();
-        scene.addEntity(cube1);
+        Mesh mesh = new Mesh(positions, textCoords, indices);
+        material.getMeshList().add(mesh);
+        Model cubeModel = new Model("cube-model", materialList);
+        scene.addModel(cubeModel);
+    
+        cubeEntity = new Entity("cube-entity", cubeModel.getId());
+        cubeEntity.setPosition(0, 0, -2);
+        scene.addEntity(cubeEntity);
     
     }
     
@@ -159,7 +153,6 @@ public class TestGame implements IGameLogic
         if(window.isKeyPressed(GLFW_KEY_W))
         {
             camera.moveForward(move);
-            System.out.println("W Pressed");
         }
         else if(window.isKeyPressed(GLFW_KEY_S))
         {
@@ -195,29 +188,19 @@ public class TestGame implements IGameLogic
     @Override
     public void update(Window window, Scene scene, float interval)
     {
-        //Quaternionf quat = cube1.getRotation();
-        
-        //cube1.setPosition(cube1.getPosition().x - .01f, 0, 0);
-        //cube1.setRotation(.5f, 0.5f, 0.0f, quat.angle() + .1f);
-        //cube1.setRotationRad(1.0f, 0.0f, 0.0f, 25);
-        //cube1.updateModelMatrix();
+        rotation += 1.5;
+        if(rotation > 360)
+        {
+            rotation = 0;
+        }
+        cubeEntity.setRotation(1, 1, 1, (float) Math.toRadians(rotation));
+        cubeEntity.updateModelMatrix();
     }
-    
-    @Override
-    public void render(Window window)
-    {
-    
-    }
-    
+
     @Override
     public void cleanup()
     {
-    
+        //Nothing Yet
     }
     
-    @Override
-    public Scene getScene()
-    {
-        return scene;
-    }
 }

@@ -13,20 +13,17 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glViewport;
 
-public class Renderer
+public class Render
 {
     SceneRenderer sceneRenderer;
-    public Renderer()
+    
+    public Render()
     {
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
+        //This might be here to fix some error I was having.
         glEnable(GL_TEXTURE_2D);
         sceneRenderer = new SceneRenderer();
-    }
-
-    public void init() throws Exception
-    {
-
     }
 
     public void render(Window window, Scene scene)
@@ -35,7 +32,6 @@ public class Renderer
         glViewport(0, 0, window.getWidth(), window.getHeight());
         
         sceneRenderer.render(scene);
-
     }
     
     private void clear()

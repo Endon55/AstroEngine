@@ -28,9 +28,9 @@ public class Scene
         if(model == null) throw new RuntimeException("Could not find model: " + modelID);
         model.getEntityList().add(entity);
     }
-    public void addModel(String meshID, Model model)
+    public void addModel(Model model)
     {
-        modelMap.put(meshID, model);
+        modelMap.put(model.getId(), model);
     }
     public Map<String, Model> getModelMap()
     {

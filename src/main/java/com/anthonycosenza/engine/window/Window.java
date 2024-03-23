@@ -5,7 +5,12 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryUtil;
 
+import java.util.concurrent.Callable;
+
+import static java.awt.SystemColor.window;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
+import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
+import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_MAXIMIZED;
@@ -25,6 +30,7 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
@@ -33,21 +39,21 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.glfw.GLFW.nglfwSetFramebufferSizeCallback;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window
 {
     private long windowHandle;
-    private String title;
     int width;
     int height;
     private MouseInput mouseInput;
+    private Callable<Void> resizeFunc;
     
     
-    public Window(String gameTitle, WindowOptions options)
+    public Window(String title, WindowOptions options, Callable<Void> resizeFunc)
     {
-        this.title = gameTitle;
-    
+        this.resizeFunc = resizeFunc;
         //Initialize GLFW, most GLFW functions won't work before doing this
         if(!glfwInit())
         {
@@ -60,8 +66,8 @@ public class Window
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     
         //No idea if useful
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     
     
         if(options.width > 0 && options.height > 0)
@@ -84,12 +90,11 @@ public class Window
             throw new RuntimeException("Failed to create GLFW window");
         }
         
-        //glfwSetFramebufferSizeCallback(window, (window, width, height) -> resized(width, height));
+        glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> resized(width, height));
     
-        GLFWErrorCallback.createPrint(System.err).set();
-        
-       /* glfwSetErrorCallback((int errorCode, long msgPtr) ->
-                System.out.println("Error code: " + errorCode + ", Message: " + MemoryUtil.memUTF8(msgPtr)));*/
+
+        glfwSetErrorCallback((int errorCode, long msgPtr) ->
+                System.out.println("Error code: " + errorCode + ", Message: " + MemoryUtil.memUTF8(msgPtr)));
         
         //Setup a key callback. Will be called anytime a key is pressed, repeated, or released.
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) ->
@@ -120,6 +125,23 @@ public class Window
         mouseInput = new MouseInput(windowHandle);
         
     }
+
+    protected void resized(int width, int height)
+    {
+        this.width = width;
+        this.height = height;
+    
+        try
+        {
+            resizeFunc.call();
+        } catch(Exception e)
+        {
+            throw new RuntimeException("Error calling resize callback", e);
+        }
+    }
+    
+    
+    
     public boolean isKeyPressed(int keyCode)
     {
         return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;

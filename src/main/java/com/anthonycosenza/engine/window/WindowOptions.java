@@ -1,14 +1,15 @@
 package com.anthonycosenza.engine.window;
 
-import com.anthonycosenza.engine.GameEngine;
+import com.anthonycosenza.engine.Engine;
 
 public class WindowOptions
 {
+    public boolean compatibleProfile;
     public int fps;
-    public int ups = GameEngine.TARGET_UPS;
+    public int ups = Engine.TARGET_UPS;
     
-    int width;
-    int height;
+    public int width;
+    public int height;
     
     public WindowOptions()
     {

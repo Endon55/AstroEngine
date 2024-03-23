@@ -8,7 +8,9 @@ import java.util.List;
 public class Model
 {
     private final String id;
+    //List of all entities created using this model
     private List<Entity> entityList;
+    //List of all materials to apply to this model
     private List<Material> materialList;
     
     public Model(String id, List<Material> materialList)
