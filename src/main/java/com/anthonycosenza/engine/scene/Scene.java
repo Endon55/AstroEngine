@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.scene;
 
 import com.anthonycosenza.engine.render.Model;
 import com.anthonycosenza.engine.render.TextureCache;
+import com.anthonycosenza.engine.render.gui.IGuiInstance;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ public class Scene
     private Map<String, Model> modelMap;
     private Projection projection;
     private TextureCache textureCache;
+    private IGuiInstance guiInstance;
     
     
     public Scene(int width, int height)
@@ -62,6 +64,13 @@ public class Scene
         modelMap.values().forEach(Model::cleanup);
     }
     
+    public IGuiInstance getGuiInstance()
+    {
+        return guiInstance;
+    }
     
-    
+    public void setGuiInstance(IGuiInstance guiInstance)
+    {
+        this.guiInstance = guiInstance;
+    }
 }

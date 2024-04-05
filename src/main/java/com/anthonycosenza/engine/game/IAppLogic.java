@@ -7,7 +7,7 @@ import com.anthonycosenza.engine.window.Window;
 public interface IAppLogic
 {
     void init(Window window, Scene scene, Render render) throws Exception;
-    void input(Window window, Scene scene, long difTimeMillis);
+    void input(Window window, Scene scene, long difTimeMillis, boolean inputConsumed);
     void update(Window window, Scene scene, float interval);
     void cleanup();
     

@@ -2,6 +2,7 @@ package com.anthonycosenza.engine;
 
 import com.anthonycosenza.engine.game.IAppLogic;
 import com.anthonycosenza.engine.render.Render;
+import com.anthonycosenza.engine.render.gui.IGuiInstance;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.window.Window;
 import com.anthonycosenza.engine.window.WindowOptions;
@@ -23,7 +24,6 @@ public class Engine
     
     public Engine(String windowTitle, WindowOptions options, IAppLogic logic) throws Exception
     {
-        //gameLoopThread = new Thread(this, "GAME_LOOP_THREAD");
         window = new Window(windowTitle, options, ()->
         {
             resize();
@@ -32,26 +32,29 @@ public class Engine
         targetFPS = options.fps;
         targetUPS = options.ups;
         this.logic = logic;
-        this.renderer = new Render();
+        this.renderer = new Render(window);
         scene = new Scene(window.getWidth(), window.getHeight());
         logic.init(window, scene, renderer);
         running = true;
     }
     private void resize()
     {
-        scene.resize(window.getWidth(), window.getHeight());
+        int width = window.getWidth();
+        int height = window.getHeight();
+        scene.resize(width, height);
+        renderer.resize(width, height);
     }
-
 
     private void run()
     {
         long initialTime = System.currentTimeMillis();
-        float timeU = 1000.0f / TARGET_UPS;
+        float timeU = 1000.0f / targetUPS;
         float timeR = targetFPS > 0 ? 1000.0f / targetFPS : 0;
         float deltaUpdate = 0;
         float deltaFPS = 0;
         
         long updateTime = initialTime;
+        IGuiInstance iGuiInstance = scene.getGuiInstance();
         while(running && !window.shouldClose())
         {
             window.pollEvents();
@@ -63,7 +66,8 @@ public class Engine
              if(targetFPS <= 0 || deltaFPS >= 1)
              {
                  window.getMouseInput().input();
-                 logic.input(window, scene, now - initialTime); //Add Scene and time;
+                 boolean inputConsumed = iGuiInstance != null && iGuiInstance.handleGuiInput(scene, window);
+                 logic.input(window, scene, now - initialTime, inputConsumed); //Add Scene and time;
              }
             
              if(deltaUpdate >= 1)
@@ -93,7 +97,6 @@ public class Engine
         scene.cleanup();
         window.cleanup();
     }
-    
     
     public void start()
     {

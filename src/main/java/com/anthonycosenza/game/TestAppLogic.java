@@ -7,11 +7,15 @@ import com.anthonycosenza.engine.render.Model;
 import com.anthonycosenza.engine.render.ModelLoader;
 import com.anthonycosenza.engine.render.Render;
 import com.anthonycosenza.engine.render.Texture;
+import com.anthonycosenza.engine.render.gui.IGuiInstance;
 import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.render.Mesh;
 import com.anthonycosenza.engine.window.Window;
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.flag.ImGuiCond;
 import org.joml.Vector2f;
 
 import java.util.ArrayList;
@@ -24,7 +28,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 
-public class TestAppLogic implements IAppLogic
+public class TestAppLogic implements IAppLogic, IGuiInstance
 {
     private static final float MOUSE_SENSITIVITY = 0.1f;
     private static final float MOVEMENT_SPEED = 0.005f;
@@ -34,18 +38,29 @@ public class TestAppLogic implements IAppLogic
     @Override
     public void init(Window window, Scene scene, Render render)
     {
+        //Model pyramidModel = ModelLoader.loadModel("pyramid-model", System.getProperty("user.dir") + "/resources/models/WebcamMount.stl", scene.getTextureCache());
+        //scene.addModel(pyramidModel);
         Model cubeModel = ModelLoader.loadModel("cube-model", System.getProperty("user.dir") + "/resources/models/cube/cube.obj", scene.getTextureCache()); //"resources/models/cube/cube.obj"
         scene.addModel(cubeModel);
-
+        //cubeEntity = new Entity("pyramid-entity", pyramidModel.getId());
+        //cubeEntity.setPosition(0, 0, -200);
+        //scene.addEntity(cubeEntity);
         cubeEntity = new Entity("cube-entity", cubeModel.getId());
         cubeEntity.setPosition(0, 0, -2);
         scene.addEntity(cubeEntity);
-    
+        
+        
+        scene.setGuiInstance(this);
     }
     
     @Override
-    public void input(Window window, Scene scene, long diffTimeMillis)
+    public void input(Window window, Scene scene, long diffTimeMillis, boolean inputConsumed)
     {
+        //We don't want to process the same input command repeatedly, so we leave the call if it's already been used.
+        if(inputConsumed)
+        {
+            return;
+        }
         float move = diffTimeMillis * MOVEMENT_SPEED;
         Camera camera = scene.getCamera();
         
@@ -96,10 +111,36 @@ public class TestAppLogic implements IAppLogic
         cubeEntity.updateModelMatrix();
     }
 
+
+    
+    @Override
+    public void drawGui()
+    {
+        ImGui.newFrame();;
+        ImGui.setNextWindowPos(0, 0, ImGuiCond.Always);
+        ImGui.showDemoWindow();
+        ImGui.endFrame();
+        ImGui.render();
+    }
+    
+    @Override
+    public boolean handleGuiInput(Scene scene, Window window)
+    {
+        ImGuiIO imGuiIO = ImGui.getIO();
+        MouseInput mouseInput = window.getMouseInput();
+        Vector2f mousePos = mouseInput.getCurrentPos();
+        imGuiIO.setMousePos(mousePos.x, mousePos.y);
+        imGuiIO.setMouseDown(0, mouseInput.isLeftButtonPressed());
+        imGuiIO.setMouseDown(1, mouseInput.isRightButtonPressed());
+        
+        
+        return imGuiIO.getWantCaptureMouse() || imGuiIO.getWantCaptureKeyboard();
+    }
+    
+    
     @Override
     public void cleanup()
     {
         //Nothing Yet
     }
-    
 }

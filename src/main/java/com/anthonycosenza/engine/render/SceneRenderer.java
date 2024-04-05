@@ -16,7 +16,9 @@ import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
-
+/**
+ * SceneRenderer handles the data handoff between Java code and OpenGL, and is responsible for what is seen on screen.
+ */
 public class SceneRenderer
 {
     private ShaderProgram shaderProgram;
@@ -25,8 +27,8 @@ public class SceneRenderer
     public SceneRenderer()
     {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/vertex.vert", GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/fragment.frag", GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/scene.vert", GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
 
         createUniforms();

@@ -7,6 +7,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
@@ -22,30 +23,51 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
+/**
+ * A mesh consists of 3 parts
+ */
 public class Mesh
 {
     private int vertexCount;
+    //Vertex array object
+    //The collection of data sets that define an object, position, color, texture data etc.
     private final int vaoID;
+    //Vertex buffer object
+    //Converts a float array into OpenGL form and sends it to OpenGL to manage, giving us a reference.
     private final List<Integer> vboIDList;
     
+    /**
+     *
+     * @param positions, all of the unique vertices contained in our mesh in a flattened format. x1, y1, z1, x2, y2, z2...
+     * @param textureCoords, how the vertices of this mesh map to a 2d texture in a flattened 0 to 1 format. x1, y1, x2, y2...
+     * @param indices, used to define triangles within a mesh, each element of the indices array needs to reference the index of the corresponding vertex from the positions array in a counter-clockwise fashion.
+     */
     public Mesh(float[] positions, float[] textureCoords, int[] indices)
     {
         try(MemoryStack stack = MemoryStack.stackPush())
         {
             this.vertexCount = indices.length;
             vboIDList = new ArrayList<>();
-    
+            //Creating a new Vertex Array within OpenGL and storing its id.
             vaoID = glGenVertexArrays();
+            //Set this array as the "Active" one we're working on.
             glBindVertexArray(vaoID);
     
             //Coordinate Data Attribute
+            
+            //Create an OpenGL buffer for position.
             int positionsVboID = glGenBuffers();
             vboIDList.add(positionsVboID);
+            //Create a buffer and store the position data within it.
             FloatBuffer positionsBuffer = stack.callocFloat(positions.length);
             positionsBuffer.put(0, positions);
+            //Set the position buffer as active
             glBindBuffer(GL_ARRAY_BUFFER, positionsVboID);
+            //Transfer the FloatBuffer to OpenGL
             glBufferData(GL_ARRAY_BUFFER, positionsBuffer, GL_STATIC_DRAW);
+            //Enable the newly created array
             glEnableVertexAttribArray(0);
+            //Tells OpenGL how to use the data in the buffer. Size 3 because there's an X, Y, and Z component to each Float
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
     
             //Coordinate Texture Attribute

@@ -7,9 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL20.glAttachShader;
 import static org.lwjgl.opengl.GL20.glCompileShader;
 import static org.lwjgl.opengl.GL20.glCreateProgram;
@@ -23,13 +21,13 @@ import static org.lwjgl.opengl.GL20.glGetShaderi;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
 import static org.lwjgl.opengl.GL20.glUseProgram;
-import static org.lwjgl.opengl.GL20.glValidateProgram;
 
+/**
+ * This class compiles shaders and hands them off to OpenGL
+ */
 public class ShaderProgram
 {
     private final int programID;
-    private int vertexShaderID;
-    private int fragmentShaderID;
     
     public ShaderProgram(List<ShaderModuleData> shaderModuleDataList)
     {
@@ -39,22 +37,12 @@ public class ShaderProgram
             throw new RuntimeException("Could not create Shader");
         }
         
-        
         List<Integer> shaderModules = new ArrayList<>();
         shaderModuleDataList.forEach(shader -> shaderModules.add(createShader(Utils.loadResource(shader.shaderFile), shader.shaderType)));
         
         link(shaderModules);
     }
     
-    public void createVertexShader(String shaderCode) throws Exception
-    {
-        vertexShaderID = createShader(shaderCode, GL_VERTEX_SHADER);
-    }
-    
-    public void createFragmentShader(String shaderCode) throws Exception
-    {
-        fragmentShaderID = createShader(shaderCode, GL_FRAGMENT_SHADER);
-    }
     protected int createShader(String shaderCode, int shaderType)
     {
         int shaderID = glCreateShader(shaderType);
@@ -81,7 +69,6 @@ public class ShaderProgram
         
         shaderModules.forEach(s->glDetachShader(programID, s));
         shaderModules.forEach(GL30::glDeleteShader);
-        
     }
     
     public void bind()

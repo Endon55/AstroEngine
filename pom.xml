@@ -16,6 +16,7 @@
         <lwjgl.natives>natives-windows</lwjgl.natives>
         <joml.version>1.10.5</joml.version>
         <pngdecoder.version>1.0</pngdecoder.version>
+        <imgui.version>1.86.11</imgui.version>
     </properties>
 
     <dependencyManagement>
@@ -135,6 +136,17 @@
             <artifactId>lwjgl-assimp</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>${lwjgl.natives}</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-binding</artifactId>
+            <version>${imgui.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-${lwjgl.natives}</artifactId>
+            <version>${imgui.version}</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
