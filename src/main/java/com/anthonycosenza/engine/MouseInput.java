@@ -12,7 +12,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 public class MouseInput
 {
     private Vector2f currentPos;
-    private Vector2f displVec;
+    private Vector2f displayVector;
     private boolean inWindow;
     private boolean leftButtonPressed;
     private Vector2f previousPos;
@@ -22,17 +22,22 @@ public class MouseInput
     {
         previousPos = new Vector2f(-1, -1);
         currentPos = new Vector2f();
-        displVec = new Vector2f();
+        displayVector = new Vector2f();
         leftButtonPressed = false;
         rightButtonPressed = false;
         inWindow = false;
-    
+        //Updates local mouse position whenever the cursor is moved, updates regardless of being inside the window or not.
         glfwSetCursorPosCallback(windowHandle, (handle, xPos, yPos) ->
         {
             currentPos.x = (float) xPos;
             currentPos.y = (float) yPos;
         });
-        glfwSetCursorEnterCallback(windowHandle, (handle, entered) -> inWindow = entered);
+        //Updates when the cursor leaves or enters the window
+        glfwSetCursorEnterCallback(windowHandle, (handle, entered) ->
+        {
+            inWindow = entered;
+        });
+        //Updates when a mouse button is pressed, updates regardless of being inside the window or not.
         glfwSetMouseButtonCallback(windowHandle, (handle, button, action, mode) ->
         {
             leftButtonPressed  = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
@@ -45,9 +50,9 @@ public class MouseInput
         return currentPos;
     }
     
-    public Vector2f getDisplVec()
+    public Vector2f getDisplayVector()
     {
-        return displVec;
+        return displayVector;
     }
     
     public boolean isLeftButtonPressed()
@@ -62,8 +67,8 @@ public class MouseInput
     
     public void input()
     {
-        displVec.x = 0;
-        displVec.y = 0;
+        displayVector.x = 0;
+        displayVector.y = 0;
         if(previousPos.x > 0 && previousPos.y > 0 && inWindow)
         {
             double deltaX = currentPos.x - previousPos.x;
@@ -72,11 +77,11 @@ public class MouseInput
             boolean rotateY = deltaY != 0;
             if(rotateX)
             {
-                displVec.y = (float) deltaX;
+                displayVector.y = (float) deltaX;
             }
             if(rotateY)
             {
-                displVec.x = (float) deltaY;
+                displayVector.x = (float) deltaY;
             }
         }
         previousPos.x = currentPos.x;

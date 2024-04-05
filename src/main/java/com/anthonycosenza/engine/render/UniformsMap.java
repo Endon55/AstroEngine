@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.render;
 
 import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
@@ -9,6 +10,7 @@ import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUniform1i;
+import static org.lwjgl.opengl.GL20.glUniform4f;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 
 public class UniformsMap
@@ -47,6 +49,10 @@ public class UniformsMap
         glUniform1i(getUniformLocation(uniformName), value);
     }
     
+    public void setUniform(String uniformName, Vector4f value)
+    {
+        glUniform4f(getUniformLocation(uniformName), value.x, value.y, value.z, value.w);
+    }
     
     public void setUniform(String uniformName, Matrix4f value)
     {

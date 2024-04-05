@@ -25,10 +25,9 @@ public class SceneRenderer
     public SceneRenderer()
     {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/shaders/vertex.vs", GL_VERTEX_SHADER));
-        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("/shaders/fragment.fs", GL_FRAGMENT_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/vertex.vert", GL_VERTEX_SHADER));
+        shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/fragment.frag", GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
-
 
         createUniforms();
     }
@@ -39,16 +38,18 @@ public class SceneRenderer
         uniformsMap.createUniform("projectionMatrix");
         uniformsMap.createUniform("viewMatrix");
         uniformsMap.createUniform("modelMatrix");
-        uniformsMap.createUniform("texture_sampler");
+        uniformsMap.createUniform("textureSampler");
+        uniformsMap.createUniform("material.diffuse");
     }
     
     public void render(Scene scene)
     {
         shaderProgram.bind();
+        
         uniformsMap.setUniform("projectionMatrix", scene.getProjection().getProjectionMatrix());
         uniformsMap.setUniform("viewMatrix", scene.getCamera().getViewMatrix());
         
-        uniformsMap.setUniform("texture_sampler", 0);
+        uniformsMap.setUniform("textureSampler", 0);
         
         Collection<Model> models = scene.getModelMap().values();
         TextureCache textureCache = scene.getTextureCache();
@@ -57,6 +58,7 @@ public class SceneRenderer
             List<Entity> entities = model.getEntityList();
             for(Material material : model.getMaterialList())
             {
+                uniformsMap.setUniform("material.diffuse", material.getDiffuseColor());
                 Texture texture = textureCache.getTexture(material.getTexturePath());
                 glActiveTexture(GL_TEXTURE);
                 texture.bind();

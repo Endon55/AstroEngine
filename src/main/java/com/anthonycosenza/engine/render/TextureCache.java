@@ -1,8 +1,5 @@
 package com.anthonycosenza.engine.render;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +21,16 @@ public class TextureCache
     }
     public Texture getTexture(String texturePath)
     {
-        return textureMap.get(texturePath);
+        Texture texture = null;
+        if(texturePath != null)
+        {
+            texture = textureMap.get(texturePath);
+        }
+        if(texture == null)
+        {
+            texture = textureMap.get(DEFAULT_TEXTURE);
+        }
+        return texture;
     }
     
     

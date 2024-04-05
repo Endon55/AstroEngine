@@ -38,22 +38,26 @@ public class Texture
     
     public Texture(String texturePath)
     {
+        //Memory stack allows the creation of memory system wide memory that can be shared with OpenGL without having to create a copy of the data.
+        //https://blog.lwjgl.org/memory-management-in-lwjgl-3/
+        
         try(MemoryStack stack = MemoryStack.stackPush())
         {
             this.texturePath = texturePath;
-            IntBuffer w = stack.mallocInt(1);
-            IntBuffer h = stack.mallocInt(1);
-            IntBuffer channels = stack.mallocInt(1);
-            ByteBuffer buf = stbi_load(texturePath, w, h, channels, 4);
-            if(buf == null)
+            
+            //STBI will load the relevant values into these buffers when it loads the image
+            IntBuffer widthBuffer = stack.mallocInt(1);
+            IntBuffer heightBuffer = stack.mallocInt(1);
+            IntBuffer channelBuffer = stack.mallocInt(1);
+            
+            ByteBuffer imageBuffer = stbi_load(texturePath, widthBuffer, heightBuffer, channelBuffer, 4);
+            if(imageBuffer == null)
             {
                 throw new RuntimeException("Image file [" + texturePath + "] could not be loaded: " + stbi_failure_reason());
             }
-            int width = w.get();
-            int height = h.get();
             
-            generateTexture(width, height, buf);
-            stbi_image_free(buf);
+            generateTexture(widthBuffer.get(), heightBuffer.get(), imageBuffer);
+            stbi_image_free(imageBuffer);
         }
     }
     
@@ -63,7 +67,7 @@ public class Texture
        glBindTexture(GL_TEXTURE_2D, textureID);
    }
     
-    public void generateTexture(int width, int height, ByteBuffer buf)
+    public void generateTexture(int width, int height, ByteBuffer imageBuffer)
     {
         textureID = glGenTextures();
         
@@ -72,7 +76,7 @@ public class Texture
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, buf);
+                GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     

@@ -1,9 +1,8 @@
 package com.anthonycosenza.engine;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Utils
 {
@@ -13,8 +12,8 @@ public class Utils
         String str;
         try
         {
-            str = new String(Files.readAllBytes(Path.of(Utils.class.getResource(filepath).toURI())));
-        }catch(IOException | URISyntaxException e)
+            str = new String(Files.readAllBytes(Paths.get(filepath)));
+        }catch(IOException e)
         {
             //System.out.println(Paths.get("/resources" + filepath).toAbsolutePath().toString());
             throw new RuntimeException("Error reading file[" + filepath + "]: " + e);
