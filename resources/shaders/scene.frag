@@ -8,6 +8,8 @@ const float SPECULAR_POWER = 10;
 
 in vec3 outPosition;
 in vec3 outNormal;
+in vec3 outTangent;
+in vec3 outBitangent;
 in vec2 outTextCoord;
 
 out vec4 fragColor;
@@ -18,6 +20,7 @@ struct Material
     vec4 diffuse;
     vec4 specular;
     float reflectance;
+    int hasNormalMap;
 };
 struct Attenuation
 {
@@ -58,12 +61,23 @@ struct Fog
 
 
 uniform sampler2D textureSampler;
+uniform sampler2D normalSampler;
 uniform Material material;
 uniform AmbientLight ambientLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
 uniform Fog fog;
+
+vec3 calculateNormal(vec3 normal, vec3 tangent, vec3 bitangent, vec2 textureCoords)
+{
+    mat3 TBN = mat3(tangent, bitangent, normal);
+    vec3 newNormal = texture(normalSampler, textureCoords).rgb;
+    //Converting from 0 to 1(how rgb values are stored) to OpenGL -1 to 1
+    newNormal = normalize(newNormal * 2.0 - 1.0);
+    newNormal = normalize(TBN * newNormal);
+    return newNormal;
+}
 
 vec4 calculateFog(vec3 pos, vec4 color, Fog fog, vec3 ambientLight, DirectionalLight directionalLight)
 {
@@ -142,14 +156,20 @@ void main()
     vec4 diffuse = text_color + material.diffuse;
     vec4 specular = text_color + material.specular;
 
-    vec4 diffuseSpecularComp = calculateDirectionalLight(diffuse, specular, directionalLight, outPosition, outNormal);
+    vec3 normal = outNormal;
+    if(material.hasNormalMap > 0)
+    {
+        normal = calculateNormal(outNormal, outTangent, outBitangent, outTextCoord);
+    }
+
+    vec4 diffuseSpecularComp = calculateDirectionalLight(diffuse, specular, directionalLight, outPosition, normal);
 
     for (int i = 0; i < MAX_POINT_LIGHTS; i++)
     {
         //Check if we've used this light at all.
         if (pointLights[i].intensity > 0)
         {
-            diffuseSpecularComp += calculatePointLight(diffuse, specular, pointLights[i], outPosition, outNormal);
+            diffuseSpecularComp += calculatePointLight(diffuse, specular, pointLights[i], outPosition, normal);
         }
     }
     for (int i = 0; i < MAX_SPOT_LIGHTS; i++)
@@ -157,7 +177,7 @@ void main()
         //Check if we've used this light at all.
         if (spotLights[i].pointLight.intensity > 0)
         {
-            diffuseSpecularComp += calculateSpotLight(diffuse, specular, spotLights[i], outPosition, outNormal);
+            diffuseSpecularComp += calculateSpotLight(diffuse, specular, spotLights[i], outPosition, normal);
         }
     }
     //The final color from lighting

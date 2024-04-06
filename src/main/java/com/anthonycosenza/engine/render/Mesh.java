@@ -43,7 +43,7 @@ public class Mesh
      * @param textureCoords, how the vertices of this mesh map to a 2d texture in a flattened 0 to 1 format. x1, y1, x2, y2...
      * @param indices, used to define triangles within a mesh, each element of the indices array needs to reference the index of the corresponding vertex from the positions array in a counter-clockwise fashion.
      */
-    public Mesh(float[] positions, float[] normals, float[] textureCoords, int[] indices)
+    public Mesh(float[] positions, float[] normals, float[] tangents, float[] bitTangents, float[] textureCoords, int[] indices)
     {
         try(MemoryStack stack = MemoryStack.stackPush())
         {
@@ -54,7 +54,7 @@ public class Mesh
             //Set this array as the "Active" one we're working on.
             glBindVertexArray(vaoID);
     
-            //Coordinate Data Attribute
+            //Coordinate Positions Data Attribute
             
             //Create an OpenGL buffer for position.
             int positionsVboID = glGenBuffers();
@@ -71,7 +71,7 @@ public class Mesh
             //Tells OpenGL how to use the data in the buffer. Size 3 because there's an X, Y, and Z component to each Float
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
     
-            //Vertex normal Attribute
+            //Vertex normals Attribute
             int normalsVboID = glGenBuffers();
             vboIDList.add(normalsVboID);
             FloatBuffer normalsBuffer = stack.callocFloat(normals.length);
@@ -81,6 +81,25 @@ public class Mesh
             glEnableVertexAttribArray(1);
             glVertexAttribPointer(1, 3, GL_FLOAT, false,0, 0);
             
+            //Tangent Normals
+            int tangentVboID = glGenBuffers();
+            vboIDList.add(tangentVboID);
+            FloatBuffer tangentsBuffer = stack.callocFloat(tangents.length);
+            tangentsBuffer.put(0, tangents);
+            glBindBuffer(GL_ARRAY_BUFFER, tangentVboID);
+            glBufferData(GL_ARRAY_BUFFER, tangentsBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+    
+            //BiTangent Normals
+            int bitangentVboID = glGenBuffers();
+            vboIDList.add(bitangentVboID);
+            FloatBuffer bitangentsBuffer = stack.callocFloat(bitTangents.length);
+            bitangentsBuffer.put(0, bitTangents);
+            glBindBuffer(GL_ARRAY_BUFFER, bitangentVboID);
+            glBufferData(GL_ARRAY_BUFFER, bitangentsBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0);
             
             //Coordinate Texture Attribute
             int textureVboID = glGenBuffers();
@@ -89,8 +108,8 @@ public class Mesh
             textureBuffer.put(0, textureCoords);
             glBindBuffer(GL_ARRAY_BUFFER, textureVboID);
             glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 2, GL_FLOAT, false, 0, 0);
     
             //Coordinate Index Attribute
             int idxVboID = glGenBuffers();
