@@ -7,6 +7,7 @@ import com.anthonycosenza.engine.render.light.PointLight;
 import com.anthonycosenza.engine.render.light.SceneLighting;
 import com.anthonycosenza.engine.render.light.SpotLight;
 import com.anthonycosenza.engine.scene.Entity;
+import com.anthonycosenza.engine.scene.Fog;
 import com.anthonycosenza.engine.scene.Scene;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -16,11 +17,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
+import static org.lwjgl.opengl.GL14.glBlendEquation;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -60,7 +69,8 @@ public class SceneRenderer
         uniformsMap.createUniform("material.reflectance");
         uniformsMap.createUniform("ambientLight.factor");
         uniformsMap.createUniform("ambientLight.color");
-    
+        
+        //We have to create pseudo arrays with name strings, so they can be accessed in the shaders.
         for(int i = 0; i < MAX_POINT_LIGHTS; i++)
         {
             String name = "pointLights[" + i + "]";
@@ -87,6 +97,10 @@ public class SceneRenderer
         uniformsMap.createUniform("directionalLight.color");
         uniformsMap.createUniform("directionalLight.direction");
         uniformsMap.createUniform("directionalLight.intensity");
+        
+        uniformsMap.createUniform("fog.activeFog");
+        uniformsMap.createUniform("fog.color");
+        uniformsMap.createUniform("fog.density");
         
     }
     
@@ -185,6 +199,10 @@ public class SceneRenderer
     
     public void render(Scene scene)
     {
+        glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
         shaderProgram.bind();
         
         uniformsMap.setUniform("projectionMatrix", scene.getProjection().getProjectionMatrix());
@@ -193,6 +211,11 @@ public class SceneRenderer
         uniformsMap.setUniform("textureSampler", 0);
         
         updateLights(scene);
+        
+        Fog fog = scene.getFog();
+        uniformsMap.setUniform("fog.activeFog", fog.isActive() ? 1 : 0);
+        uniformsMap.setUniform("fog.color", fog.getColor());
+        uniformsMap.setUniform("fog.density", fog.getDensity());
         
         Collection<Model> models = scene.getModelMap().values();
         TextureCache textureCache = scene.getTextureCache();
@@ -220,9 +243,10 @@ public class SceneRenderer
             }
         }
 
-        
         glBindVertexArray(0);
         shaderProgram.unbind();
+        
+        glDisable(GL_BLEND);
     }
 
     public void cleanup()

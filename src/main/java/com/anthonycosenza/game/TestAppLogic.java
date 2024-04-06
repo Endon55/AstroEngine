@@ -13,6 +13,7 @@ import com.anthonycosenza.engine.render.light.SceneLighting;
 import com.anthonycosenza.engine.render.light.SpotLight;
 import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
+import com.anthonycosenza.engine.scene.Fog;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.render.Mesh;
 import com.anthonycosenza.engine.scene.SkyBox;
@@ -76,8 +77,11 @@ public class TestAppLogic implements IAppLogic
         scene.setSceneLighting(sceneLighting);
         
         SkyBox skyBox = new SkyBox(System.getProperty("user.dir") + "/resources/models/skybox/skybox.obj", scene.getTextureCache());
-        skyBox.getSkyBoxEntity().setScale(50);
+        skyBox.setScale(100);
         scene.setSkyBox(skyBox);
+        
+        scene.setFog(new Fog(true, new Vector3f(0.5f, 0.5f, 0.5f), 0.95f));
+        
         scene.getCamera().moveUp(0.1f);
         updateTerrain(scene);
         
@@ -123,7 +127,7 @@ public class TestAppLogic implements IAppLogic
         if(mouseInput.isRightButtonPressed())
         {
             Vector2f displVec = mouseInput.getDisplayVector();
-            camera.addRotation((float) Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
+            camera.addRotation((float) -Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) -Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
         
         

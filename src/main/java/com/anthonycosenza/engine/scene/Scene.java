@@ -15,10 +15,9 @@ public class Scene
     private Projection projection;
     private TextureCache textureCache;
     private IGuiInstance guiInstance;
+    
     private SkyBox skyBox;
-    
-
-    
+    private Fog fog;
     private SceneLighting sceneLighting;
     
     
@@ -28,6 +27,7 @@ public class Scene
         projection = new Projection(width, height);
         textureCache = new TextureCache();
         camera = new Camera();
+        fog = new Fog();
     }
     public void addEntity(Entity entity)
     {
@@ -98,5 +98,15 @@ public class Scene
     public void setSkyBox(SkyBox skyBox)
     {
         this.skyBox = skyBox;
+    }
+    
+    public Fog getFog()
+    {
+        return fog;
+    }
+    
+    public void setFog(Fog fog)
+    {
+        this.fog = fog;
     }
 }

@@ -24,4 +24,9 @@ public class SkyBox
     {
         return skyBoxModel;
     }
+    
+    public void setScale(float scale)
+    {
+        getSkyBoxEntity().setScale(scale);
+    }
 }

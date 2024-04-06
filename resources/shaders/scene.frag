@@ -49,6 +49,12 @@ struct DirectionalLight
     vec3 direction;
     float intensity;
 };
+struct Fog
+{
+    int activeFog;
+    vec3 color;
+    float density;
+};
 
 
 uniform sampler2D textureSampler;
@@ -57,8 +63,18 @@ uniform AmbientLight ambientLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
+uniform Fog fog;
 
+vec4 calculateFog(vec3 pos, vec4 color, Fog fog, vec3 ambientLight, DirectionalLight directionalLight)
+{
+    vec3 fogColor = fog.color * (ambientLight + directionalLight.color * directionalLight.intensity);
+    float distance = length(pos);
+    float fogFactor = 1.0 / exp((distance * fog.density) * (distance * fog.density));
+    fogFactor = clamp(fogFactor, 0.0, 1.0);
 
+    vec3 resultColor = mix(fogColor, color.xyz, fogFactor);
+    return vec4(resultColor.xyz, color.w);
+}
 
 vec4 calculateAmbient(AmbientLight ambientLight, vec4 ambient)
 {
@@ -144,6 +160,11 @@ void main()
             diffuseSpecularComp += calculateSpotLight(diffuse, specular, spotLights[i], outPosition, outNormal);
         }
     }
-
+    //The final color from lighting
     fragColor = ambient + diffuseSpecularComp;
+    //With fog we take that final lighting color and pass it into the fog calculation.
+    if (fog.activeFog == 1)
+    {
+        fragColor = calculateFog(outPosition, fragColor, fog, ambientLight.color, directionalLight);;
+    }
 }
