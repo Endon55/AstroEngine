@@ -15,6 +15,7 @@ import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.render.Mesh;
+import com.anthonycosenza.engine.scene.SkyBox;
 import com.anthonycosenza.engine.window.Window;
 import imgui.ImGui;
 import imgui.ImGuiIO;
@@ -34,6 +35,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 
 public class TestAppLogic implements IAppLogic
 {
+    private static final int NUM_CHUNKS = 4;
+    private Entity[][] terrainEntities;
     private static final float MOUSE_SENSITIVITY = 0.1f;
     private static final float MOVEMENT_SPEED = 0.005f;
     private Entity cubeEntity;
@@ -43,7 +46,23 @@ public class TestAppLogic implements IAppLogic
     @Override
     public void init(Window window, Scene scene, Render render)
     {
-
+        String quadModelId = "quad-model";
+        Model quadModel = ModelLoader.loadModel(quadModelId, System.getProperty("user.dir") + "/resources/models/quad/quad.obj", scene.getTextureCache());
+        scene.addModel(quadModel);
+        
+        int numRows = NUM_CHUNKS * 2 + 1;
+        int numCols = numRows;
+        terrainEntities = new Entity[numRows][numCols];
+        for(int j = 0; j < numRows; j++)
+        {
+            for(int i = 0; i < numCols; i++)
+            {
+                Entity entity = new Entity("TERRAIN_" + j + "_" + i, quadModelId);
+                terrainEntities[j][i] = entity;
+                scene.addEntity(entity);
+            }
+        }
+        
         Model cubeModel = ModelLoader.loadModel("cube-model", System.getProperty("user.dir") + "/resources/models/cube/cube.obj", scene.getTextureCache()); //"resources/models/cube/cube.obj"
         scene.addModel(cubeModel);
         
@@ -55,11 +74,13 @@ public class TestAppLogic implements IAppLogic
         SceneLighting sceneLighting = new SceneLighting();
         sceneLighting.getAmbientLight().setIntensity(.3f);
         scene.setSceneLighting(sceneLighting);
-        sceneLighting.getPointLights().add(new PointLight(new Vector3f(1, 1, 1), new Vector3f(0, 0, -1.4f), 1.0f));
-        Vector3f coneDir = new Vector3f(0, 0, -1);
-        sceneLighting.getSpotLights().add(new SpotLight(coneDir, 140.0f, new PointLight(new Vector3f(1, 1, 1), new Vector3f(0, 0, -1.4f), 0.0f)));
-        lightControls = new LightControls(scene);
-        scene.setGuiInstance(lightControls);
+        
+        SkyBox skyBox = new SkyBox(System.getProperty("user.dir") + "/resources/models/skybox/skybox.obj", scene.getTextureCache());
+        skyBox.getSkyBoxEntity().setScale(50);
+        scene.setSkyBox(skyBox);
+        scene.getCamera().moveUp(0.1f);
+        updateTerrain(scene);
+        
     }
     
     @Override
@@ -111,15 +132,37 @@ public class TestAppLogic implements IAppLogic
     @Override
     public void update(Window window, Scene scene, float interval)
     {
-        rotation += 1.5;
-        if(rotation > 360)
-        {
-            rotation = 0;
-        }
-        cubeEntity.setRotation(1, 1, 1, (float) Math.toRadians(rotation));
-        cubeEntity.updateModelMatrix();
+        updateTerrain(scene);
     }
 
+    public void updateTerrain(Scene scene)
+    {
+        int cellSize = 10;
+        Camera camera = scene.getCamera();
+        Vector3f cameraPos = camera.getPosition();
+        int cellCol = (int) (cameraPos.x / cellSize);
+        int cellRow = (int) (cameraPos.z / cellSize);
+        
+        int numRows = NUM_CHUNKS * 2 + 1;
+        int numCols = numRows;
+        int zOffset = -NUM_CHUNKS;
+        float scale = cellSize / 2.0f;
+        for(int j = 0; j < numRows; j++)
+        {
+            int xOffset = -NUM_CHUNKS;
+            for(int i = 0; i < numCols; i++)
+            {
+                Entity entity = terrainEntities[j][i];
+                entity.setScale(scale);
+                entity.setPosition((cellCol + xOffset) * 2.0f, 0, (cellRow + zOffset) * 2.0f);
+                entity.getModelMatrix().identity().scale(scale).translate(entity.getPosition());
+                xOffset++;
+            }
+            zOffset++;
+        }
+    }
+    
+    
     @Override
     public void cleanup()
     {

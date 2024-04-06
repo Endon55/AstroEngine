@@ -15,6 +15,8 @@ public class Scene
     private Projection projection;
     private TextureCache textureCache;
     private IGuiInstance guiInstance;
+    private SkyBox skyBox;
+    
 
     
     private SceneLighting sceneLighting;
@@ -86,5 +88,15 @@ public class Scene
     public void setSceneLighting(SceneLighting sceneLighting)
     {
         this.sceneLighting = sceneLighting;
+    }
+    
+    public SkyBox getSkyBox()
+    {
+        return skyBox;
+    }
+    
+    public void setSkyBox(SkyBox skyBox)
+    {
+        this.skyBox = skyBox;
     }
 }

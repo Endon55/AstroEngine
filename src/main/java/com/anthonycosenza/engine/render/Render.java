@@ -18,8 +18,9 @@ import static org.lwjgl.opengl.GL11.glViewport;
 
 public class Render
 {
-    SceneRenderer sceneRenderer;
-    GuiRenderer guiRenderer;
+    private SceneRenderer sceneRenderer;
+    private GuiRenderer guiRenderer;
+    private SkyBoxRenderer skyBoxRenderer;
     
     public Render(Window window)
     {
@@ -29,14 +30,15 @@ public class Render
         glCullFace(GL_BACK);
         sceneRenderer = new SceneRenderer();
         guiRenderer = new GuiRenderer(window);
+        skyBoxRenderer = new SkyBoxRenderer();
     }
 
     public void render(Window window, Scene scene)
     {
-        glClearColor(.6f, 0.3f, 0.3f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, window.getWidth(), window.getHeight());
         
+        skyBoxRenderer.render(scene);
         sceneRenderer.render(scene);
         guiRenderer.render(scene);
     }
