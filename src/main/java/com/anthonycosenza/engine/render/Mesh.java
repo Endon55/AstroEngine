@@ -39,10 +39,11 @@ public class Mesh
     /**
      *
      * @param positions, all of the unique vertices contained in our mesh in a flattened format. x1, y1, z1, x2, y2, z2...
+     * @param normals, vector3 representing the average angle of the triangles facing direction for every vertex.
      * @param textureCoords, how the vertices of this mesh map to a 2d texture in a flattened 0 to 1 format. x1, y1, x2, y2...
      * @param indices, used to define triangles within a mesh, each element of the indices array needs to reference the index of the corresponding vertex from the positions array in a counter-clockwise fashion.
      */
-    public Mesh(float[] positions, float[] textureCoords, int[] indices)
+    public Mesh(float[] positions, float[] normals, float[] textureCoords, int[] indices)
     {
         try(MemoryStack stack = MemoryStack.stackPush())
         {
@@ -70,6 +71,17 @@ public class Mesh
             //Tells OpenGL how to use the data in the buffer. Size 3 because there's an X, Y, and Z component to each Float
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
     
+            //Vertex normal Attribute
+            int normalsVboID = glGenBuffers();
+            vboIDList.add(normalsVboID);
+            FloatBuffer normalsBuffer = stack.callocFloat(normals.length);
+            normalsBuffer.put(0, normals);
+            glBindBuffer(GL_ARRAY_BUFFER, normalsVboID);
+            glBufferData(GL_ARRAY_BUFFER, normalsBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, false,0, 0);
+            
+            
             //Coordinate Texture Attribute
             int textureVboID = glGenBuffers();
             vboIDList.add(textureVboID);
@@ -77,8 +89,8 @@ public class Mesh
             textureBuffer.put(0, textureCoords);
             glBindBuffer(GL_ARRAY_BUFFER, textureVboID);
             glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
     
             //Coordinate Index Attribute
             int idxVboID = glGenBuffers();

@@ -8,6 +8,9 @@ import com.anthonycosenza.engine.render.ModelLoader;
 import com.anthonycosenza.engine.render.Render;
 import com.anthonycosenza.engine.render.Texture;
 import com.anthonycosenza.engine.render.gui.IGuiInstance;
+import com.anthonycosenza.engine.render.light.PointLight;
+import com.anthonycosenza.engine.render.light.SceneLighting;
+import com.anthonycosenza.engine.render.light.SpotLight;
 import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Scene;
@@ -17,6 +20,7 @@ import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiCond;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,29 +32,34 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 
-public class TestAppLogic implements IAppLogic, IGuiInstance
+public class TestAppLogic implements IAppLogic
 {
     private static final float MOUSE_SENSITIVITY = 0.1f;
     private static final float MOVEMENT_SPEED = 0.005f;
     private Entity cubeEntity;
     private float rotation;
+    private LightControls lightControls;
     
     @Override
     public void init(Window window, Scene scene, Render render)
     {
-        //Model pyramidModel = ModelLoader.loadModel("pyramid-model", System.getProperty("user.dir") + "/resources/models/WebcamMount.stl", scene.getTextureCache());
-        //scene.addModel(pyramidModel);
+
         Model cubeModel = ModelLoader.loadModel("cube-model", System.getProperty("user.dir") + "/resources/models/cube/cube.obj", scene.getTextureCache()); //"resources/models/cube/cube.obj"
         scene.addModel(cubeModel);
-        //cubeEntity = new Entity("pyramid-entity", pyramidModel.getId());
-        //cubeEntity.setPosition(0, 0, -200);
-        //scene.addEntity(cubeEntity);
+        
         cubeEntity = new Entity("cube-entity", cubeModel.getId());
         cubeEntity.setPosition(0, 0, -2);
+        cubeEntity.updateModelMatrix();
         scene.addEntity(cubeEntity);
         
-        
-        scene.setGuiInstance(this);
+        SceneLighting sceneLighting = new SceneLighting();
+        sceneLighting.getAmbientLight().setIntensity(.3f);
+        scene.setSceneLighting(sceneLighting);
+        sceneLighting.getPointLights().add(new PointLight(new Vector3f(1, 1, 1), new Vector3f(0, 0, -1.4f), 1.0f));
+        Vector3f coneDir = new Vector3f(0, 0, -1);
+        sceneLighting.getSpotLights().add(new SpotLight(coneDir, 140.0f, new PointLight(new Vector3f(1, 1, 1), new Vector3f(0, 0, -1.4f), 0.0f)));
+        lightControls = new LightControls(scene);
+        scene.setGuiInstance(lightControls);
     }
     
     @Override
@@ -111,33 +120,6 @@ public class TestAppLogic implements IAppLogic, IGuiInstance
         cubeEntity.updateModelMatrix();
     }
 
-
-    
-    @Override
-    public void drawGui()
-    {
-        ImGui.newFrame();;
-        ImGui.setNextWindowPos(0, 0, ImGuiCond.Always);
-        ImGui.showDemoWindow();
-        ImGui.endFrame();
-        ImGui.render();
-    }
-    
-    @Override
-    public boolean handleGuiInput(Scene scene, Window window)
-    {
-        ImGuiIO imGuiIO = ImGui.getIO();
-        MouseInput mouseInput = window.getMouseInput();
-        Vector2f mousePos = mouseInput.getCurrentPos();
-        imGuiIO.setMousePos(mousePos.x, mousePos.y);
-        imGuiIO.setMouseDown(0, mouseInput.isLeftButtonPressed());
-        imGuiIO.setMouseDown(1, mouseInput.isRightButtonPressed());
-        
-        
-        return imGuiIO.getWantCaptureMouse() || imGuiIO.getWantCaptureKeyboard();
-    }
-    
-    
     @Override
     public void cleanup()
     {

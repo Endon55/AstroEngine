@@ -3,6 +3,7 @@ package com.anthonycosenza.engine.scene;
 import com.anthonycosenza.engine.render.Model;
 import com.anthonycosenza.engine.render.TextureCache;
 import com.anthonycosenza.engine.render.gui.IGuiInstance;
+import com.anthonycosenza.engine.render.light.SceneLighting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,9 @@ public class Scene
     private Projection projection;
     private TextureCache textureCache;
     private IGuiInstance guiInstance;
+
+    
+    private SceneLighting sceneLighting;
     
     
     public Scene(int width, int height)
@@ -72,5 +76,15 @@ public class Scene
     public void setGuiInstance(IGuiInstance guiInstance)
     {
         this.guiInstance = guiInstance;
+    }
+    
+    public SceneLighting getSceneLighting()
+    {
+        return sceneLighting;
+    }
+    
+    public void setSceneLighting(SceneLighting sceneLighting)
+    {
+        this.sceneLighting = sceneLighting;
     }
 }

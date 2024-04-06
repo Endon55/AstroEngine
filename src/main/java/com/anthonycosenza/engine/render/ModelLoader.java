@@ -17,7 +17,11 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.assimp.Assimp.AI_MATKEY_COLOR_AMBIENT;
 import static org.lwjgl.assimp.Assimp.AI_MATKEY_COLOR_DIFFUSE;
+import static org.lwjgl.assimp.Assimp.AI_MATKEY_COLOR_SPECULAR;
+import static org.lwjgl.assimp.Assimp.AI_MATKEY_SHININESS_STRENGTH;
+import static org.lwjgl.assimp.Assimp.aiGetMaterialFloatArray;
 import static org.lwjgl.assimp.Assimp.aiProcess_CalcTangentSpace;
 import static org.lwjgl.assimp.Assimp.aiProcess_FixInfacingNormals;
 import static org.lwjgl.assimp.Assimp.aiProcess_GenSmoothNormals;
@@ -94,12 +98,32 @@ public class ModelLoader
         try(MemoryStack stack = MemoryStack.stackPush())
         {
             AIColor4D color = AIColor4D.create();
-            
-            int result = Assimp.aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color);
+            int result = Assimp.aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_AMBIENT, aiTextureType_NONE, 0, color);
+            if(result == aiReturn_SUCCESS)
+            {
+                material.setAmbientColor(new Vector4f(color.r(), color.g(), color.b(), color.a()));
+            }
+            result = Assimp.aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, color);
             if(result == aiReturn_SUCCESS)
             {
                 material.setDiffuseColor(new Vector4f(color.r(), color.g(), color.b(), color.a()));
             }
+            result = Assimp.aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_SPECULAR, aiTextureType_NONE, 0, color);
+            if(result == aiReturn_SUCCESS)
+            {
+                material.setSpecularColor(new Vector4f(color.r(), color.g(), color.b(), color.a()));
+            }
+            
+            float reflectance = 0.0f;
+            float[] shininessFactor = new float[]{0.0f};
+            int[] pMax = new int[]{1};
+            result = Assimp.aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_SHININESS_STRENGTH, aiTextureType_NONE, 0, shininessFactor, pMax);
+            if(result != aiReturn_SUCCESS)
+            {
+                reflectance = shininessFactor[0];
+            }
+            material.setReflectance(reflectance);
+            
             
             AIString aiTexturePath = AIString.calloc(stack);
             Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null, null, null, null, null, null);
@@ -118,6 +142,7 @@ public class ModelLoader
     {
         float[] vertices = processVertices(aiMesh);
         float[] textureCoords = processTextureCoords(aiMesh);
+        float[] normals = processNormals(aiMesh);
         int[] indices = processIndices(aiMesh);
         if(textureCoords.length == 0)
         {
@@ -125,7 +150,7 @@ public class ModelLoader
             int numElements = (vertices.length / 3) * 2;
             textureCoords = new float[numElements];
         }
-        return new Mesh(vertices, textureCoords, indices);
+        return new Mesh(vertices, normals, textureCoords, indices);
     }
     
     private static float[] processVertices(AIMesh aiMesh)
@@ -162,6 +187,20 @@ public class ModelLoader
         return data;
     }
     
+    private static float[] processNormals(AIMesh aiMesh)
+    {
+        AIVector3D.Buffer buffer = aiMesh.mNormals();
+        float[] data = new float[buffer.remaining() * 3];
+        int pos = 0;
+        while(buffer.remaining() > 0)
+        {
+            AIVector3D normal = buffer.get();
+            data[pos++] = normal.x();
+            data[pos++] = normal.y();
+            data[pos++] = normal.z();
+        }
+        return data;
+    }
     
     private static int[] processIndices(AIMesh aiMesh)
     {
