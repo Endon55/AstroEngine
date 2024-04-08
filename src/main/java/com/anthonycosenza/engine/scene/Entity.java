@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.scene;
 
 import com.anthonycosenza.engine.Constants;
+import com.anthonycosenza.engine.render.model.animation.AnimationData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -13,6 +14,7 @@ public class Entity
     private Vector3f position;
     private Quaternionf rotation;
     private float scale;
+    private AnimationData animationData;
     
     public Entity(String id, String modelID)
     {
@@ -76,6 +78,16 @@ public class Entity
     {
         this.scale = scale;
         updateModelMatrix();
+    }
+    
+    public AnimationData getAnimationData()
+    {
+        return animationData;
+    }
+    
+    public void setAnimationData(AnimationData animationData)
+    {
+        this.animationData = animationData;
     }
     
     public void updateModelMatrix()

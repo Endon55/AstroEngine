@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.scene;
 
-import com.anthonycosenza.engine.render.Model;
+import com.anthonycosenza.engine.render.model.Model;
 import com.anthonycosenza.engine.render.TextureCache;
 import com.anthonycosenza.engine.render.gui.IGuiInstance;
 import com.anthonycosenza.engine.render.light.SceneLighting;

@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.render.gui;
 
 import com.anthonycosenza.engine.render.ShaderProgram;
-import com.anthonycosenza.engine.render.Texture;
+import com.anthonycosenza.engine.render.model.Texture;
 import com.anthonycosenza.engine.render.UniformsMap;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.window.Window;
@@ -19,8 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.glfwSetCharCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;

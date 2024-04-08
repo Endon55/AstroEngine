@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.render;
+package com.anthonycosenza.engine.render.model;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import org.lwjgl.system.MemoryStack;

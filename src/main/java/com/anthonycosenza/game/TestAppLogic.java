@@ -2,31 +2,21 @@ package com.anthonycosenza.game;
 
 import com.anthonycosenza.engine.MouseInput;
 import com.anthonycosenza.engine.game.IAppLogic;
-import com.anthonycosenza.engine.render.Material;
-import com.anthonycosenza.engine.render.Model;
-import com.anthonycosenza.engine.render.ModelLoader;
+import com.anthonycosenza.engine.render.light.AmbientLight;
+import com.anthonycosenza.engine.render.model.Model;
+import com.anthonycosenza.engine.render.model.ModelLoader;
 import com.anthonycosenza.engine.render.Render;
-import com.anthonycosenza.engine.render.Texture;
-import com.anthonycosenza.engine.render.gui.IGuiInstance;
 import com.anthonycosenza.engine.render.light.DirectionalLight;
-import com.anthonycosenza.engine.render.light.PointLight;
 import com.anthonycosenza.engine.render.light.SceneLighting;
-import com.anthonycosenza.engine.render.light.SpotLight;
+import com.anthonycosenza.engine.render.model.animation.AnimationData;
 import com.anthonycosenza.engine.scene.Camera;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Fog;
 import com.anthonycosenza.engine.scene.Scene;
-import com.anthonycosenza.engine.render.Mesh;
 import com.anthonycosenza.engine.scene.SkyBox;
 import com.anthonycosenza.engine.window.Window;
-import imgui.ImGui;
-import imgui.ImGuiIO;
-import imgui.flag.ImGuiCond;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_C;
@@ -42,57 +32,71 @@ public class TestAppLogic implements IAppLogic
     private static final int NUM_CHUNKS = 4;
     private Entity[][] terrainEntities;
     private static final float MOUSE_SENSITIVITY = 0.1f;
-    private static final float MOVEMENT_SPEED = 0.005f;
+    private static final float MOVEMENT_SPEED = 0.1f;
     private Entity cubeEntity;
     private float rotation;
     private LightControls lightControls;
+    private AnimationData animationData;
     private float lightAngle;
     
     @Override
     public void init(Window window, Scene scene, Render render)
     {
-        String wallNoNormalsModelId = "quad-no-normals-model";
-        Model quadModelNoNormals = ModelLoader.loadModel(wallNoNormalsModelId, "resources/models/wall/wall_nonormals.obj",
-                scene.getTextureCache());
-        scene.addModel(quadModelNoNormals);
+/*        Model cube = ModelLoader.loadModel("cube-model", "resources/models/burningcube/Burning_Cube_by_3DHaupt-(Wavefront OBJ).obj", scene.getTextureCache(), false);
+        Entity cubeEntity = new Entity("cube-entity", cube.getId());
+        cubeEntity.setScale(50);
+        cubeEntity.setPosition(0, 0, 50);
+        cubeEntity.updateModelMatrix();
+        scene.addModel(cube);
+        scene.addEntity(cubeEntity);*/
+        
+        String terrainModelId = "terrain";
+        Model terrainModel = ModelLoader.loadModel(terrainModelId, "resources/models/terrain/terrain.obj",
+                scene.getTextureCache(), false);
+        scene.addModel(terrainModel);
+        Entity terrainEntity = new Entity("terrainEntity", terrainModelId);
+        terrainEntity.setScale(100.0f);
+        terrainEntity.updateModelMatrix();
+        scene.addEntity(terrainEntity);
     
-        Entity wallLeftEntity = new Entity("wallLeftEntity", wallNoNormalsModelId);
-        wallLeftEntity.setPosition(-3f, 0, 0);
-        wallLeftEntity.setScale(2.0f);
-        wallLeftEntity.updateModelMatrix();
-        scene.addEntity(wallLeftEntity);
-    
-        String wallModelId = "quad-model";
-        Model quadModel = ModelLoader.loadModel(wallModelId, "resources/models/wall/wall.obj",
-                scene.getTextureCache());
-        scene.addModel(quadModel);
-    
-        Entity wallRightEntity = new Entity("wallRightEntity", wallModelId);
-        wallRightEntity.setPosition(3f, 0, 0);
-        wallRightEntity.setScale(2.0f);
-        wallRightEntity.updateModelMatrix();
-        scene.addEntity(wallRightEntity);
+        String bobModelId = "bobModel";
+        Model bobModel = ModelLoader.loadModel(bobModelId, "resources/models/bob/boblamp.md5mesh",
+                scene.getTextureCache(), true);
+        scene.addModel(bobModel);
+        Entity bobEntity = new Entity("bobEntity", bobModelId);
+        bobEntity.setScale(0.05f);
+        bobEntity.updateModelMatrix();
+        animationData = new AnimationData(bobModel.getAnimationList().get(0));
+        bobEntity.setAnimationData(animationData);
+        scene.addEntity(bobEntity);
     
         SceneLighting sceneLights = new SceneLighting();
-        sceneLights.getAmbientLight().setIntensity(0.2f);
+        AmbientLight ambientLight = sceneLights.getAmbientLight();
+        ambientLight.setIntensity(0.5f);
+        ambientLight.setColor(0.3f, 0.3f, 0.3f);
+    
         DirectionalLight dirLight = sceneLights.getDirectionalLight();
-        dirLight.setDirection(1, 1, 0);
+        dirLight.setDirection(0, 1, 0);
         dirLight.setIntensity(1.0f);
         scene.setSceneLighting(sceneLights);
     
+        SkyBox skyBox = new SkyBox("resources/models/skybox/skybox.obj", scene.getTextureCache());
+        skyBox.setScale(100);
+        scene.setSkyBox(skyBox);
+    
+        scene.setFog(new Fog(true, new Vector3f(0.5f, 0.5f, 0.5f), 0.02f));
+    
         Camera camera = scene.getCamera();
-        camera.moveUp(5.0f);
-        camera.addRotation((float) Math.toRadians(90), 0);
+        camera.setPosition(-1.5f, 3.0f, 4.5f);
+        camera.addRotation((float) Math.toRadians(15.0f), (float) Math.toRadians(390.f));
     
-        lightAngle = -35;
-    
-    
+        lightAngle = 0;
     }
     
     @Override
     public void input(Window window, Scene scene, long diffTimeMillis, boolean inputConsumed)
     {
-      /*  //We don't want to process the same input command repeatedly, so we leave the call if it's already been used.
+        //We don't want to process the same input command repeatedly, so we leave the call if it's already been used.
         if(inputConsumed)
         {
             return;
@@ -131,64 +135,13 @@ public class TestAppLogic implements IAppLogic
             Vector2f displVec = mouseInput.getDisplayVector();
             camera.addRotation((float) -Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) -Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
-        */
-        if(inputConsumed)
-        {
-            return;
-        }
-        float move = diffTimeMillis * MOVEMENT_SPEED;
-        Camera camera = scene.getCamera();
-        if(window.isKeyPressed(GLFW_KEY_W))
-        {
-            camera.moveForward(move);
-        }
-        else if(window.isKeyPressed(GLFW_KEY_S))
-        {
-            camera.moveBackwards(move);
-        }
-        if(window.isKeyPressed(GLFW_KEY_A))
-        {
-            camera.moveLeft(move);
-        }
-        else if(window.isKeyPressed(GLFW_KEY_D))
-        {
-            camera.moveRight(move);
-        }
-        if(window.isKeyPressed(GLFW_KEY_LEFT))
-        {
-            lightAngle -= 2.5f;
-            if(lightAngle < -90)
-            {
-                lightAngle = -90;
-            }
-        }
-        else if(window.isKeyPressed(GLFW_KEY_RIGHT))
-        {
-            lightAngle += 2.5f;
-            if(lightAngle > 90)
-            {
-                lightAngle = 90;
-            }
-        }
-    
-        MouseInput mouseInput = window.getMouseInput();
-        if(mouseInput.isRightButtonPressed())
-        {
-            Vector2f displVec = mouseInput.getDisplayVector();
-            camera.addRotation((float) Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
-        }
-    
-        SceneLighting sceneLights = scene.getSceneLighting();
-        DirectionalLight dirLight = sceneLights.getDirectionalLight();
-        double angRad = Math.toRadians(lightAngle);
-        dirLight.getDirection().x = (float) Math.sin(angRad);
-        dirLight.getDirection().y = (float) Math.cos(angRad);
+
     }
     
     @Override
     public void update(Window window, Scene scene, float interval)
     {
-    
+       animationData.nextFrame();
     }
 
     public void updateTerrain(Scene scene)

@@ -1,6 +1,8 @@
 package com.anthonycosenza.engine.render;
 
 import com.anthonycosenza.engine.Utils;
+import org.lwjgl.opengl.ARBGeometryShader4;
+import org.lwjgl.opengl.ARBShaderObjects;
 import org.lwjgl.opengl.GL30;
 
 import java.util.ArrayList;
@@ -29,20 +31,27 @@ public class ShaderProgram
 {
     private final int programID;
     
-    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList)
+    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList, String geometryShaderFile)
     {
         programID = glCreateProgram();
         if(programID == 0)
         {
             throw new RuntimeException("Could not create Shader");
         }
-        
+        if(geometryShaderFile != null&& geometryShaderFile.length() > 0)
+        {
+        }
+    
         List<Integer> shaderModules = new ArrayList<>();
         shaderModuleDataList.forEach(shader -> shaderModules.add(createShader(Utils.loadResource(shader.shaderFile), shader.shaderType)));
-        
+    
         link(shaderModules);
     }
-    
+    public ShaderProgram(List<ShaderModuleData> shaderModuleDataList)
+    {
+        this(shaderModuleDataList, "");
+    }
+
     protected int createShader(String shaderCode, int shaderType)
     {
         int shaderID = glCreateShader(shaderType);

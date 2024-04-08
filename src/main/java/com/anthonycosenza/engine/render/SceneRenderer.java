@@ -6,6 +6,11 @@ import com.anthonycosenza.engine.render.light.DirectionalLight;
 import com.anthonycosenza.engine.render.light.PointLight;
 import com.anthonycosenza.engine.render.light.SceneLighting;
 import com.anthonycosenza.engine.render.light.SpotLight;
+import com.anthonycosenza.engine.render.model.Material;
+import com.anthonycosenza.engine.render.model.Mesh;
+import com.anthonycosenza.engine.render.model.Model;
+import com.anthonycosenza.engine.render.model.Texture;
+import com.anthonycosenza.engine.render.model.animation.AnimationData;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Fog;
 import com.anthonycosenza.engine.scene.Scene;
@@ -20,7 +25,6 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
@@ -62,8 +66,9 @@ public class SceneRenderer
     {
         uniformsMap = new UniformsMap(shaderProgram.getProgramID());
         uniformsMap.createUniform("projectionMatrix");
-        uniformsMap.createUniform("viewMatrix");
         uniformsMap.createUniform("modelMatrix");
+        uniformsMap.createUniform("viewMatrix");
+        uniformsMap.createUniform("bonesMatrices");
         uniformsMap.createUniform("textureSampler");
         uniformsMap.createUniform("normalSampler");
         uniformsMap.createUniform("material.ambient");
@@ -255,6 +260,15 @@ public class SceneRenderer
                     for(Entity entity : entities)
                     {
                         uniformsMap.setUniform("modelMatrix", entity.getModelMatrix());
+                        AnimationData animationData = entity.getAnimationData();
+                        if(animationData == null)
+                        {
+                            uniformsMap.setUniform("bonesMatrices", AnimationData.DEFAULT_BONES_MATRICES);
+                        }
+                        else
+                        {
+                            uniformsMap.setUniform("bonesMatrices", animationData.getCurrentFrame().boneMatrices());
+                        }
                         glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);
                     }
                 }

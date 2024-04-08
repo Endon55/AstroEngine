@@ -1,5 +1,7 @@
 package com.anthonycosenza.engine.render;
 
+import com.anthonycosenza.engine.render.model.Texture;
+
 import java.util.HashMap;
 import java.util.Map;
 

@@ -7,6 +7,7 @@ public class WindowOptions
     public boolean compatibleProfile;
     public int fps;
     public int ups = Engine.TARGET_UPS;
+    public boolean antiAliasing;
     
     public int width;
     public int height;
@@ -17,10 +18,11 @@ public class WindowOptions
         this.width = 0;
         this.height = 0;
     }
-    public WindowOptions(int targetFPS, int width, int height)
+    public WindowOptions(int targetFPS, int width, int height, boolean antiAliasing)
     {
         this.fps = targetFPS;
         this.width = width;
         this.height = height;
+        this.antiAliasing = true;
     }
 }

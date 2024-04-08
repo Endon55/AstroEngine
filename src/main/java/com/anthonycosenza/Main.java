@@ -11,7 +11,7 @@ public class Main
         Engine engine = null;
         try
         {
-            engine = new Engine("Test Game", new WindowOptions(60, 0, 0), new TestAppLogic());
+            engine = new Engine("Test Game", new WindowOptions(60, 0, 0, false), new TestAppLogic());
         } catch(Exception e)
         {
             throw new RuntimeException(e);

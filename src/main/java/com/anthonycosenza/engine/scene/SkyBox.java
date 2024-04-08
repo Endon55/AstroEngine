@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.scene;
 
-import com.anthonycosenza.engine.render.Model;
-import com.anthonycosenza.engine.render.ModelLoader;
+import com.anthonycosenza.engine.render.model.Model;
+import com.anthonycosenza.engine.render.model.ModelLoader;
 import com.anthonycosenza.engine.render.TextureCache;
 
 public class SkyBox
@@ -11,7 +11,7 @@ public class SkyBox
     
     public SkyBox(String skyBoxModelPath, TextureCache textureCache)
     {
-        skyBoxModel = ModelLoader.loadModel("skybox-model", skyBoxModelPath, textureCache);
+        skyBoxModel = ModelLoader.loadModel("skybox-model", skyBoxModelPath, textureCache, false);
         skyBoxEntity = new Entity("skyBoxEntity-entity", skyBoxModel.getId());
     }
     
@@ -28,5 +28,6 @@ public class SkyBox
     public void setScale(float scale)
     {
         getSkyBoxEntity().setScale(scale);
+        getSkyBoxEntity().updateModelMatrix();
     }
 }

@@ -1,13 +1,22 @@
 package com.anthonycosenza.engine.render;
 
+import com.anthonycosenza.engine.render.model.Material;
+import com.anthonycosenza.engine.render.model.Mesh;
+import com.anthonycosenza.engine.render.model.Model;
+import com.anthonycosenza.engine.render.model.Texture;
 import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.scene.SkyBox;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.ARBGeometryShader4;
+import org.lwjgl.opengl.ARBVertexShader;
+import org.lwjgl.opengl.EXTGeometryShader4;
+import org.lwjgl.opengl.GL32;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.GL_TEXTURE;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
@@ -27,6 +36,7 @@ public class SkyBoxRenderer
     {
         List<ShaderProgram.ShaderModuleData> shaderModuleDataList = new ArrayList<>();
         shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/skybox.vert", GL_VERTEX_SHADER));
+        //shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/skybox.geom", GL32.GL_GEOMETRY_SHADER));
         shaderModuleDataList.add(new ShaderProgram.ShaderModuleData("resources/shaders/skybox.frag", GL_FRAGMENT_SHADER));
         shaderProgram = new ShaderProgram(shaderModuleDataList);
         viewMatrix = new Matrix4f();
@@ -54,6 +64,7 @@ public class SkyBoxRenderer
         }
         
         shaderProgram.bind();
+        
         uniformsMap.setUniform("projectionMatrix", scene.getProjection().getProjectionMatrix());
         viewMatrix.set(scene.getCamera().getViewMatrix());
         //Manually set the 3 values that correspond to position coordinate within the matrix to 0 because the skybox is always drawn at the origin. We must use the entire matrix to maintain rotation.
@@ -86,6 +97,11 @@ public class SkyBoxRenderer
         
         glBindVertexArray(0);
         shaderProgram.unbind();
+    }
+    
+    public void cleanup()
+    {
+        shaderProgram.cleanup();
     }
     
 }
