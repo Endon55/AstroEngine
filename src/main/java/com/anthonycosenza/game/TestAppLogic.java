@@ -14,9 +14,14 @@ import com.anthonycosenza.engine.scene.Entity;
 import com.anthonycosenza.engine.scene.Fog;
 import com.anthonycosenza.engine.scene.Scene;
 import com.anthonycosenza.engine.scene.SkyBox;
+import com.anthonycosenza.engine.sound.SoundBuffer;
+import com.anthonycosenza.engine.sound.SoundListener;
+import com.anthonycosenza.engine.sound.SoundManager;
+import com.anthonycosenza.engine.sound.SoundSource;
 import com.anthonycosenza.engine.window.Window;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.lwjgl.openal.AL11;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_C;
@@ -38,6 +43,8 @@ public class TestAppLogic implements IAppLogic
     private LightControls lightControls;
     private AnimationData animationData;
     private float lightAngle;
+    private SoundSource playerSoundSource;
+    private SoundManager soundManager;
     
     @Override
     public void init(Window window, Scene scene, Render render)
@@ -90,7 +97,8 @@ public class TestAppLogic implements IAppLogic
         camera.setPosition(-1.5f, 3.0f, 4.5f);
         camera.addRotation((float) Math.toRadians(15.0f), (float) Math.toRadians(390.f));
     
-        lightAngle = 0;
+        lightAngle = 45;
+        initSounds(bobEntity.getPosition(), camera);
     }
     
     @Override
@@ -135,6 +143,8 @@ public class TestAppLogic implements IAppLogic
             Vector2f displVec = mouseInput.getDisplayVector();
             camera.addRotation((float) -Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) -Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
+        
+        soundManager.updateListenerPosition(camera);
 
     }
     
@@ -142,35 +152,32 @@ public class TestAppLogic implements IAppLogic
     public void update(Window window, Scene scene, float interval)
     {
        animationData.nextFrame();
+       if(animationData.getCurrentFrameIndex() == 45)
+       {
+           playerSoundSource.play();
+       }
     }
 
-    public void updateTerrain(Scene scene)
+    private void initSounds(Vector3f position, Camera camera)
     {
-        int cellSize = 10;
-        Camera camera = scene.getCamera();
-        Vector3f cameraPos = camera.getPosition();
-        int cellCol = (int) (cameraPos.x / cellSize);
-        int cellRow = (int) (cameraPos.z / cellSize);
-        
-        int numRows = NUM_CHUNKS * 2 + 1;
-        int numCols = numRows;
-        int zOffset = -NUM_CHUNKS;
-        float scale = cellSize / 2.0f;
-        for(int j = 0; j < numRows; j++)
-        {
-            int xOffset = -NUM_CHUNKS;
-            for(int i = 0; i < numCols; i++)
-            {
-                Entity entity = terrainEntities[j][i];
-                entity.setScale(scale);
-                entity.setPosition((cellCol + xOffset) * 2.0f, 0, (cellRow + zOffset) * 2.0f);
-                entity.getModelMatrix().identity().scale(scale).translate(entity.getPosition());
-                xOffset++;
-            }
-            zOffset++;
-        }
-    }
+        soundManager = new SoundManager();
+        soundManager.setAttenuationModel(AL11.AL_EXPONENT_DISTANCE);
+        soundManager.setListener(new SoundListener(camera.getPosition()));
     
+        SoundBuffer buffer = new SoundBuffer("resources/sounds/creak1.ogg");
+        soundManager.addSoundBuffer(buffer);
+        playerSoundSource = new SoundSource(false, false);
+        playerSoundSource.setPosition(position);
+        playerSoundSource.setBuffer(buffer.getBufferId());
+        soundManager.addSoundSource("CREAK", playerSoundSource);
+        
+        buffer = new SoundBuffer("resources/sounds/woo_scary.ogg");
+        soundManager.addSoundBuffer(buffer);
+        SoundSource source = new SoundSource(true, true);
+        source.setBuffer(buffer.getBufferId());
+        soundManager.addSoundSource("MUSIC", source);
+        source.play();
+    }
     
     @Override
     public void cleanup()
