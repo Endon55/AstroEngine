@@ -38,9 +38,6 @@ public class ShaderProgram
         {
             throw new RuntimeException("Could not create Shader");
         }
-        if(geometryShaderFile != null&& geometryShaderFile.length() > 0)
-        {
-        }
     
         List<Integer> shaderModules = new ArrayList<>();
         shaderModuleDataList.forEach(shader -> shaderModules.add(createShader(Utils.loadResource(shader.shaderFile), shader.shaderType)));

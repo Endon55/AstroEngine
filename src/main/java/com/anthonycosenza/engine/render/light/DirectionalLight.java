@@ -51,6 +51,11 @@ public class DirectionalLight
         direction.set(x, y, z);
     }
     
+    public void setPosition(float x, float y, float z)
+    {
+        direction.set(x, y, z);
+    }
+    
     public void setIntensity(float intensity)
     {
         this.intensity = intensity;

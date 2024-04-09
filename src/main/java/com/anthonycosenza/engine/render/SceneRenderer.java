@@ -6,6 +6,7 @@ import com.anthonycosenza.engine.render.light.DirectionalLight;
 import com.anthonycosenza.engine.render.light.PointLight;
 import com.anthonycosenza.engine.render.light.SceneLighting;
 import com.anthonycosenza.engine.render.light.SpotLight;
+import com.anthonycosenza.engine.render.light.shadow.CascadeShadow;
 import com.anthonycosenza.engine.render.model.Material;
 import com.anthonycosenza.engine.render.model.Mesh;
 import com.anthonycosenza.engine.render.model.Model;
@@ -33,6 +34,7 @@ import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
 import static org.lwjgl.opengl.GL14.glBlendEquation;
@@ -110,19 +112,25 @@ public class SceneRenderer
         uniformsMap.createUniform("fog.activeFog");
         uniformsMap.createUniform("fog.color");
         uniformsMap.createUniform("fog.density");
-        
+    
+        for(int i = 0; i < CascadeShadow.SHADOW_MAP_CASCADE_COUNT; i++)
+        {
+            uniformsMap.createUniform("shadowMap[" + i + "]");
+            uniformsMap.createUniform("cascadeShadows[" + i + "].projViewMatrix");
+            uniformsMap.createUniform("cascadeShadows[" + i + "].splitDistance");
+        }
     }
     
     private void updateLights(Scene scene)
     {
         Matrix4f viewMatrix = scene.getCamera().getViewMatrix();
         SceneLighting sceneLighting = scene.getSceneLighting();
-        
         AmbientLight ambientLight = sceneLighting.getAmbientLight();
+        DirectionalLight directionalLight = sceneLighting.getDirectionalLight();
+        
         uniformsMap.setUniform("ambientLight.factor", ambientLight.getIntensity());
         uniformsMap.setUniform("ambientLight.color", ambientLight.getColor());
     
-        DirectionalLight directionalLight = sceneLighting.getDirectionalLight();
         Vector4f auxDirection = new Vector4f(directionalLight.getDirection(), 0);
         auxDirection.mul(viewMatrix);
         Vector3f direction = new Vector3f(auxDirection.x, auxDirection.y, auxDirection.z);
@@ -155,7 +163,6 @@ public class SceneRenderer
             else spotLight = null;
             String name = "spotLights[" + i + "]";
             updateSpotLight(spotLight, name, viewMatrix);
-    
         }
     }
     
@@ -206,7 +213,7 @@ public class SceneRenderer
     }
     
     
-    public void render(Scene scene)
+    public void render(Scene scene, ShadowRenderer shadowRenderer)
     {
         glEnable(GL_BLEND);
         glBlendEquation(GL_FUNC_ADD);
@@ -216,16 +223,28 @@ public class SceneRenderer
         
         uniformsMap.setUniform("projectionMatrix", scene.getProjection().getProjectionMatrix());
         uniformsMap.setUniform("viewMatrix", scene.getCamera().getViewMatrix());
-        
-        uniformsMap.setUniform("textureSampler", 0);
-        uniformsMap.setUniform("normalSampler", 1);
-        
+
         updateLights(scene);
         
         Fog fog = scene.getFog();
         uniformsMap.setUniform("fog.activeFog", fog.isActive() ? 1 : 0);
         uniformsMap.setUniform("fog.color", fog.getColor());
         uniformsMap.setUniform("fog.density", fog.getDensity());
+        
+        uniformsMap.setUniform("textureSampler", 0);
+        uniformsMap.setUniform("normalSampler", 1);
+        
+        int start = 2;
+        List<CascadeShadow> cascadeShadows = shadowRenderer.getCascadeShadows();
+        for(int i = 0; i < CascadeShadow.SHADOW_MAP_CASCADE_COUNT; i++)
+        {
+            uniformsMap.setUniform("shadowMap[" + i + "]", start + i);
+            CascadeShadow cascadeShadow = cascadeShadows.get(i);
+            uniformsMap.setUniform("cascadeShadows[" + i + "].projViewMatrix", cascadeShadow.getProjViewMatrix());
+            uniformsMap.setUniform("cascadeShadows[" + i + "].splitDistance", cascadeShadow.getSplitDistance());
+        }
+        
+        shadowRenderer.getShadowBuffer().bindTextures(GL_TEXTURE2);
         
         Collection<Model> models = scene.getModelMap().values();
         TextureCache textureCache = scene.getTextureCache();
@@ -277,8 +296,6 @@ public class SceneRenderer
 
         glBindVertexArray(0);
         shaderProgram.unbind();
-        
-        glDisable(GL_BLEND);
     }
 
     public void cleanup()

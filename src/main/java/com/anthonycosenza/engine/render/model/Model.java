@@ -9,18 +9,20 @@ import java.util.List;
 public class Model
 {
     private final String id;
-    //List of all entities created using this model
-    private List<Entity> entityList;
     //List of all materials to apply to this model
     private List<Material> materialList;
     private List<Animation> animationList;
+    
+    //List of all entities created using this model
+    private List<Entity> entityList;
     
     public Model(String id, List<Material> materialList, List<Animation> animationList)
     {
         this.id = id;
         this.materialList = materialList;
-        entityList = new ArrayList<>();
         this.animationList = animationList;
+        
+        entityList = new ArrayList<>();
     }
     
     public String getId()

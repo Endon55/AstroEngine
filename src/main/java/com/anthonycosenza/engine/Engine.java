@@ -17,12 +17,9 @@ public class Engine
     private Scene scene;
     
     private int targetFPS;
-    private int targetUPS = 60;
+    private int targetUPS;
     
-    
-    
-    
-    public Engine(String windowTitle, WindowOptions options, IAppLogic logic) throws Exception
+    public Engine(String windowTitle, WindowOptions options, IAppLogic logic)
     {
         window = new Window(windowTitle, options, ()->
         {
@@ -66,7 +63,7 @@ public class Engine
              if(targetFPS <= 0 || deltaFPS >= 1)
              {
                  window.getMouseInput().input();
-                 boolean inputConsumed = iGuiInstance != null && iGuiInstance.handleGuiInput(scene, window);
+                 boolean inputConsumed = iGuiInstance != null ? iGuiInstance.handleGuiInput(scene, window) : false;
                  logic.input(window, scene, now - initialTime, inputConsumed); //Add Scene and time;
              }
             

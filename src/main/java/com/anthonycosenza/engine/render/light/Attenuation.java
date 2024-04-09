@@ -6,7 +6,7 @@ public class Attenuation
     private float exponent;
     private float linear;
     
-    public Attenuation(float constant, float exponent, float linear)
+    public Attenuation(float constant, float linear, float exponent)
     {
         this.constant = constant;
         this.exponent = exponent;

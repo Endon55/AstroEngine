@@ -34,13 +34,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 
 public class TestAppLogic implements IAppLogic
 {
-    private static final int NUM_CHUNKS = 4;
-    private Entity[][] terrainEntities;
     private static final float MOUSE_SENSITIVITY = 0.1f;
     private static final float MOVEMENT_SPEED = 0.1f;
-    private Entity cubeEntity;
-    private float rotation;
-    private LightControls lightControls;
     private AnimationData animationData;
     private float lightAngle;
     private SoundSource playerSoundSource;
@@ -49,14 +44,6 @@ public class TestAppLogic implements IAppLogic
     @Override
     public void init(Window window, Scene scene, Render render)
     {
-/*        Model cube = ModelLoader.loadModel("cube-model", "resources/models/burningcube/Burning_Cube_by_3DHaupt-(Wavefront OBJ).obj", scene.getTextureCache(), false);
-        Entity cubeEntity = new Entity("cube-entity", cube.getId());
-        cubeEntity.setScale(50);
-        cubeEntity.setPosition(0, 0, 50);
-        cubeEntity.updateModelMatrix();
-        scene.addModel(cube);
-        scene.addEntity(cubeEntity);*/
-        
         String terrainModelId = "terrain";
         Model terrainModel = ModelLoader.loadModel(terrainModelId, "resources/models/terrain/terrain.obj",
                 scene.getTextureCache(), false);
@@ -88,7 +75,8 @@ public class TestAppLogic implements IAppLogic
         scene.setSceneLighting(sceneLights);
     
         SkyBox skyBox = new SkyBox("resources/models/skybox/skybox.obj", scene.getTextureCache());
-        skyBox.setScale(100);
+        skyBox.getSkyBoxEntity().setScale(100);
+        skyBox.getSkyBoxEntity().updateModelMatrix();
         scene.setSkyBox(skyBox);
     
         scene.setFog(new Fog(true, new Vector3f(0.5f, 0.5f, 0.5f), 0.02f));
@@ -97,8 +85,7 @@ public class TestAppLogic implements IAppLogic
         camera.setPosition(-1.5f, 3.0f, 4.5f);
         camera.addRotation((float) Math.toRadians(15.0f), (float) Math.toRadians(390.f));
     
-        lightAngle = 45;
-        initSounds(bobEntity.getPosition(), camera);
+        lightAngle = 45.001f;
     }
     
     @Override
@@ -143,8 +130,11 @@ public class TestAppLogic implements IAppLogic
             Vector2f displVec = mouseInput.getDisplayVector();
             camera.addRotation((float) -Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) -Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
-        
-        soundManager.updateListenerPosition(camera);
+        SceneLighting sceneLights = scene.getSceneLighting();
+        DirectionalLight dirLight = sceneLights.getDirectionalLight();
+        double angRad = Math.toRadians(lightAngle);
+        dirLight.getDirection().z = (float) Math.sin(angRad);
+        dirLight.getDirection().y = (float) Math.cos(angRad);
 
     }
     
@@ -152,10 +142,6 @@ public class TestAppLogic implements IAppLogic
     public void update(Window window, Scene scene, float interval)
     {
        animationData.nextFrame();
-       if(animationData.getCurrentFrameIndex() == 45)
-       {
-           playerSoundSource.play();
-       }
     }
 
     private void initSounds(Vector3f position, Camera camera)

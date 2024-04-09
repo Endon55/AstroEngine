@@ -10,13 +10,16 @@ import java.util.List;
 public class Material
 {
     public static final Vector4f DEFAULT_COLOR = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+    
     private Vector4f ambientColor;
     private Vector4f diffuseColor;
     private Vector4f specularColor;
     private float reflectance;
-    private List<Mesh> meshList;
+    
     private String texturePath;
     private String normalMapPath;
+    
+    private List<Mesh> meshList;
     
     public Material()
     {

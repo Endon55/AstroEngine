@@ -2,15 +2,22 @@
 
 //The job of the Fragment shader is to convert the output of the vertex shader into individual pixels and assign the final color that will be displayed on the screen.
 
+const int DEBUG_SHADOWS = 0;
 const int MAX_POINT_LIGHTS = 5;
 const int MAX_SPOT_LIGHTS = 5;
 const float SPECULAR_POWER = 10;
+const int NUM_CASCADES = 3;
+//Reduces the amount of shadow atifacting caused by limited depth map resolution.
+const float BIAS = 0.0005f;
+//How much darkness is applies to shadows.
+const float SHADOW_FACTOR = 0.25f;
 
-in vec3 outPosition;
 in vec3 outNormal;
 in vec3 outTangent;
 in vec3 outBitangent;
 in vec2 outTextCoord;
+in vec3 outViewPosition;
+in vec4 outWorldPosition;
 
 out vec4 fragColor;
 
@@ -58,6 +65,11 @@ struct Fog
     vec3 color;
     float density;
 };
+struct CascadeShadow
+{
+    mat4 projViewMatrix;
+    float splitDistance;
+};
 
 
 uniform sampler2D textureSampler;
@@ -68,6 +80,34 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform DirectionalLight directionalLight;
 uniform Fog fog;
+uniform CascadeShadow cascadeShadows[NUM_CASCADES];
+uniform sampler2D shadowMap[NUM_CASCADES];
+
+
+float textureProj(vec4 shadowCoord, vec2 offset, int index)
+{
+    float shadow = 1.0;
+
+    if (shadowCoord.z > -1.0 && shadowCoord.z < 1.0)
+    {
+        float dist = 0.0;
+        dist = texture(shadowMap[index], vec2(shadowCoord.xy + offset)).r;
+        if (shadowCoord.w > 0 && dist < shadowCoord.z - BIAS)
+        {
+            shadow = SHADOW_FACTOR;
+        }
+    }
+    return shadow;
+}
+
+float calculateShadow(vec4 worldPosition, int index)
+{
+    vec4 shadowMapPosition = cascadeShadows[index].projViewMatrix * worldPosition;
+    float shadow = 1.0;
+    vec4 shadowCoord = (shadowMapPosition / shadowMapPosition.w) * 0.5 + 0.5;
+    shadow = textureProj(shadowCoord, vec2(0, 0), index);
+    return shadow;
+}
 
 vec3 calculateNormal(vec3 normal, vec3 tangent, vec3 bitangent, vec2 textureCoords)
 {
@@ -162,14 +202,24 @@ void main()
         normal = calculateNormal(outNormal, outTangent, outBitangent, outTextCoord);
     }
 
-    vec4 diffuseSpecularComp = calculateDirectionalLight(diffuse, specular, directionalLight, outPosition, normal);
+    vec4 diffuseSpecularComp = calculateDirectionalLight(diffuse, specular, directionalLight, outViewPosition, normal);
+
+    int cascadeIndex = 0;
+    for(int i = 0; i < NUM_CASCADES - 1; i++)
+    {
+        if(outViewPosition.z < cascadeShadows[i].splitDistance)
+        {
+            cascadeIndex = i + 1;
+        }
+    }
+    float shadowFactor = calculateShadow(outWorldPosition, cascadeIndex);
 
     for (int i = 0; i < MAX_POINT_LIGHTS; i++)
     {
         //Check if we've used this light at all.
         if (pointLights[i].intensity > 0)
         {
-            diffuseSpecularComp += calculatePointLight(diffuse, specular, pointLights[i], outPosition, normal);
+            diffuseSpecularComp += calculatePointLight(diffuse, specular, pointLights[i], outViewPosition, normal);
         }
     }
     for (int i = 0; i < MAX_SPOT_LIGHTS; i++)
@@ -177,14 +227,38 @@ void main()
         //Check if we've used this light at all.
         if (spotLights[i].pointLight.intensity > 0)
         {
-            diffuseSpecularComp += calculateSpotLight(diffuse, specular, spotLights[i], outPosition, normal);
+            diffuseSpecularComp += calculateSpotLight(diffuse, specular, spotLights[i], outViewPosition, normal);
         }
     }
     //The final color from lighting
     fragColor = ambient + diffuseSpecularComp;
+    fragColor.rgb = fragColor.rgb * shadowFactor;
     //With fog we take that final lighting color and pass it into the fog calculation.
     if (fog.activeFog == 1)
     {
-        fragColor = calculateFog(outPosition, fragColor, fog, ambientLight.color, directionalLight);;
+        fragColor = calculateFog(outViewPosition, fragColor, fog, ambientLight.color, directionalLight);;
     }
+
+    if(DEBUG_SHADOWS == 1)
+    {
+        switch(cascadeIndex)
+        {
+            case 0:
+            fragColor.rgb *= vec3(1.0f, 0.25f, 0.25f);
+            break;
+
+            case 1:
+            fragColor.rgb *= vec3(0.25f, 1.0f, 0.25f);
+            break;
+
+            case 2:
+            fragColor.rgb *= vec3(0.25f, 0.25f, 1.0f);
+            break;
+
+            default:
+            fragColor.rgb *= vec3(1.0f, 1.0f, 0.25f);
+            break;
+        }
+    }
+
 }

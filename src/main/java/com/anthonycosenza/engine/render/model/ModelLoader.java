@@ -183,7 +183,8 @@ public class ModelLoader
             
             
             AIString aiTexturePath = AIString.calloc(stack);
-            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null, null, null, null, null, null);
+            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath,
+                    (IntBuffer) null, null, null, null, null, null);
             String texturePath = aiTexturePath.dataString();
             
             if(texturePath != null && texturePath.length() > 0)
@@ -194,7 +195,8 @@ public class ModelLoader
             }
             
             AIString aiNormalMapPath = AIString.calloc(stack);
-            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_NORMALS, 0, aiNormalMapPath, (IntBuffer) null, null, null, null, null ,null);
+            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_NORMALS, 0, aiNormalMapPath,
+                    (IntBuffer) null, null, null, null, null ,null);
             String normalMapPath = aiNormalMapPath.dataString();
             if(normalMapPath != null && normalMapPath.length() > 0)
             {
@@ -221,7 +223,8 @@ public class ModelLoader
             int numElements = (vertices.length / 3) * 2;
             textureCoords = new float[numElements];
         }
-        return new Mesh(vertices, normals, tangents, bitangents, textureCoords, indices, animationMeshData.boneIds(), animationMeshData.weights());
+        return new Mesh(vertices, normals, tangents, bitangents, textureCoords,
+                indices, animationMeshData.boneIds(), animationMeshData.weights());
     }
     
     private static float[] processVertices(AIMesh aiMesh)
@@ -276,10 +279,6 @@ public class ModelLoader
     private static float[] processTangents(AIMesh aiMesh, float[] normals)
     {
         AIVector3D.Buffer buffer = aiMesh.mTangents();
-        if(buffer == null)
-        {
-            return new float[normals.length];
-        }
         float[] data = new float[buffer.remaining() * 3];
         int pos = 0;
         while(buffer.remaining() > 0)
@@ -301,10 +300,6 @@ public class ModelLoader
     private static float[] processBitangents(AIMesh aiMesh, float[] normals)
     {
         AIVector3D.Buffer buffer = aiMesh.mBitangents();
-        if(buffer == null)
-        {
-            return new float[normals.length];
-        }
         float[] data = new float[buffer.remaining() * 3];
         int pos = 0;
         while(buffer.remaining() > 0)
