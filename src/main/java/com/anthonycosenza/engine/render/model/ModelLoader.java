@@ -10,8 +10,10 @@ import com.anthonycosenza.engine.render.model.animation.Node;
 import com.anthonycosenza.engine.render.model.animation.VertexWeight;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.assimp.AIAABB;
 import org.lwjgl.assimp.AIAnimation;
 import org.lwjgl.assimp.AIBone;
 import org.lwjgl.assimp.AIColor4D;
@@ -46,6 +48,7 @@ import static org.lwjgl.assimp.Assimp.AI_MATKEY_SHININESS_STRENGTH;
 import static org.lwjgl.assimp.Assimp.aiGetMaterialFloatArray;
 import static org.lwjgl.assimp.Assimp.aiProcess_CalcTangentSpace;
 import static org.lwjgl.assimp.Assimp.aiProcess_FixInfacingNormals;
+import static org.lwjgl.assimp.Assimp.aiProcess_GenBoundingBoxes;
 import static org.lwjgl.assimp.Assimp.aiProcess_GenSmoothNormals;
 import static org.lwjgl.assimp.Assimp.aiProcess_JoinIdenticalVertices;
 import static org.lwjgl.assimp.Assimp.aiProcess_LimitBoneWeights;
@@ -69,7 +72,7 @@ public class ModelLoader
         return loadModel(modelId, modelPath, textureCache,
                 aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
                 aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
-                        (animation ? 0 : aiProcess_PreTransformVertices));
+                       aiProcess_GenBoundingBoxes | (animation ? 0 : aiProcess_PreTransformVertices));
         
     }
     
@@ -223,8 +226,12 @@ public class ModelLoader
             int numElements = (vertices.length / 3) * 2;
             textureCoords = new float[numElements];
         }
+        
+        AIAABB aabb = aiMesh.mAABB();
+        Vector3f aabbMin = new Vector3f(aabb.mMin().x(), aabb.mMin().y(), aabb.mMin().z());
+        Vector3f aabbMax = new Vector3f(aabb.mMax().x(), aabb.mMax().y(), aabb.mMax().z());
         return new Mesh(vertices, normals, tangents, bitangents, textureCoords,
-                indices, animationMeshData.boneIds(), animationMeshData.weights());
+                indices, animationMeshData.boneIds(), animationMeshData.weights(), aabbMin, aabbMax);
     }
     
     private static float[] processVertices(AIMesh aiMesh)

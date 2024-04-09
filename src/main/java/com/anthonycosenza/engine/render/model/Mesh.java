@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.render.model;
 
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -40,13 +41,17 @@ public class Mesh
     //Converts a float array into OpenGL form and sends it to OpenGL to manage, giving us a reference.
     private final List<Integer> vboIDList;
     
+    private Vector3f aabbMax;
+    private Vector3f aabbMin;
+    
 
     
     public Mesh(float[] positions, float[] normals, float[] tangents, float[] bittangents, float[] textureCoords, int[] indices)
     {
         this(positions, normals, tangents, bittangents, textureCoords, indices,
                 new int[Mesh.MAX_WEIGHTS * positions.length / 3],
-                new float[Mesh.MAX_WEIGHTS * positions.length / 3]);
+                new float[Mesh.MAX_WEIGHTS * positions.length / 3],
+                new Vector3f(), new Vector3f());
     }
     
     /**
@@ -55,10 +60,12 @@ public class Mesh
      * @param textureCoords, how the vertices of this mesh map to a 2d texture in a flattened 0 to 1 format. x1, y1, x2, y2...
      * @param indices,       used to define triangles within a mesh, each element of the indices array needs to reference the index of the corresponding vertex from the positions array in a counter-clockwise fashion.
      */
-    public Mesh(float[] positions, float[] normals, float[] tangents, float[] bittangents, float[] textureCoords, int[] indices, int[] boneIndices, float[] boneWeights)
+    public Mesh(float[] positions, float[] normals, float[] tangents, float[] bittangents, float[] textureCoords, int[] indices, int[] boneIndices, float[] boneWeights, Vector3f aabbMin, Vector3f aabbMax)
     {
         try(MemoryStack stack = MemoryStack.stackPush())
         {
+            this.aabbMin = aabbMin;
+            this.aabbMax = aabbMax;
             this.vertexCount = indices.length;
             vboIDList = new ArrayList<>();
             //Creating a new Vertex Array within OpenGL and storing its id.
@@ -153,6 +160,16 @@ public class Mesh
             
             glBindVertexArray(0);
         }
+    }
+    
+    public Vector3f getAabbMax()
+    {
+        return aabbMax;
+    }
+    
+    public Vector3f getAabbMin()
+    {
+        return aabbMin;
     }
     
     public int getVertexCount()

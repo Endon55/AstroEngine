@@ -119,6 +119,7 @@ public class SceneRenderer
             uniformsMap.createUniform("cascadeShadows[" + i + "].projViewMatrix");
             uniformsMap.createUniform("cascadeShadows[" + i + "].splitDistance");
         }
+        uniformsMap.createUniform("selected");
     }
     
     private void updateLights(Scene scene)
@@ -248,6 +249,7 @@ public class SceneRenderer
         
         Collection<Model> models = scene.getModelMap().values();
         TextureCache textureCache = scene.getTextureCache();
+        Entity selectedEntity = scene.getSelectedEntity();
         for(Model model : models)
         {
             List<Entity> entities = model.getEntityList();
@@ -278,6 +280,7 @@ public class SceneRenderer
                     glBindVertexArray(mesh.getVaoID());
                     for(Entity entity : entities)
                     {
+                        uniformsMap.setUniform("selected", selectedEntity != null && selectedEntity.getId().equals(entity.getId()) ? 1 : 0);
                         uniformsMap.setUniform("modelMatrix", entity.getModelMatrix());
                         AnimationData animationData = entity.getAnimationData();
                         if(animationData == null)

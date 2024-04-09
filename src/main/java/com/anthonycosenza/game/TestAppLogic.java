@@ -3,6 +3,8 @@ package com.anthonycosenza.game;
 import com.anthonycosenza.engine.MouseInput;
 import com.anthonycosenza.engine.game.IAppLogic;
 import com.anthonycosenza.engine.render.light.AmbientLight;
+import com.anthonycosenza.engine.render.model.Material;
+import com.anthonycosenza.engine.render.model.Mesh;
 import com.anthonycosenza.engine.render.model.Model;
 import com.anthonycosenza.engine.render.model.ModelLoader;
 import com.anthonycosenza.engine.render.Render;
@@ -19,9 +21,15 @@ import com.anthonycosenza.engine.sound.SoundListener;
 import com.anthonycosenza.engine.sound.SoundManager;
 import com.anthonycosenza.engine.sound.SoundSource;
 import com.anthonycosenza.engine.window.Window;
+import org.joml.Intersectionf;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.openal.AL11;
+
+import java.util.Collection;
+import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_C;
@@ -40,6 +48,9 @@ public class TestAppLogic implements IAppLogic
     private float lightAngle;
     private SoundSource playerSoundSource;
     private SoundManager soundManager;
+    Entity cubeEntity1;
+    Entity cubeEntity2;
+    private float rotation;
     
     @Override
     public void init(Window window, Scene scene, Render render)
@@ -86,6 +97,17 @@ public class TestAppLogic implements IAppLogic
         camera.addRotation((float) Math.toRadians(15.0f), (float) Math.toRadians(390.f));
     
         lightAngle = 45.001f;
+        
+        Model cubeModel = ModelLoader.loadModel("cube-model", "resources/models/cube/cube.obj",
+                scene.getTextureCache(), false);
+        scene.addModel(cubeModel);
+        cubeEntity1 = new Entity("cube-entity-1", cubeModel.getId());
+        cubeEntity1.setPosition(0, 2, -1);
+        scene.addEntity(cubeEntity1);
+    
+        cubeEntity2 = new Entity("cube-entity-2", cubeModel.getId());
+        cubeEntity2.setPosition(-2, 2, -1);
+        scene.addEntity(cubeEntity2);
     }
     
     @Override
@@ -130,6 +152,12 @@ public class TestAppLogic implements IAppLogic
             Vector2f displVec = mouseInput.getDisplayVector();
             camera.addRotation((float) -Math.toRadians(-displVec.x * MOUSE_SENSITIVITY), (float) -Math.toRadians(-displVec.y * MOUSE_SENSITIVITY));
         }
+        if(mouseInput.isLeftButtonPressed())
+        {
+            selectEntity(window, scene, mouseInput.getCurrentPos());
+        }
+        
+        
         SceneLighting sceneLights = scene.getSceneLighting();
         DirectionalLight dirLight = sceneLights.getDirectionalLight();
         double angRad = Math.toRadians(lightAngle);
@@ -142,6 +170,16 @@ public class TestAppLogic implements IAppLogic
     public void update(Window window, Scene scene, float interval)
     {
        animationData.nextFrame();
+        rotation += 1.5;
+        if(rotation > 360)
+        {
+            rotation = 0;
+        }
+        cubeEntity1.setRotation(1, 1, 1, (float) Math.toRadians(rotation));
+        cubeEntity1.updateModelMatrix();
+    
+        cubeEntity2.setRotation(1, 1, 1, (float) Math.toRadians(360 - rotation));
+        cubeEntity2.updateModelMatrix();
     }
 
     private void initSounds(Vector3f position, Camera camera)
@@ -165,9 +203,75 @@ public class TestAppLogic implements IAppLogic
         source.play();
     }
     
+    private void selectEntity(Window window, Scene scene, Vector2f mousePos)
+    {
+        int windowWidth = window.getWidth();
+        int windowHeight = window.getHeight();
+        
+        float x = (2 * mousePos.x) / windowWidth - 1.0f;
+        float y = 1.0f - (2 * mousePos.y)  /windowHeight;
+        float z = -1.0f;
+        
+        Matrix4f invProjMatrix = scene.getProjection().getInvProjMatrix();
+        Vector4f mouseDir = new Vector4f(x, y, z, 1.0f);
+        mouseDir.mul(invProjMatrix);
+        mouseDir.z = -1.0f;
+        mouseDir.w = 0.0f;
+        
+        Matrix4f invViewMatrix = scene.getCamera().getInvViewMatrix();
+        mouseDir.mul(invViewMatrix);
+        
+        Vector4f min = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+        Vector4f max = new Vector4f(0.0f, 0.0f, 0.0f, 1.0f);
+        Vector2f nearFar = new Vector2f();
+        
+        Entity selectedEntity = null;
+        float closestDistance = Float.POSITIVE_INFINITY;
+        Vector3f center = scene.getCamera().getPosition();
+        
+        Collection<Model> models = scene.getModelMap().values();
+        Matrix4f modelMatrix = new Matrix4f();
+        for(Model model : models)
+        {
+            List<Entity> entities = model.getEntityList();
+            for(Entity entity : entities)
+            {
+                modelMatrix.translate(entity.getPosition()).scale(entity.getScale());
+                for(Material material : model.getMaterialList())
+                {
+                    for(Mesh mesh : material.getMeshList())
+                    {
+                        Vector3f aabbMin = mesh.getAabbMin();
+                        min.set(aabbMin.x, aabbMin.y, aabbMin.z, 1.0f);
+                        min.mul(modelMatrix);
+                        Vector3f aabbMax = mesh.getAabbMax();
+                        max.set(aabbMax.x, aabbMax.y, aabbMax.z, 1.0f);
+                        max.mul(modelMatrix);
+                        if(Intersectionf.intersectRayAab(
+                                center.x, center.y, center.z,
+                                mouseDir.x, mouseDir.y, mouseDir.z,
+                                min.x, min.y, min.z, max.x, max.y, max.z, nearFar)
+                                && nearFar.x < closestDistance)
+                        {
+                            closestDistance = nearFar.x;
+                            selectedEntity = entity;
+                        }
+                    }
+                }
+                modelMatrix.identity();
+            }
+        }
+        scene.setSelectedEntity(selectedEntity);
+    }
+    
+    
+    
     @Override
     public void cleanup()
     {
         //Nothing Yet
     }
+    
+    
+    
 }

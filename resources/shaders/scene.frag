@@ -82,6 +82,7 @@ uniform DirectionalLight directionalLight;
 uniform Fog fog;
 uniform CascadeShadow cascadeShadows[NUM_CASCADES];
 uniform sampler2D shadowMap[NUM_CASCADES];
+uniform int selected;
 
 
 float textureProj(vec4 shadowCoord, vec2 offset, int index)
@@ -259,6 +260,11 @@ void main()
             fragColor.rgb *= vec3(1.0f, 1.0f, 0.25f);
             break;
         }
+    }
+
+    if(selected > 0)
+    {
+        fragColor = vec4(fragColor.x, fragColor.y, 1, 1);
     }
 
 }

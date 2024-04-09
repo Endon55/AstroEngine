@@ -13,6 +13,7 @@ public class Camera
     private Vector3f up;
     //Matrix that stores the final result that gets sent to the vertex shader
     private Matrix4f viewMatrix;
+    private Matrix4f invViewMatrix;
     
     public Camera()
     {
@@ -22,6 +23,7 @@ public class Camera
         right = new Vector3f();
         up = new Vector3f();
         viewMatrix = new Matrix4f();
+        invViewMatrix = new Matrix4f();
     }
     
     public void addRotation(float x, float y)
@@ -38,6 +40,11 @@ public class Camera
     public Matrix4f getViewMatrix()
     {
         return viewMatrix;
+    }
+    
+    public Matrix4f getInvViewMatrix()
+    {
+        return invViewMatrix;
     }
     
     public void moveForward(float inc)
@@ -100,5 +107,6 @@ public class Camera
                 .rotateX(rotation.x)
                 .rotateY(rotation.y)
                 .translate(-position.x, -position.y, -position.z);
+        invViewMatrix.set(viewMatrix).invert();
     }
 }
