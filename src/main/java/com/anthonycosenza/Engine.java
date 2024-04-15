@@ -1,25 +1,22 @@
 package com.anthonycosenza;
 
-import com.anthonycosenza.rending.Renderer;
-import com.anthonycosenza.shader.ShaderData;
-import com.anthonycosenza.shader.ShaderPipeline;
+import com.anthonycosenza.events.MessageEvent;
+import com.anthonycosenza.input.Input;
+import com.anthonycosenza.input.Key;
+import com.anthonycosenza.input.KeyAction;
+import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.shape.Pyramid3;
 import com.anthonycosenza.transformation.Projection;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.lwjgl.opengl.GL;
 
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -36,10 +33,11 @@ public class Engine
     Scene scene;
     Entity triangle;
     Renderer renderer;
+    Input input;
     
     public Engine()
     {
-        window = new Window("GameEngine", 1920, 1080, false);
+        window = new Window("AstroEngine", 1920, 1080, false);
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
@@ -48,6 +46,8 @@ public class Engine
         
         scene = new Scene();
         renderer = new Renderer();
+        input = new Input(window.getWindowHandle());
+        EventBus.getDefault().register(this);
     }
     
     
@@ -59,18 +59,38 @@ public class Engine
         Entity entity = model.createEntity();
         entity.setPosition(0, 0, -100);
         scene.addEntity(entity);
-        
+        scene.getCamera().setRotationDeg(0, 0, 0);
         float rotation = 0;
-        
+        float moveSpeed = .1f;
     
         while(!window.shouldClose() && running)
         {
-            rotation += .1f;
-            for(Entity entity1 : scene.getEntities())
+            rotation += .01f;
+           /* for(Entity entity1 : scene.getEntities())
             {
                 entity1.rotate(1, 1, 1, rotation % 360);
+            }*/
+            //scene.getCamera().setRotationDeg(0, rotation, 0);
+            System.out.println(input.getState(Key.A));
+            if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+            {
+                scene.getCamera().moveLocalX(-moveSpeed);
+            }
+            if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+            {
+                scene.getCamera().moveLocalX(moveSpeed);
+            }
+            if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+            {
+                scene.getCamera().moveLocalZ(moveSpeed);
+            }
+            if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+            {
+                scene.getCamera().moveLocalZ(-moveSpeed);
             }
             
+            
+            //scene.getCamera().moveLocalZ(-rotation);
 
             renderer.render(scene, projection);
             
@@ -80,6 +100,11 @@ public class Engine
         cleanup();
     }
     
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessage(MessageEvent event)
+    {
+        System.out.println(event.message);
+    }
 
     
     public void cleanup()

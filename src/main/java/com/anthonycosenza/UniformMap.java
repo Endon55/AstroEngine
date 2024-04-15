@@ -1,5 +1,6 @@
 package com.anthonycosenza;
 
+import com.anthonycosenza.math.matrix.Matrix4;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
@@ -44,5 +45,12 @@ public class UniformMap
         }
     }
     
+    public void setUniform(String uniformName, Matrix4 data)
+    {
+        try(MemoryStack stack = MemoryStack.stackPush())
+        {
+            glUniformMatrix4fv(getUniformID(uniformName), false, data.get(stack.mallocFloat(16)));
+        }
+    }
     
 }

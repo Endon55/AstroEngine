@@ -46,7 +46,7 @@ public class Projection
         this.fov = (float) Math.toRadians(fovDegrees);
     }
     
-    public Matrix4f getProjectionMatrix()
+    public Matrix4f getMatrix()
     {
         return projectionMatrix;
     }

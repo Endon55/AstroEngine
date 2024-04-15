@@ -7,7 +7,7 @@ import org.joml.Vector3f;
 public class Entity
 {
     private Model model;
-    private Matrix4f modelMatrix;
+    private Matrix4f entityMatrix;
     private Vector3f position;
     //We use a quaternion to store rotation as it prevents "Gimbal Lock" essentially if 2 axis have the same value they get locked into place and the math can't break them out.
     //Quaternions are like 4d imaginary numbers, for some reason that's well beyond my paygrade it makes it much easier to track rotation with quats.
@@ -17,7 +17,7 @@ public class Entity
     public Entity(Model model)
     {
         this.model = model;
-        modelMatrix = new Matrix4f();
+        entityMatrix = new Matrix4f();
         position = new Vector3f();
         rotation = new Quaternionf();
         scale = 1f;
@@ -48,14 +48,15 @@ public class Entity
         return model;
     }
     
-    public Matrix4f getModelMatrix()
+    public Matrix4f getMatrix()
     {
-        return modelMatrix;
+        return entityMatrix;
     }
     
     
     public void updateMatrix()
     {
-        modelMatrix.translationRotateScale(position, rotation, scale);
+        entityMatrix.translationRotateScale(position, rotation, scale);
+        System.out.println(entityMatrix.properties());
     }
 }

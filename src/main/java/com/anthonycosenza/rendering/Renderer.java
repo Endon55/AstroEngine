@@ -1,4 +1,4 @@
-package com.anthonycosenza.rending;
+package com.anthonycosenza.rendering;
 
 import com.anthonycosenza.Entity;
 import com.anthonycosenza.Scene;
@@ -29,7 +29,8 @@ public class Renderer
     
         uniforms = new UniformMap(shaderPipeline.getProgramID());
         uniforms.createUniform("projectionMatrix");
-        uniforms.createUniform("modelMatrix");
+        uniforms.createUniform("cameraMatrix");
+        uniforms.createUniform("entityMatrix");
     
         //The color that the window frame gets cleared to right before a new frame is rendered.
         glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
@@ -42,11 +43,12 @@ public class Renderer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         shaderPipeline.bind();
-        uniforms.setUniform("projectionMatrix", projection.getProjectionMatrix());
+        uniforms.setUniform("projectionMatrix", projection.getMatrix());
+        uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
         for(Entity entity : scene.getEntities())
         {
             entity.getModel().getMesh().bind();
-            uniforms.setUniform("modelMatrix", entity.getModelMatrix());
+            uniforms.setUniform("entityMatrix", entity.getMatrix());
     
     
             glDrawElements(GL_TRIANGLES, entity.getModel().getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
