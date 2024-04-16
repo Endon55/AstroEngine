@@ -11,7 +11,7 @@ public class Project
 {
     Scene scene;
     float rotation = 0;
-    float moveSpeed = .1f;
+    float moveSpeed = 100f;
     float rotationSpeed = 100;
     
     public Project()
@@ -26,32 +26,29 @@ public class Project
     
     
     
-    public void physicsUpdate(double delta, Input input)
+    public void physicsUpdate(float delta, Input input)
     {
-        //System.out.println("D: " + delta);
         rotation += rotationSpeed * delta;
         rotation = rotation % 360;
         for(Entity entity1 : scene.getEntities())
         {
-            entity1.rotate(1, 1, 1, rotation);
+            //entity1.rotate(1, 1, 1, rotation);
         }
-        
-        //scene.getCamera().setRotationDeg(0, rotation, 0);
         if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
         {
-            scene.getCamera().moveLocalX(-moveSpeed);
+            scene.getCamera().moveLocalX(-moveSpeed * delta);
         }
-        if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+        if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.D) == KeyAction.REPEAT)
         {
-            scene.getCamera().moveLocalX(moveSpeed);
+            scene.getCamera().moveLocalX(moveSpeed * delta);
         }
-        if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+        if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.W) == KeyAction.REPEAT)
         {
-            scene.getCamera().moveLocalZ(moveSpeed);
+            scene.getCamera().moveLocalZ(moveSpeed * delta);
         }
-        if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+        if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.S) == KeyAction.REPEAT)
         {
-            scene.getCamera().moveLocalZ(-moveSpeed);
+            scene.getCamera().moveLocalZ(-moveSpeed * delta);
         }
     
     

@@ -38,7 +38,7 @@ public class Engine
     Input input;
     Project project;
     
-    double physicsUpdatesSecond = 60;
+    float physicsUpdatesSecond = 60;
     
     public Engine()
     {
@@ -62,9 +62,9 @@ public class Engine
         running = true;
 
         //Gives the number of physics updates per second
-        double updateInterval = Constants.NANOS_IN_SECOND / physicsUpdatesSecond;
+        float updateInterval = Constants.NANOS_IN_SECOND / physicsUpdatesSecond;
         //Cache this value to avoid repeated calculation.
-        double updateTime = updateInterval / Constants.NANOS_IN_SECOND;
+        float updateTime = updateInterval / Constants.NANOS_IN_SECOND;
         
         long currentTime = System.nanoTime();
         
@@ -100,7 +100,7 @@ public class Engine
                 else
                 {
                     //Update the physics with a fractional component. Accumulator should be a decimal value less than 1 and we want to get how many nanos that is
-                    project.physicsUpdate(accumulator / Constants.NANOS_IN_SECOND, input);
+                    project.physicsUpdate((float)(accumulator / Constants.NANOS_IN_SECOND), input);
                     accumulator = 0;
                 }
             }

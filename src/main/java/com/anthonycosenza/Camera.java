@@ -46,6 +46,11 @@ public class Camera
         updateMatrix();
     }
     
+    public Vector3 getPosition()
+    {
+        return position;
+    }
+    
     public void moveLocalX(float distance)
     {
         xAxisLocal.mult(distance);
