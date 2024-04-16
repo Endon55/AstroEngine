@@ -71,6 +71,7 @@ public class Engine
         double accumulator = 0.0f;
         while(!window.shouldClose() && running)
         {
+            input.resetFrame();
             int physicsUpdates = 0;
             long newTime = System.nanoTime();
             long frameTime = newTime - currentTime;

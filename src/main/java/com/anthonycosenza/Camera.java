@@ -1,7 +1,7 @@
 package com.anthonycosenza;
 
-import com.anthonycosenza.math.EngineMath;
 import com.anthonycosenza.math.matrix.Matrix4;
+import com.anthonycosenza.math.vector.Vector2;
 import com.anthonycosenza.math.vector.Vector3;
 
 public class Camera
@@ -34,6 +34,17 @@ public class Camera
         updateMatrix();
     }
     
+    public void rotateDeg(Vector2 rotation)
+    {
+        this.rotation.add(rotation.x(), rotation.y(), 0);
+        updateMatrix();
+    }
+    public void setRotationDeg(Vector2 rotation)
+    {
+        this.rotation.set(rotation.x(), rotation.y(), 0);
+        updateMatrix();
+    }
+    
     public void setRotationDeg(float x, float y, float z)
     {
         this.rotation.set(x, y, z);
@@ -51,6 +62,11 @@ public class Camera
         return position;
     }
     
+    public Vector3 getRotation()
+    {
+        return rotation;
+    }
+    
     public void moveLocalX(float distance)
     {
         xAxisLocal.mult(distance);
@@ -65,7 +81,6 @@ public class Camera
         updateMatrix();
     }
 
-    
     public void moveLocalZ(float distance)
     {
         zAxisLocal.mult(distance);
@@ -73,15 +88,14 @@ public class Camera
         updateMatrix();
     }
     
-    
-    
     public void updateMatrix()
     {
         cameraMatrix
                 //Sets the matrix to diagonal 1s
                 .identity()
                 //Applies the rotation we're storing separately.
-                .rotateX(rotation.x).rotateY(rotation.y).rotateZ(rotation.z)
+                //We swap the y and x values to be more intuitive otherwise x controls up/down and y controls left/right
+                .rotateX(rotation.y).rotateY(rotation.x).rotateZ(rotation.z)
                 //Stores a copy of the newly rotated matrix in rotationMatrix
                 .extractAxis(xAxisLocal, yAxisLocal, zAxisLocal)
                 //Applies the position we're storing separately.

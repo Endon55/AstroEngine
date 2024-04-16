@@ -25,7 +25,15 @@ public class Vector3
     }
     public Vector3 add(Vector3 vector)
     {
-        return this.set(this.x() + vector.x(), this.y() + vector.y(), this.z() + vector.z());
+        return this.add(vector.x(), vector.y(), vector.z());
+    }
+    
+    public Vector3 add(float x, float y, float z)
+    {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+        return this;
     }
     
     public Vector3 getUnit()
@@ -62,6 +70,7 @@ public class Vector3
         this.z *= scalar;
         return this;
     }
+    
     public Vector3 invert()
     {
         return set(x * -1, y * -1, z * -1);

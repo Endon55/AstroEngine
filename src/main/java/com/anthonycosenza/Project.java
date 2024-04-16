@@ -3,6 +3,7 @@ package com.anthonycosenza;
 import com.anthonycosenza.input.Input;
 import com.anthonycosenza.input.Key;
 import com.anthonycosenza.input.KeyAction;
+import com.anthonycosenza.math.vector.Vector2;
 import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.shape.Pyramid3;
 import com.anthonycosenza.transformation.Projection;
@@ -13,6 +14,8 @@ public class Project
     float rotation = 0;
     float moveSpeed = 100f;
     float rotationSpeed = 100;
+    float xPixelsPerDegree = 100;
+    float yPixelsPerDegree = 80;
     
     public Project()
     {
@@ -50,9 +53,16 @@ public class Project
         {
             scene.getCamera().moveLocalZ(-moveSpeed * delta);
         }
+        
+        if(!input.isCursorStale())
+        {
+            scene.getCamera().rotateDeg(input.getMouseDirection().mult(1 / 10f));
+        }
+        //scene.getCamera().rotateDeg(new Vector2(1, 0));
+        //System.out.println("Pos: " + input.getMousePosition());
+        //System.out.println("Dir: " + input.getMouseDirection());
     
-    
-        //scene.getCamera().moveLocalZ(-rotation);
+        //scene.getCamera().moveLocalX(-rotation);
     
     }
     

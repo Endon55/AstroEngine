@@ -100,8 +100,7 @@ public class Matrix4 implements IMatrix
           
           The rotation component sits in the top left of our transformation matrix.
          */
-        
-        
+    
         double rads = Math.toRadians(angle);
         Matrix4 xMatrix = new Matrix4();
         float cos = (float)Math.cos(rads);
@@ -130,6 +129,7 @@ public class Matrix4 implements IMatrix
           
           The rotation component sits in the top left of our transformation matrix.
          */
+        
         double rads = Math.toRadians(angle);
         Matrix4 yMatrix = new Matrix4();
         float cos = (float) Math.cos(rads);
@@ -158,6 +158,7 @@ public class Matrix4 implements IMatrix
           
           The rotation component sits in the top left of our transformation matrix.
          */
+        
         double rads = Math.toRadians(angle);
         Matrix4 zMatrix = new Matrix4();
         float cos = (float) Math.cos(rads);
