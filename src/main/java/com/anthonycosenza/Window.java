@@ -89,11 +89,7 @@ public class Window
     
     public void update()
     {
-        //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins loading of the next next frame.
-        glfwSwapBuffers(windowHandle);
-        
-        //Enables the window to be interacted with by checking for and processing events and summoning the relevant callbacks.
-        glfwPollEvents();
+    
     }
     
     public void cleanup()

@@ -7,11 +7,14 @@ import com.anthonycosenza.input.KeyAction;
 import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.shape.Pyramid3;
 import com.anthonycosenza.transformation.Projection;
+import com.anthonycosenza.util.Constants;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.lwjgl.opengl.GL;
 
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -31,9 +34,11 @@ public class Engine
     float zFar = 1000.0f;
     float fov = 60;
     Scene scene;
-    Entity triangle;
     Renderer renderer;
     Input input;
+    Project project;
+    
+    double physicsUpdatesSecond = 60;
     
     public Engine()
     {
@@ -48,53 +53,62 @@ public class Engine
         renderer = new Renderer();
         input = new Input(window.getWindowHandle());
         EventBus.getDefault().register(this);
+        project = new Project();
     }
     
     
     public void run()
     {
         running = true;
+
+        //Gives the number of physics updates per second
+        double updateInterval = Constants.NANOS_IN_SECOND / physicsUpdatesSecond;
+        //Cache this value to avoid repeated calculation.
+        double updateTime = updateInterval / Constants.NANOS_IN_SECOND;
         
-        Model model = new Model(new Pyramid3(50, 30));
-        Entity entity = model.createEntity();
-        entity.setPosition(0, 0, -100);
-        scene.addEntity(entity);
-        scene.getCamera().setRotationDeg(0, 0, 0);
-        float rotation = 0;
-        float moveSpeed = .1f;
-    
+        long currentTime = System.nanoTime();
+        
+        double accumulator = 0.0f;
         while(!window.shouldClose() && running)
         {
-            rotation += .01f;
-           /* for(Entity entity1 : scene.getEntities())
-            {
-                entity1.rotate(1, 1, 1, rotation % 360);
-            }*/
-            //scene.getCamera().setRotationDeg(0, rotation, 0);
-            System.out.println(input.getState(Key.A));
-            if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
-            {
-                scene.getCamera().moveLocalX(-moveSpeed);
-            }
-            if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
-            {
-                scene.getCamera().moveLocalX(moveSpeed);
-            }
-            if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
-            {
-                scene.getCamera().moveLocalZ(moveSpeed);
-            }
-            if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
-            {
-                scene.getCamera().moveLocalZ(-moveSpeed);
-            }
+            int physicsUpdates = 0;
+            long newTime = System.nanoTime();
+            long frameTime = newTime - currentTime;
+            accumulator += frameTime;
+            currentTime = newTime;
             
+            //Enables the window to be interacted with by checking for and processing events and summoning the relevant callbacks.
+            glfwPollEvents();
             
-            //scene.getCamera().moveLocalZ(-rotation);
-
-            renderer.render(scene, projection);
+            //Don't wake up the physics simulation for less this much of a frame
+            //We do this so that the physics simulation smooths out compared to the rendering
             
-            window.update();
+            while(accumulator >= updateInterval * .6)
+            {
+                physicsUpdates++;
+                //Update physics with an entire timestep
+                //project.physicsUpdate(updateTime, input);
+                //accumulator -= updateInterval;
+                
+                if(accumulator >= updateInterval)
+                {
+                    //Update physics with an entire timestep
+                    //Delta is the number of seconds to advance the physics simulation.
+                    project.physicsUpdate(updateTime, input);
+                    accumulator -= updateInterval;
+                }
+                else
+                {
+                    //Update the physics with a fractional component. Accumulator should be a decimal value less than 1 and we want to get how many nanos that is
+                    project.physicsUpdate(accumulator / Constants.NANOS_IN_SECOND, input);
+                    accumulator = 0;
+                }
+            }
+            //Renders the current scene giving it the delta since the last render call.
+            project.render((double)frameTime / Constants.NANOS_IN_SECOND, renderer, projection);
+    
+            //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins loading of the next next frame.
+            glfwSwapBuffers(window.getWindowHandle());
         }
     
         cleanup();
@@ -103,7 +117,7 @@ public class Engine
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessage(MessageEvent event)
     {
-        System.out.println(event.message);
+        //System.out.println(event.message);
     }
 
     

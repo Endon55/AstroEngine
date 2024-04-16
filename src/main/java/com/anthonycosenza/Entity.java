@@ -57,6 +57,5 @@ public class Entity
     public void updateMatrix()
     {
         entityMatrix.translationRotateScale(position, rotation, scale);
-        System.out.println(entityMatrix.properties());
     }
 }
