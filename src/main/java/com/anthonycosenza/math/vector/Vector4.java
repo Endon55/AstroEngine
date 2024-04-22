@@ -24,6 +24,16 @@ public class Vector4
         return this;
     }
     
+    public Vector4 mult(float scalar)
+    {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        this.w *= scalar;
+        return this;
+    }
+    
+    
     public float x()
     {
         return x;
@@ -42,5 +52,12 @@ public class Vector4
     public float w()
     {
         return w;
+    }
+    
+    
+    @Override
+    public String toString()
+    {
+        return "[" + x + ", " + y + ", " + z + ", " + w + "]";
     }
 }

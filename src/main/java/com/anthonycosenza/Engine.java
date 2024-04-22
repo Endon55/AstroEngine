@@ -2,11 +2,8 @@ package com.anthonycosenza;
 
 import com.anthonycosenza.events.MessageEvent;
 import com.anthonycosenza.input.Input;
-import com.anthonycosenza.input.Key;
-import com.anthonycosenza.input.KeyAction;
 import com.anthonycosenza.rendering.Renderer;
-import com.anthonycosenza.shape.Pyramid3;
-import com.anthonycosenza.transformation.Projection;
+import com.anthonycosenza.projection.Projection;
 import com.anthonycosenza.util.Constants;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;

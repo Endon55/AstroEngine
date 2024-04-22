@@ -5,7 +5,7 @@ import com.anthonycosenza.Scene;
 import com.anthonycosenza.UniformMap;
 import com.anthonycosenza.shader.ShaderData;
 import com.anthonycosenza.shader.ShaderPipeline;
-import com.anthonycosenza.transformation.Projection;
+import com.anthonycosenza.projection.Projection;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
@@ -29,7 +29,7 @@ public class Renderer
     
         uniforms = new UniformMap(shaderPipeline.getProgramID());
         uniforms.createUniform("projectionMatrix");
-        uniforms.createUniform("cameraMatrix");
+        //uniforms.createUniform("cameraMatrix");
         uniforms.createUniform("entityMatrix");
     
         //The color that the window frame gets cleared to right before a new frame is rendered.
@@ -44,7 +44,7 @@ public class Renderer
         
         shaderPipeline.bind();
         uniforms.setUniform("projectionMatrix", projection.getMatrix());
-        uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
+        //uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
         for(Entity entity : scene.getEntities())
         {
             entity.getModel().getMesh().bind();

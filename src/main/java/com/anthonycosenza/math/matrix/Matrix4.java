@@ -2,6 +2,8 @@ package com.anthonycosenza.math.matrix;
 
 import com.anthonycosenza.math.vector.Vector2;
 import com.anthonycosenza.math.vector.Vector3;
+import com.anthonycosenza.math.vector.Vector4;
+import org.joml.Matrix4f;
 
 import java.nio.FloatBuffer;
 
@@ -62,6 +64,7 @@ public class Matrix4 implements IMatrix
     public Matrix4 translate(float x, float y, float z)
     {
         return this.mult(new Matrix4().m03(x).m13(y).m23(z));
+        //return this.m03(x).m13(y).m23(z);
     }
     
     public Matrix4 rotate(Vector2 angle)
@@ -164,8 +167,8 @@ public class Matrix4 implements IMatrix
         float cos = (float) Math.cos(rads);
         float sin = (float) Math.sin(rads);
         
-        zMatrix.m00(cos).m01(sin);
-        zMatrix.m10(-sin).m11(cos);
+        zMatrix.m00(cos).m01(-sin);
+        zMatrix.m10(sin).m11(cos);
         
         return this.mult(zMatrix);
     }
@@ -183,6 +186,30 @@ public class Matrix4 implements IMatrix
         outPositiveY.set(m10, m11, m12);
         outPositiveZ.set(m20, m21, m22);
         return this;
+    }
+    
+    public Matrix4 transpose()
+    {
+        float n01 = m10();
+        float n02 = m20();
+        float n03 = m30();
+        
+        float n10 = m01();
+        float n12 = m21();
+        float n13 = m31();
+        
+        float n20 = m02();
+        float n21 = m12();
+        float n23 = m32();
+        
+        float n30 = m03();
+        float n31 = m13();
+        float n32 = m23();
+        
+        return this.m01(n01).m02(n02).m03(n03)
+                .m10(n10).m12(n12).m13(n13)
+                .m20(n20).m21(n21).m23(n23)
+                .m30(n30).m31(n31).m32(n32);
     }
     
     public Matrix4 copy(Matrix4 destination)
@@ -328,17 +355,42 @@ public class Matrix4 implements IMatrix
         return this;
     }
     
+    public Vector4 mult(Vector4 vector)
+    {
+        return mult(vector, vector);
+    }
+    public Vector4 mult(Vector4 vector, Vector4 dest)
+    {
+        float nX = vector.x() * m00() + vector.y() * m01() + vector.z() * m02() + vector.w() * m03();
+        float nY = vector.x() * m10() + vector.y() * m11() + vector.z() * m12() + vector.w() * m13();
+        float nZ = vector.x() * m20() + vector.y() * m21() + vector.z() * m22() + vector.w() * m23();
+        float nW = vector.x() * m30() + vector.y() * m31() + vector.z() * m32() + vector.w() * m33();
+        return dest.set(nX, nY, nZ, nW);
+    }
 
+    
+    public Vector3 positiveX(Vector3 destination)
+    {
+        return destination.set(this.m11() * this.m22() - this.m21() * this.m12(), this.m20() * this.m12() - this.m10() * this.m22(), this.m10() * this.m21() - this.m20() * this.m11()).normalize();
+    }
+    public Vector3 positiveY(Vector3 destination)
+    {
+        return destination.set(this.m21() * this.m02() - this.m01() * this.m22(), this.m00() * this.m22() - this.m20() * this.m02(), this.m20() * this.m01() - this.m00() * this.m21()).normalize();
+    }
+    
+    public Vector3 positiveZ(Vector3 destination)
+    {
+        return destination.set(this.m01() * this.m12() - this.m11() * this.m02(), this.m02() * this.m10() - this.m12() * this.m00(), this.m00() * this.m11() - this.m10() * this.m01()).normalize();
+    }
     
     public FloatBuffer get(FloatBuffer buffer)
     {
-        buffer.put(0, m00).put(1, m10).put(2, m20).put(3, m30)
-                .put(4, m01).put(5, m11).put(6, m21).put(7, m31)
-                .put(8, m02).put(9, m12).put(10, m22).put(11, m32)
-                .put(12, m03).put(13, m13).put(14, m23).put(15, m33);
+        buffer.put(0, m00()).put(1, m10()).put(2, m20()).put(3, m30())
+                .put(4, m01()).put(5, m11()).put(6, m21()).put(7, m31())
+                .put(8, m02()).put(9, m12()).put(10, m22()).put(11, m32())
+                .put(12, m03()).put(13, m13()).put(14, m23()).put(15, m33());
         return buffer;
     }
-    
     
     @Override
     public int getRows()

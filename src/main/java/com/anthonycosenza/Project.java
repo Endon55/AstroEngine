@@ -3,10 +3,9 @@ package com.anthonycosenza;
 import com.anthonycosenza.input.Input;
 import com.anthonycosenza.input.Key;
 import com.anthonycosenza.input.KeyAction;
-import com.anthonycosenza.math.vector.Vector2;
 import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.shape.Pyramid3;
-import com.anthonycosenza.transformation.Projection;
+import com.anthonycosenza.projection.Projection;
 
 public class Project
 {
@@ -22,9 +21,9 @@ public class Project
         scene = new Scene();
         Model model = new Model(new Pyramid3(50, 30));
         Entity entity = model.createEntity();
-        entity.setPosition(0, 0, -100);
+        
+        entity.setPosition(0, 0, -50);
         scene.addEntity(entity);
-        scene.getCamera().setRotationDeg(0, 0, 0);
     }
     
     
@@ -56,7 +55,7 @@ public class Project
         
         if(!input.isCursorStale())
         {
-            scene.getCamera().rotateDeg(input.getMouseDirection().mult(1 / 10f));
+            scene.getCamera().rotateDeg(input.getMouseDirection().mult(-1 / 10f));
         }
         //scene.getCamera().rotateDeg(new Vector2(1, 0));
         //System.out.println("Pos: " + input.getMousePosition());

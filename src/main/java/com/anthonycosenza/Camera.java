@@ -3,12 +3,13 @@ package com.anthonycosenza;
 import com.anthonycosenza.math.matrix.Matrix4;
 import com.anthonycosenza.math.vector.Vector2;
 import com.anthonycosenza.math.vector.Vector3;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class Camera
 {
     //https://www.tomdalling.com/blog/modern-opengl/04-cameras-vectors-and-input/
     
-    private Vector3 direction;
     private Vector3 position;
     //We don't need a z component really unless we plan to have the camera go upside down.
     private Vector3 rotation;
@@ -22,7 +23,6 @@ public class Camera
     
     public Camera()
     {
-        direction = new Vector3();
         position = new Vector3();
         rotation = new Vector3();
         
@@ -69,23 +69,27 @@ public class Camera
     
     public void moveLocalX(float distance)
     {
-        xAxisLocal.mult(distance);
+        cameraMatrix.positiveX(xAxisLocal).mult(distance);
         position.add(xAxisLocal);
         updateMatrix();
     }
     
     public void moveLocalY(float distance)
     {
-        yAxisLocal.mult(distance);
+        cameraMatrix.positiveY(yAxisLocal).mult(distance);
         position.add(yAxisLocal);
         updateMatrix();
     }
 
     public void moveLocalZ(float distance)
     {
-        zAxisLocal.mult(distance);
+        cameraMatrix.positiveZ(zAxisLocal).mult(distance);
         position.add(zAxisLocal);
         updateMatrix();
+    }
+    public Vector3 direction()
+    {
+        return new Vector3();
     }
     
     public void updateMatrix()
@@ -93,13 +97,14 @@ public class Camera
         cameraMatrix
                 //Sets the matrix to diagonal 1s
                 .identity()
+                .translate(-position.x, -position.y, position.z)
                 //Applies the rotation we're storing separately.
                 //We swap the y and x values to be more intuitive otherwise x controls up/down and y controls left/right
-                .rotateX(rotation.y).rotateY(rotation.x).rotateZ(rotation.z)
+                .rotateX(rotation.x).rotateY(rotation.y).rotateZ(rotation.z)
                 //Stores a copy of the newly rotated matrix in rotationMatrix
-                .extractAxis(xAxisLocal, yAxisLocal, zAxisLocal)
+                //.extractAxis(xAxisLocal, yAxisLocal, zAxisLocal)
                 //Applies the position we're storing separately.
-                .translate(-position.x, -position.y, position.z);
+        ;
     }
     
     public Matrix4 getMatrix()

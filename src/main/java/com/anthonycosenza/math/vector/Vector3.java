@@ -73,7 +73,7 @@ public class Vector3
     
     public Vector3 invert()
     {
-        return set(x * -1, y * -1, z * -1);
+        return set(-x, -y, -z);
     }
     public Vector3 normalize()
     {   //                 _______________
