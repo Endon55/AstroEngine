@@ -55,7 +55,7 @@ public class Project
         
         if(!input.isCursorStale())
         {
-            scene.getCamera().rotateDeg(input.getMouseDirection().mult(-1 / 10f));
+            scene.getCamera().rotateDeg(input.getMouseDirection().x() / 10, input.getMouseDirection().y() / 10);
         }
         //scene.getCamera().rotateDeg(new Vector2(1, 0));
         //System.out.println("Pos: " + input.getMousePosition());

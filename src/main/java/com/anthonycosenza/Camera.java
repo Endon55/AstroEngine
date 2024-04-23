@@ -39,6 +39,12 @@ public class Camera
         this.rotation.add(rotation.y(), rotation.x(), 0);
         updateMatrix();
     }
+    
+    public void rotateDeg(float x, float y)
+    {
+        this.rotation.add(y, x, 0);
+        updateMatrix();
+    }
     public void setRotationDeg(Vector2 rotation)
     {
         this.rotation.set(rotation.x(), rotation.y(), 0);
