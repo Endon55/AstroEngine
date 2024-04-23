@@ -105,7 +105,6 @@ public class Camera
                 //Then once ive calculated what the matrix should look like, I extract the vectors that point in the x, y, and z axis relative to the cameras current rotation,
                 // not relative to the global axis.
                 .positiveAxis(xAxisLocal, yAxisLocal, zAxisLocal);
-        System.out.println(cameraMatrix);
     }
     
     
