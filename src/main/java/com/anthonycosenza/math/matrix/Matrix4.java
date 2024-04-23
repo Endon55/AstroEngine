@@ -67,6 +67,29 @@ public class Matrix4 implements IMatrix
         //return this.m03(x).m13(y).m23(z);
     }
     
+    
+    public Matrix3 getMatrix3()
+    {
+        return new Matrix3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+    }
+    
+    public Matrix4 set(Matrix3 matrix)
+    {
+        m00(matrix.m00());
+        m01(matrix.m01());
+        m02(matrix.m02());
+    
+        m10(matrix.m10());
+        m11(matrix.m11());
+        m12(matrix.m12());
+    
+        m20(matrix.m20());
+        m21(matrix.m21());
+        m22(matrix.m22());
+        
+        return this;
+    }
+    
     public Matrix4 rotate(Vector2 angle)
     {
         return rotate(angle.x(), angle.y());
@@ -167,8 +190,8 @@ public class Matrix4 implements IMatrix
         float cos = (float) Math.cos(rads);
         float sin = (float) Math.sin(rads);
         
-        zMatrix.m00(cos).m01(-sin);
-        zMatrix.m10(sin).m11(cos);
+        zMatrix.m00(cos).m01(sin);
+        zMatrix.m10(-sin).m11(cos);
         
         return this.mult(zMatrix);
     }
@@ -368,6 +391,16 @@ public class Matrix4 implements IMatrix
         return dest.set(nX, nY, nZ, nW);
     }
 
+    public Matrix4 positiveAxis(Vector3 rightDest, Vector3 upDest, Vector3 forwardDest)
+    {
+        Vector3 scale = new Vector3(new Vector3(m00(), m10(), m20()).norm(), new Vector3(m01(), m11(), m21()).norm(), new Vector3(m02(), m12(), m22()).norm());
+        
+        rightDest.set(m00() / scale.x(), m10() / scale.x(), m20() / scale.x());
+        upDest.set(m01() / scale.y(), m11() / scale.y(), m21() / scale.y());
+        forwardDest.set(m02() / scale.z(), m12() / scale.z(), m22() / scale.z());
+        
+        return this;
+    }
     
     public Vector3 positiveX(Vector3 destination)
     {

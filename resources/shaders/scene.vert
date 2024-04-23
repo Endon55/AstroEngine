@@ -17,7 +17,7 @@ void main()
     //       pinhole camera <- camera position <- entity position <- model coordinates
 
     //gl_Position = vec4(inPosition, 1.0) * entityMatrix * projectionMatrix;
-    gl_Position = projectionMatrix * entityMatrix * vec4(inPosition, 1.0);
+    gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
     //gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
     outColor = inColor;
 }

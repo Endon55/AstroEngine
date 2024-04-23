@@ -75,6 +75,12 @@ public class Vector3
     {
         return set(-x, -y, -z);
     }
+    
+    public float norm()
+    {
+        return (float)Math.sqrt(Math.fma(x(), x(), Math.fma(y(), y(), z() * z())));
+    }
+    
     public Vector3 normalize()
     {   //                 _______________
         // scale factor = √x^2 + y^2 + z^2

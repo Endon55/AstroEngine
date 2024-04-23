@@ -36,7 +36,7 @@ public class Camera
     
     public void rotateDeg(Vector2 rotation)
     {
-        this.rotation.add(rotation.x(), rotation.y(), 0);
+        this.rotation.add(rotation.y(), rotation.x(), 0);
         updateMatrix();
     }
     public void setRotationDeg(Vector2 rotation)
@@ -69,21 +69,21 @@ public class Camera
     
     public void moveLocalX(float distance)
     {
-        cameraMatrix.positiveX(xAxisLocal).mult(distance);
+        xAxisLocal.mult(distance);
         position.add(xAxisLocal);
         updateMatrix();
     }
     
     public void moveLocalY(float distance)
     {
-        cameraMatrix.positiveY(yAxisLocal).mult(distance);
+        yAxisLocal.mult(distance);
         position.add(yAxisLocal);
         updateMatrix();
     }
 
     public void moveLocalZ(float distance)
     {
-        cameraMatrix.positiveZ(zAxisLocal).mult(distance);
+        zAxisLocal.mult(distance);
         position.add(zAxisLocal);
         updateMatrix();
     }
@@ -97,15 +97,18 @@ public class Camera
         cameraMatrix
                 //Sets the matrix to diagonal 1s
                 .identity()
-                .translate(-position.x, -position.y, position.z)
-                //Applies the rotation we're storing separately.
-                //We swap the y and x values to be more intuitive otherwise x controls up/down and y controls left/right
-                .rotateX(rotation.x).rotateY(rotation.y).rotateZ(rotation.z)
-                //Stores a copy of the newly rotated matrix in rotationMatrix
-                //.extractAxis(xAxisLocal, yAxisLocal, zAxisLocal)
-                //Applies the position we're storing separately.
-        ;
+                //Essentially what we're doing here is
+                // <<--------------------------------------<<
+                // translation * rotationZ * rotationY * rotationX
+                .rotateX(rotation.x()).rotateY(rotation.y()).rotateZ(rotation.z())
+                .translate(-position.x(), -position.y(), position.z())
+                //Then once ive calculated what the matrix should look like, I extract the vectors that point in the x, y, and z axis relative to the cameras current rotation,
+                // not relative to the global axis.
+                .positiveAxis(xAxisLocal, yAxisLocal, zAxisLocal);
+        System.out.println(cameraMatrix);
     }
+    
+    
     
     public Matrix4 getMatrix()
     {
