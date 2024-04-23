@@ -11,6 +11,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glDrawElements;
@@ -51,6 +52,13 @@ public class Engine
         input = new Input(window.getWindowHandle());
         EventBus.getDefault().register(this);
         project = new Project();
+        
+        glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
+    }
+    
+    private void resize(long windowHandle, int width, int height)
+    {
+        projection.resize(width, height);
     }
     
     
@@ -111,6 +119,8 @@ public class Engine
     
         cleanup();
     }
+    
+
     
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessage(MessageEvent event)

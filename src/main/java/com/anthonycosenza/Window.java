@@ -67,6 +67,8 @@ public class Window
         this.height = arrHeight[0];
     }
     
+    
+    
     public long getWindowHandle()
     {
         return windowHandle;

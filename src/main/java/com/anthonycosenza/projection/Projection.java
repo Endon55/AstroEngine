@@ -27,7 +27,7 @@ public class Projection
     
     public void resize(int width, int height)
     {
-        aspectRatio = (float) height / (float) width;
+        aspectRatio = (float) width / (float) height;
         updateMatrix();
     }
     public void zDistance(float zNear, float zFar)
