@@ -13,4 +13,15 @@ public class EngineMath
     {
         return toRadians(degrees, false);
     }
+    
+    public static int highestPowerOf2(int number)
+    {
+        return (int) Math.pow(2, (int) log2(number));
+    }
+    
+    public static double log2(double number)
+    {
+        return Math.log(number) / Math.log(2);
+    }
+    
 }

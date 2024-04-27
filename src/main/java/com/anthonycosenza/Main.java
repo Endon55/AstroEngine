@@ -1,14 +1,7 @@
 package com.anthonycosenza;
 
 
-import com.anthonycosenza.math.EngineMath;
-import com.anthonycosenza.math.matrix.Matrix4;
-import com.anthonycosenza.math.vector.Vector3;
-import com.anthonycosenza.math.vector.Vector4;
-import com.anthonycosenza.projection.Projection;
-import org.joml.Matrix4f;
-
-import java.text.NumberFormat;
+import com.anthonycosenza.rendering.text.FontData;
 
 public class Main
 {
@@ -20,10 +13,10 @@ public class Main
         System.out.println("Vec: " + vec);
         System.out.println("Mult: " + mat1.mult(vec));
         System.out.println("/W: " + vec.mult(1 / vec.w()));*/
-
-
-        
-        Engine engine = new Engine();
-        engine.run();
+    
+        FontData fontData = FontData.decodeFont("resources/fonts/Bagnard.otf");
+        fontData.cffCharStringIndex.getIndex(0).getGlyphPath();
+        //Engine engine = new Engine();
+        //engine.run();
     }
 }

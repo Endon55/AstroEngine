@@ -18,4 +18,15 @@ public class FileIO
         }
         return str;
     }
+    
+    public static byte[] getFileBytes(String filepath)
+    {
+        try
+        {
+            return Files.readAllBytes(Paths.get(filepath));
+        } catch(IOException e)
+        {
+            throw new RuntimeException("Error reading file[" + filepath + "] - " + e);
+        }
+    }
 }
