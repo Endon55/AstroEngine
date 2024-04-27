@@ -1,6 +1,5 @@
 package com.anthonycosenza;
 
-import org.joml.Matrix4f;
 
 public class Model
 {
@@ -20,4 +19,5 @@ public class Model
     {
         return new Entity(this);
     }
+    
 }

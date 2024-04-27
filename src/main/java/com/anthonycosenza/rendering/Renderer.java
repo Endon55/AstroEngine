@@ -5,7 +5,7 @@ import com.anthonycosenza.Scene;
 import com.anthonycosenza.UniformMap;
 import com.anthonycosenza.shader.ShaderData;
 import com.anthonycosenza.shader.ShaderPipeline;
-import com.anthonycosenza.projection.Projection;
+import com.anthonycosenza.projection.Projection3d;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
@@ -37,7 +37,7 @@ public class Renderer
     }
     
     
-    public void render(Scene scene, Projection projection)
+    public void render(Scene scene, Projection3d projection)
     {
         //https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

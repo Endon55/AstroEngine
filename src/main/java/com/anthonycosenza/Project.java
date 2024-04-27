@@ -3,9 +3,15 @@ package com.anthonycosenza;
 import com.anthonycosenza.input.Input;
 import com.anthonycosenza.input.Key;
 import com.anthonycosenza.input.KeyAction;
+import com.anthonycosenza.math.vector.Vector2;
+import com.anthonycosenza.math.vector.Vector3;
+import com.anthonycosenza.projection.Projection2d;
 import com.anthonycosenza.rendering.Renderer;
+import com.anthonycosenza.rendering.TextRenderer;
 import com.anthonycosenza.shape.Pyramid3;
-import com.anthonycosenza.projection.Projection;
+import com.anthonycosenza.projection.Projection3d;
+import com.anthonycosenza.text.Font;
+import com.anthonycosenza.text.TextStrip;
 
 public class Project
 {
@@ -15,6 +21,7 @@ public class Project
     float rotationSpeed = 100;
     float xPixelsPerDegree = 100;
     float yPixelsPerDegree = 80;
+    Font font;
     
     public Project()
     {
@@ -24,6 +31,10 @@ public class Project
         
         entity.setPosition(0, 0, -50);
         scene.addEntity(entity);
+        
+        font = new Font("resources/fonts/Bagnard.otf");
+        scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
+        
     }
     
     
@@ -65,8 +76,9 @@ public class Project
     
     }
     
-    public void render(double delta, Renderer renderer, Projection projection)
+    public void render(double delta, Renderer renderer, TextRenderer textRenderer, Projection3d projection3d, Projection2d projection2d)
     {
-        renderer.render(scene, projection);
+        renderer.render(scene, projection3d);
+        textRenderer.render(scene, projection2d);
     }
 }

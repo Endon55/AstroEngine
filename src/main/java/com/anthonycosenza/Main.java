@@ -1,7 +1,7 @@
 package com.anthonycosenza;
 
 
-import com.anthonycosenza.rendering.text.FontData;
+import com.anthonycosenza.text.FontData;
 
 public class Main
 {
@@ -13,10 +13,8 @@ public class Main
         System.out.println("Vec: " + vec);
         System.out.println("Mult: " + mat1.mult(vec));
         System.out.println("/W: " + vec.mult(1 / vec.w()));*/
-    
-        FontData fontData = FontData.decodeFont("resources/fonts/Bagnard.otf");
-        fontData.cffCharStringIndex.getIndex(0).getGlyphPath();
-        //Engine engine = new Engine();
-        //engine.run();
+
+        Engine engine = new Engine();
+        engine.run();
     }
 }
