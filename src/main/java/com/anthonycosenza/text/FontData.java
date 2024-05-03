@@ -65,6 +65,7 @@ public class FontData
         ByteBuffer buffer = ByteBuffer.wrap(byteArr);
         buffer.order(ByteOrder.BIG_ENDIAN);
         ByteReader reader = new ByteReader(buffer);
+        
         String tag1 = reader.getString(BYTES_IN_TAG);
         if(tag1.equals("OTTO"))
         {

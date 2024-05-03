@@ -1,28 +1,30 @@
 package com.anthonycosenza.text;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class ByteReader
 {
-    private ByteBuffer bytes;
+    private ByteBuffer buffer;
     private int length;
     public int pointer;
     
-    public ByteReader(byte[] bytes)
-    {
-        this.bytes = ByteBuffer.wrap(bytes);
-        pointer = 0;
-    }
     
     public ByteReader(ByteBuffer buffer)
     {
-        this.bytes = buffer;
-        this.length = buffer.limit();
+        this.buffer = buffer;
+        this.length = this.buffer.limit();
+        pointer = 0;
+    }
+    
+    public void setEndian(boolean bigEndian)
+    {
+        this.buffer.order(bigEndian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }
     
     public float getFloat32()
     {
-        float value = bytes.getFloat(pointer);
+        float value = buffer.getFloat(pointer);
         pointer += 4;
         return value;
     }
@@ -53,9 +55,17 @@ public class ByteReader
                 + (getUnsignedByteL() << 8) + getUnsignedByteL();
     }
     
+    public long getUnsignedLong64()
+    {
+        return(getUnsignedByteL() << 56) + (getUnsignedByteL() << 48)
+                + (getUnsignedByteL() << 40) + (getUnsignedByteL() << 32)
+                + (getUnsignedByteL() << 24) + (getUnsignedByteL() << 16)
+                + (getUnsignedByteL() << 8) + getUnsignedByteL();
+    }
+    
     public int getInt32()
     {
-        int value = bytes.getInt(pointer);
+        int value = buffer.getInt(pointer);
         pointer += 4;
         return value;
     }
@@ -63,20 +73,20 @@ public class ByteReader
     
     public String getByteString()
     {
-        byte b = bytes.get(pointer);
+        byte b = buffer.get(pointer);
         pointer++;
         return Integer.toBinaryString(b & 0xff);
     }
     
     private  String getByteString(int index)
     {
-        byte b = bytes.get(index);
+        byte b = buffer.get(index);
         return Integer.toBinaryString(b & 0xff);
     }
     
     private String getHexString(int index)
     {
-        byte b = bytes.get(index);
+        byte b = buffer.get(index);
         return Integer.toHexString(b & 0xff);
     }
     
@@ -84,7 +94,7 @@ public class ByteReader
     public String getString(int numBytes)
     {
         byte[] byteArr = new byte[numBytes];
-        bytes.get(pointer, byteArr);
+        buffer.get(pointer, byteArr);
         pointer += numBytes;
         return new String(byteArr);
     }
@@ -92,7 +102,7 @@ public class ByteReader
     public int[] getHalfBytes()
     {
         int[] halfBytes = new int[2];
-        byte bite = bytes.get(pointer);
+        byte bite = buffer.get(pointer);
         halfBytes[0] = (bite & 240) >> 4;
         halfBytes[1] = (bite & 15);
         pointer += 1;
@@ -101,21 +111,21 @@ public class ByteReader
     
     public int getUnsignedByteI()
     {
-        int value = bytes.get(pointer) & 0xff;
+        int value = buffer.get(pointer) & 0xff;
         pointer++;
         return value;
     }
     
     public int getSignedByteI()
     {
-        int value = bytes.get(pointer);
+        int value = buffer.get(pointer);
         pointer++;
         return value;
     }
     
     public long getUnsignedByteL()
     {
-        long value = bytes.get(pointer) & 0xff;
+        long value = buffer.get(pointer) & 0xff;
         pointer++;
         return value;
     }
@@ -145,6 +155,30 @@ public class ByteReader
         return builder.toString();
     }
     
+    public boolean validateTag1Byte(int... bytesToCheck)
+    {
+        for(int check : bytesToCheck)
+        {
+            if(check != getUnsignedByteI())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public boolean validateTag2Byte(int... bytesToCheck)
+    {
+        for(int i = 0; i < bytesToCheck.length; i++)
+        {
+            if(bytesToCheck[i] != buffer.getShort(pointer + i))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     public int getUnsignedIntX(int byteCount)
     {
         if(byteCount == 1)
@@ -165,5 +199,43 @@ public class ByteReader
         }*/
         throw new RuntimeException("Can't handle byte lengths of size: " + byteCount);
     }
+    public boolean hasBytes()
+    {
+        return pointer < length;
+    }
     
+    public byte[] getBytes(int length)
+    {
+        byte[] bites = new byte[length];
+        System.arraycopy(buffer.array(), pointer, bites, 0, length);
+        pointer += length;
+        return bites;
+    }
+    
+    public byte[] getBytes(int length, boolean noPointer)
+    {
+        
+        byte[] bites = new byte[length];
+        System.arraycopy(buffer.array(), pointer, bites, 0, length);
+        if(!noPointer)
+        {
+            pointer += length;
+        }
+        return bites;
+    }
+    
+    public int[] getBytesUnsignedInt8(int length)
+    {
+        int[] bites = new int[length];
+        for(int i = 0; i < length; i++)
+        {
+            bites[i] = getUnsignedByteI();
+        }
+        return bites;
+    }
+    
+    public int getLength()
+    {
+        return length;
+    }
 }

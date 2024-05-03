@@ -1,7 +1,8 @@
 package com.anthonycosenza;
 
 
-import com.anthonycosenza.text.FontData;
+import com.anthonycosenza.loader.HuffmanModel;
+import com.anthonycosenza.loader.ImageLoader;
 
 public class Main
 {
@@ -13,7 +14,12 @@ public class Main
         System.out.println("Vec: " + vec);
         System.out.println("Mult: " + mat1.mult(vec));
         System.out.println("/W: " + vec.mult(1 / vec.w()));*/
-
+    
+        //HuffmanModel encoding = new HuffmanModel("Anthony is the Best in the WOrld11");
+        
+        int[] image = ImageLoader.load("resources/images/Ai Sasha.png");
+        //ImageLoader loader = new ImageLoader("resources/images/Penguin.png");
+        
         Engine engine = new Engine();
         engine.run();
     }
