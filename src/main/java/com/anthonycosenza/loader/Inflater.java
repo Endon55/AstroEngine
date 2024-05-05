@@ -96,12 +96,12 @@ public class Inflater
         otherFlags = bits.getInt(8);
         //zLibFlags = reader.getUnsignedByteI();
         //otherFlags = reader.getUnsignedByteI();
-        System.out.println("zFlags: " + zLibFlags);
-        System.out.println("oFlags: " + otherFlags);
+        //System.out.println("zFlags: " + zLibFlags);
+        //System.out.println("oFlags: " + otherFlags);
         compressionMethod = zLibFlags & 15;
         //Get highest 4 bits
         compressionInfo = zLibFlags >> 4;
-        System.out.println("CompressionMethod: " + compressionMethod + ", Compression Info: " + compressionInfo);
+        //System.out.println("CompressionMethod: " + compressionMethod + ", Compression Info: " + compressionInfo);
         fCheck = otherFlags & 15;
         if(compressionMethod == 8)
         {
@@ -113,7 +113,7 @@ public class Inflater
             fDict = otherFlags & 16;
             fLevel = otherFlags & 48;
         }
-        System.out.println("fCheck: " + fCheck + " fDict: " + fDict + " fLevel: " + fLevel);
+        //System.out.println("fCheck: " + fCheck + " fDict: " + fDict + " fLevel: " + fLevel);
 
         //Validate that the data flags we got are valid.
         if((zLibFlags * 256 + otherFlags) % 31 != 0)
@@ -139,15 +139,12 @@ public class Inflater
          */
     
         
-        int counter = 0;
         while(!isFinal)
         {
-            counter++;
-            System.out.println(counter);
             isFinal = bits.getBit();
-            System.out.println("isFinal: " + isFinal);
+            //System.out.println("isFinal: " + isFinal);
             int compressionType = bits.getInt(2);
-            System.out.println("Compression Type: " + compressionType);
+            //System.out.println("Compression Type: " + compressionType);
             
             
             switch(compressionType)
@@ -162,7 +159,7 @@ public class Inflater
                 default -> throw new RuntimeException("Error: Huffman compression used wrong format: " + compressionType);
             }
     
-            System.out.println("Compressed: " + isCompressed + ", isDynamic: " + isDynamic + ", isFinal: " + isFinal);
+            //System.out.println("Compressed: " + isCompressed + ", isDynamic: " + isDynamic + ", isFinal: " + isFinal);
     
             if(!isCompressed) throw new RuntimeException("Handle Uncompressed Huffman.");
     
@@ -196,7 +193,7 @@ public class Inflater
         {
 
         }
-        System.out.println("nlen: " + nlen + ", ndist: " + ndist + ", ncode: " + ncode);
+        //System.out.println("nlen: " + nlen + ", ndist: " + ndist + ", ncode: " + ncode);
         /*
          * For every code we need to grab a 3 bit value, and assign it to an array that tracks length for each value.
          * The DYNAMIC_ORDER array is used to convert the weird order into a i = 0 = D_O[i] = 16
@@ -219,7 +216,7 @@ public class Inflater
          * We have now created the first set of huffman codes used to decipher the codes for reading the rest of the data.
          */
         codeCodes = new Huffman(lengths, DYNAMIC_ORDER.length);
-        System.out.println("Code codes found.");
+        //System.out.println("Code codes found.");
         /*
          * We can now feed bits into decode and output the correct symbol to be injected into the output stream.
          * The exact value of the symbol gets modulated depending on it's initial value.
@@ -285,9 +282,9 @@ public class Inflater
          * We no longer need the old huffman table and can reuse the pointer.
          */
         Huffman codes = new Huffman(lengths, nlen);
-        System.out.println("Length codes found.");
+        //System.out.println("Length codes found.");
         Huffman distance = new Huffman(Arrays.copyOfRange(lengths, nlen, nlen + ndist), ndist);
-        System.out.println("Distance codes found.");
+        //System.out.println("Distance codes found.");
         /*
          * Ok listen up. If the symbol is less than 256 then we can write the symbol as is without doing anything strange to it,
          * just like we did with symbols less than 16 in the previous section.
@@ -341,8 +338,8 @@ public class Inflater
             }
             
         }while(symbol != 256);
-        System.out.println("Written Bytes: " + writtenBytes);
-        System.out.println(output);
+        //System.out.println("Written Bytes: " + writtenBytes);
+        //System.out.println(output);
         //System.out.println(bits.getBitS(bits.pointer, bits.pointer + 20));
     }
     

@@ -9,11 +9,15 @@ import com.anthonycosenza.projection.Projection3d;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_FRONT_AND_BACK;
+import static org.lwjgl.opengl.GL11.GL_LINE;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glPolygonMode;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
@@ -31,6 +35,7 @@ public class Renderer
         uniforms.createUniform("projectionMatrix");
         uniforms.createUniform("cameraMatrix");
         uniforms.createUniform("entityMatrix");
+        uniforms.createUniform("textureSampler");
     
         //The color that the window frame gets cleared to right before a new frame is rendered.
         glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
@@ -45,12 +50,16 @@ public class Renderer
         shaderPipeline.bind();
         uniforms.setUniform("projectionMatrix", projection.getMatrix());
         uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
+        uniforms.setUniform("textureSampler", 0);
+        
         for(Entity entity : scene.getEntities())
         {
             entity.getModel().getMesh().bind();
+            glActiveTexture(0);
+            entity.getModel().getTexture().bind();
             uniforms.setUniform("entityMatrix", entity.getMatrix());
     
-    
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             glDrawElements(GL_TRIANGLES, entity.getModel().getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
         }
 

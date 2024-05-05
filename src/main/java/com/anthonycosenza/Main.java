@@ -3,6 +3,7 @@ package com.anthonycosenza;
 
 import com.anthonycosenza.loader.HuffmanModel;
 import com.anthonycosenza.loader.ImageLoader;
+import com.anthonycosenza.test.Benchmark;
 
 public class Main
 {
@@ -17,8 +18,10 @@ public class Main
     
         //HuffmanModel encoding = new HuffmanModel("Anthony is the Best in the WOrld11");
         
-        int[] image = ImageLoader.load("resources/images/Ai Sasha.png");
+        //int[] image = ImageLoader.load("resources/images/Ai Sasha.png");
         //ImageLoader loader = new ImageLoader("resources/images/Penguin.png");
+    
+
         
         Engine engine = new Engine();
         engine.run();

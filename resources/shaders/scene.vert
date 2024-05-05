@@ -1,13 +1,13 @@
 #version 330
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
+layout(location = 1) in vec2 textureCoordinate;
 
 uniform mat4 projectionMatrix;
 uniform mat4 entityMatrix;
 uniform mat4 cameraMatrix;
 
-out vec3 outColor;
+out vec2 outTextureCoordinate;
 
 void main()
 {
@@ -19,5 +19,5 @@ void main()
     //gl_Position = vec4(inPosition, 1.0) * entityMatrix * projectionMatrix;
     gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
     //gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
-    outColor = inColor;
+    outTextureCoordinate = textureCoordinate;
 }

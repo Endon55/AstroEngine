@@ -1,7 +1,34 @@
 package com.anthonycosenza.shape;
 
+import com.anthonycosenza.Mesh;
+
 public class ShapeBuilder
 {
+    
+    public static Mesh square()
+    {
+        float[] vertices = new float[]
+                {       //X, Y, Z
+                        -1, -1, 0,
+                        -1, 1, 0,
+                        1, -1, 0,
+                        1, 1, 0
+                };
+        int[] indices = new int[]
+                {
+                        0, 2, 1,
+                        2, 3, 1
+                };
+        float[] texture = new float[]
+                {       //X, Y
+                        0, 1,
+                        0, 0,
+                        1, 1,
+                        1, 0
+                };
+        return new Mesh(vertices, indices, texture);
+    }
+    
     public static float[] pyramid3(float height, float baseEdgeLength)
     {
         float hHeight = height * .5f;

@@ -30,7 +30,7 @@ public class Mesh
     
     int vertexCount;
     
-    public Mesh(float[] vertices, int[] indices, float[] colors)
+    public Mesh(float[] vertices, int[] indices, float[] textureVertices)
     {
         this.vertexCount = indices.length;
         vboIDs = new ArrayList<>();
@@ -64,12 +64,12 @@ public class Mesh
     
             vbo = glGenBuffers();
             vboIDs.add(vbo);
-            FloatBuffer colorsBuffer = stack.callocFloat(colors.length);
-            colorsBuffer.put(0, colors);
+            FloatBuffer textureBuffer = stack.callocFloat(textureVertices.length);
+            textureBuffer.put(0, textureVertices);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, colorsBuffer, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
             
             //Indices
             vbo = glGenBuffers();

@@ -10,6 +10,7 @@ import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.rendering.TextRenderer;
 import com.anthonycosenza.shape.Pyramid3;
 import com.anthonycosenza.projection.Projection3d;
+import com.anthonycosenza.shape.ShapeBuilder;
 import com.anthonycosenza.text.Font;
 import com.anthonycosenza.text.TextStrip;
 
@@ -26,15 +27,20 @@ public class Project
     public Project()
     {
         scene = new Scene();
-        Model model = new Model(new Pyramid3(50, 30));
-        Entity entity = model.createEntity();
+        //Model model = new Model(new Pyramid3(50, 30));
+        //Entity entity = model.createEntity();
         
-        entity.setPosition(0, 0, -50);
+        //entity.setPosition(0, 0, -50);
+        //scene.addEntity(entity);
+        
+        //font = new Font("resources/fonts/Bagnard.otf");
+        //scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
+        
+        Mesh mesh = ShapeBuilder.square();
+        Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
+        Entity entity = square.createEntity();
+        entity.setPosition(0, 0, -.5f);
         scene.addEntity(entity);
-        
-        font = new Font("resources/fonts/Bagnard.otf");
-        scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
-        
     }
     
     

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 
 public class UniformMap
@@ -37,6 +38,10 @@ public class UniformMap
         return id;
     }
     
+    public void setUniform(String uniformName, int data)
+    {
+        glUniform1i(getUniformID(uniformName), data);
+    }
     public void setUniform(String uniformName, Matrix4f data)
     {
         try(MemoryStack stack = MemoryStack.stackPush())
