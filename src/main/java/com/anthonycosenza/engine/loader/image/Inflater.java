@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.loader.image;
 
+import com.anthonycosenza.engine.util.reader.BitReader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 

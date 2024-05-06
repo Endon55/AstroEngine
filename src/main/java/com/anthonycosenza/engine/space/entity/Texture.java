@@ -30,6 +30,10 @@ public class Texture
 {
     private int textureID;
     
+    public Texture(int width, int height, float[] pixelData)
+    {
+        generate(width, height, pixelData);
+    }
     public Texture(String filepath)
     {
         this(filepath, false);

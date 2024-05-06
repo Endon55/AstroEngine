@@ -1,6 +1,8 @@
 package com.anthonycosenza.engine.loader.image;
 
 
+import com.anthonycosenza.engine.util.reader.BitReader;
+
 public class Huffman
 {
     public short[] counts;

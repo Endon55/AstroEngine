@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.loader.text.tables;
 
-import com.anthonycosenza.engine.loader.text.ByteReader;
+import com.anthonycosenza.engine.util.reader.ByteReader;
 import com.anthonycosenza.engine.loader.text.FontData;
 import com.anthonycosenza.engine.loader.text.tables.encoding.Format4Encoding;
 import com.anthonycosenza.engine.loader.text.tables.encoding.FormatEncoding;

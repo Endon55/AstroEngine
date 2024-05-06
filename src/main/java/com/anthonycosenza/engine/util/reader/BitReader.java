@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.loader.image;
+package com.anthonycosenza.engine.util.reader;
 
 public class BitReader
 {

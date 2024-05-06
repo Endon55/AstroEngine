@@ -1,5 +1,6 @@
 package com.anthonycosenza;
 
+import com.anthonycosenza.engine.loader.text.TextStrip;
 import com.anthonycosenza.engine.space.entity.Entity;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
@@ -14,6 +15,8 @@ import com.anthonycosenza.engine.space.rendering.TextRenderer;
 import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
 import com.anthonycosenza.engine.loader.text.Font;
+import com.anthonycosenza.engine.util.math.vector.Vector2;
+import com.anthonycosenza.engine.util.math.vector.Vector3;
 
 public class Project
 {
@@ -21,8 +24,6 @@ public class Project
     float rotation = 0;
     float moveSpeed = 100f;
     float rotationSpeed = 100;
-    float xPixelsPerDegree = 100;
-    float yPixelsPerDegree = 80;
     Font font;
     
     public Project()
@@ -34,8 +35,8 @@ public class Project
         //entity.setPosition(0, 0, -50);
         //scene.addEntity(entity);
         
-        //font = new Font("resources/fonts/Bagnard.otf");
-        //scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
+        font = new Font("resources/fonts/Bagnard.otf");
+        scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
         
         Mesh mesh = ShapeBuilder.square();
         Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));

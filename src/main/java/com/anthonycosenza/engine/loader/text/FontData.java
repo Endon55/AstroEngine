@@ -15,6 +15,7 @@ import com.anthonycosenza.engine.loader.text.tables.Kern;
 import com.anthonycosenza.engine.loader.text.tables.Maxp;
 import com.anthonycosenza.engine.loader.text.tables.types.cffCharString;
 import com.anthonycosenza.engine.loader.text.tables.types.cffSubroutine;
+import com.anthonycosenza.engine.util.reader.ByteReader;
 import com.anthonycosenza.engine.util.FileIO;
 
 import java.nio.ByteBuffer;

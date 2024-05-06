@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.loader.text;
+package com.anthonycosenza.engine.util.reader;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

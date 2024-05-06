@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.loader.text.tables.types;
 
-import com.anthonycosenza.engine.loader.text.ByteReader;
+import com.anthonycosenza.engine.util.reader.ByteReader;
 
 import java.util.ArrayList;
 import java.util.List;
