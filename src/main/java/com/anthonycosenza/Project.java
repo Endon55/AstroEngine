@@ -1,18 +1,19 @@
 package com.anthonycosenza;
 
-import com.anthonycosenza.input.Input;
-import com.anthonycosenza.input.Key;
-import com.anthonycosenza.input.KeyAction;
-import com.anthonycosenza.math.vector.Vector2;
-import com.anthonycosenza.math.vector.Vector3;
-import com.anthonycosenza.projection.Projection2d;
-import com.anthonycosenza.rendering.Renderer;
-import com.anthonycosenza.rendering.TextRenderer;
-import com.anthonycosenza.shape.Pyramid3;
-import com.anthonycosenza.projection.Projection3d;
-import com.anthonycosenza.shape.ShapeBuilder;
-import com.anthonycosenza.text.Font;
-import com.anthonycosenza.text.TextStrip;
+import com.anthonycosenza.engine.space.entity.Entity;
+import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.entity.Model;
+import com.anthonycosenza.engine.space.rendering.Scene;
+import com.anthonycosenza.engine.space.entity.Texture;
+import com.anthonycosenza.engine.input.Input;
+import com.anthonycosenza.engine.input.Key;
+import com.anthonycosenza.engine.input.KeyAction;
+import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
+import com.anthonycosenza.engine.space.rendering.Renderer;
+import com.anthonycosenza.engine.space.rendering.TextRenderer;
+import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
+import com.anthonycosenza.engine.space.shape.ShapeBuilder;
+import com.anthonycosenza.engine.loader.text.Font;
 
 public class Project
 {
