@@ -1,12 +1,26 @@
 package com.anthonycosenza.loader;
 
 
-import java.util.Arrays;
 
 public class ImageLoader
 {
     private ImageLoader() { }
     
+    public static float[] load(int[] dimensions, String filepath)
+    {
+        if(fileFormat(filepath).equals("png"))
+        {
+            PNGLoader loader = new PNGLoader(filepath);
+            dimensions[0] = loader.width;
+            dimensions[1] = loader.height;
+            
+    
+            return loader.getPixelData();
+        }
+        else throw new RuntimeException("Can't handle files of type : " + fileFormat(filepath));
+    }
+    
+/*
     public static float[] load(int[] dimensions, String filepath)
     {
         if(fileFormat(filepath).equals("png"))
@@ -19,10 +33,12 @@ public class ImageLoader
             {
                 values[i] = (loader.pixelData[i] & 0xff) / 255f;
             }
+            
             return values;
         }
         else throw new RuntimeException("Can't handle files of type : " + fileFormat(filepath));
-    }
+    }*/
+
     
     private static String fileFormat(String filepath)
     {

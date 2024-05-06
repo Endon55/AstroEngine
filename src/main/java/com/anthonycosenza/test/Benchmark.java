@@ -36,18 +36,18 @@ public class Benchmark
             long result2 = test(trials2, function2);
     
             System.out.println("Func1 Times: " + Arrays.toString(trials1));
-            System.out.println("Func1 Avg Nano Time: " + result1 + "(" + (result1 / (float) NANOS_IN_SECOND) + "s)");
+            System.out.println("Func1 Time: " + (result1 / (float) NANOS_IN_SECOND) + " seconds");
             System.out.println();
             System.out.println("Func2 Times: " + Arrays.toString(trials2));
-            System.out.println("Func2 Avg Nano Time: " + result1 + "(" + (result2 / (float) NANOS_IN_SECOND) + "s)");
+            System.out.println("Func2 Time: " + (result2 / (float) NANOS_IN_SECOND) + " seconds");
             System.out.println();
             
             if(result1 > result2)
             {
-                System.out.println("Func1 is " + (result1 / (float)result2) + " times faster than Func2");
+                System.out.println("Func2 is " + (result1 / (float)result2) + " times faster than Func1");
             } else
             {
-                System.out.println("Func2 is " + (result2 / (float)result1) + " times faster than Func1");
+                System.out.println("Func1 is " + (result2 / (float)result1) + " times faster than Func2");
             }
             
         }

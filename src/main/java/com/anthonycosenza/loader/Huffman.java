@@ -1,14 +1,17 @@
 package com.anthonycosenza.loader;
 
 
+import java.util.Arrays;
+
 public class Huffman
 {
     public short[] counts;
     public short[] offsets;
     public short[] symbols;
     
-    public Huffman(int[] lengths, int length)
+    public Huffman(int[] lengths, int from, int length)
     {
+        int to = length + from;
     
         /*
          * Now that we have gotten the lengths of every index we need to count how many of each length we have.
@@ -18,7 +21,7 @@ public class Huffman
          * We only wrote DYNAMIC_ORDER.length number of values so that's all we need to loop through.
          */
         counts = new short[Inflater.MAX_BITS + 1];
-        for(int i = 0; i < length; i++)
+        for(int i = from; i < to; i++)
         {
             counts[lengths[i]]++;
         }
@@ -47,18 +50,17 @@ public class Huffman
         symbols = new short[Inflater.FIX_L_CODES];
         for(short i = 0; i < length; i++)
         {
-            if(lengths[i] != 0)
+            int index = i + from;
+            if(lengths[index] != 0)
             {
-                symbols[offsets[lengths[i]]++] = i;
+                symbols[offsets[lengths[index]]++] = i;
             }
         }
     }
     
     public int decode(BitReader bits)
     {
-        int code = 0;
-        int index = 0;
-        int first = 0;
+
         /*
          * Next is used to index the counts array, we start at 1 since we ignore counts that have 0 length.
          * Code gets each new bit added to it and if it doesn't make a code then the whole code is left shifted
@@ -66,15 +68,18 @@ public class Huffman
          *
          *  We're iterating through the count array and checking if the current code matches a code we already have
          */
+        int code = 0;
+        int index = 0;
+        int first = 0;
+        int count = 0;
         for(int i = 1; i < counts.length; i++)
         {
             code |= bits.getInt(1);
             
-            int count = counts[i];
+            count = counts[i];
             
             if(code - first < count)
             {
-                //System.out.println("Code: " + code + ", First: " + first + ", Count: " + count + ", Index: " + index);
                 return symbols[index + (code - first)];
             }
             
@@ -84,6 +89,7 @@ public class Huffman
             first <<= 1;
             code <<= 1;
         }
+        
         throw new RuntimeException("Failed to find code.");
     }
     

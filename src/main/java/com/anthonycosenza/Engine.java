@@ -6,6 +6,7 @@ import com.anthonycosenza.projection.Projection2d;
 import com.anthonycosenza.rendering.Renderer;
 import com.anthonycosenza.projection.Projection3d;
 import com.anthonycosenza.rendering.TextRenderer;
+import com.anthonycosenza.test.Benchmark;
 import com.anthonycosenza.util.Constants;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -60,6 +61,15 @@ public class Engine
         project = new Project();
         
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
+    
+        Benchmark benchmark = new Benchmark(10,
+                () ->{
+            new Texture("resources/images/Ai Sasha.png", true);
+        },
+                () ->{
+                        new Texture("resources/images/Ai Sasha.png", false);
+        });
+        benchmark.test();
     }
     
     private void resize(long windowHandle, int width, int height)

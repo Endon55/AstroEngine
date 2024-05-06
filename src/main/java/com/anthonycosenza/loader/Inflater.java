@@ -25,8 +25,7 @@ public class Inflater
             {0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
     
     
-    
-    
+    private int writtenBytes = 0;
     private int zLibFlags;
     private int otherFlags;
     private int compressionMethod;
@@ -34,12 +33,14 @@ public class Inflater
     private int fCheck;
     private int fDict;
     private int fLevel;
-    private ByteBuf output;
     private boolean isFinal;
-    private boolean firstChunk;
     private int nlen;
     private int ndist;
     private int ncode;
+    private BitReader bits;
+    private Huffman codeCodes;
+    private Huffman codes;
+    private Huffman distance;
     
     /*
      * The documentation for the inflate algorithm can be found here.
@@ -51,13 +52,10 @@ public class Inflater
      */
     public Inflater(ByteBuf input)
     {
-        firstChunk = true;
-        
         int byteCount = input.readableBytes();
         byte[] bytes = input.array();
-        BitReader bits = new BitReader(Arrays.copyOfRange(bytes, 0, byteCount), BitReader.ByteType.RIGHT_TO_LEFT);
-        
-        inflate(bits);
+        bits = new BitReader(Arrays.copyOfRange(bytes, 0, byteCount), BitReader.ByteType.RIGHT_TO_LEFT);
+    
         
         //Checksum don't work yo. I think it needs to be done on the original data not the uncompressed data,
         //as well as including the 4 byte tag header(not the length though).
@@ -70,38 +68,17 @@ public class Inflater
         {
             throw new RuntimeException("Checksum doesn't match.");
         }*/
-        
-        
     }
+
     
-/*    public void inflateChunk(int length, ByteBuf output, ByteBuf input)
+    public ByteBuf inflate(int bufferSize)
     {
-        int pointer = input.pointer + length;
-        inflate(length, input);
-        
-        input.pointer = pointer;
-        
-        if(firstChunk) firstChunk = false;
-    }*/
-    
-    public ByteBuf getBytes()
-    {
-        return output;
-    }
-    
-    private void inflate(BitReader bits)
-    {
-        output = Unpooled.buffer();
+        ByteBuf output = Unpooled.buffer(bufferSize);
         zLibFlags = bits.getInt(8);
         otherFlags = bits.getInt(8);
-        //zLibFlags = reader.getUnsignedByteI();
-        //otherFlags = reader.getUnsignedByteI();
-        //System.out.println("zFlags: " + zLibFlags);
-        //System.out.println("oFlags: " + otherFlags);
         compressionMethod = zLibFlags & 15;
         //Get highest 4 bits
         compressionInfo = zLibFlags >> 4;
-        //System.out.println("CompressionMethod: " + compressionMethod + ", Compression Info: " + compressionInfo);
         fCheck = otherFlags & 15;
         if(compressionMethod == 8)
         {
@@ -113,66 +90,53 @@ public class Inflater
             fDict = otherFlags & 16;
             fLevel = otherFlags & 48;
         }
-        //System.out.println("fCheck: " + fCheck + " fDict: " + fDict + " fLevel: " + fLevel);
 
         //Validate that the data flags we got are valid.
         if((zLibFlags * 256 + otherFlags) % 31 != 0)
         {
             throw new RuntimeException("Bad zLib Header");
         }
-        huffmanDecode(bits);
+        huffmanDecode(output, bits);
+        
+        return output;
     }
     
-    private void huffmanDecode(BitReader bits)
+    private void huffmanDecode(ByteBuf output, BitReader bits)
     {
-        //BitReader bits = new BitReader(reader.getBytes((int) length, true), BitReader.ByteType.RIGHT_TO_LEFT);
-        
         isFinal = false;
-        boolean isDynamic = true;
-        boolean isCompressed = true;
         
         /*
-         * 00 no Compression
-         * 01 fixed Huffman codes
-         * 10 dynamic Huffman codes
-         * 11 reserved/error
+         * The chunk of data that gets sent into here will be split up into 65k byte chunks, those chunk lines don't necessarily line up on IDAT chunk lines.
+         * So we loop through each chunk and read the header for what type of compression it has and the bit flag for if it's the final chunk in the series.
+         * Decompressing each as we go.
          */
-    
-        
         while(!isFinal)
         {
             isFinal = bits.getBit();
-            //System.out.println("isFinal: " + isFinal);
             int compressionType = bits.getInt(2);
-            //System.out.println("Compression Type: " + compressionType);
-            
-            
+    
+            /*
+             * 00 no Compression
+             * 01 fixed Huffman codes
+             * 10 dynamic Huffman codes
+             * 11 reserved/error
+             */
             switch(compressionType)
             {
                 //No compression
-                case 0 -> isCompressed = false;
+                case 0 -> throw new RuntimeException("Handle Uncompressed Huffman.");
                 //Static Huffman Codes
-                case 1 -> isDynamic = false;
+                case 1 -> throw new RuntimeException("Handle Static Huffman.");
                 //Dynamic Huffman Codes
-                case 2 -> isDynamic = true;
+                case 2 -> dynamicHuffman(output, bits);
                 //Using either a reserved code or a value outside the bounds.
                 default -> throw new RuntimeException("Error: Huffman compression used wrong format: " + compressionType);
             }
-    
-            //System.out.println("Compressed: " + isCompressed + ", isDynamic: " + isDynamic + ", isFinal: " + isFinal);
-    
-            if(!isCompressed) throw new RuntimeException("Handle Uncompressed Huffman.");
-    
-            if(isDynamic)
-            {
-                dynamicHuffman(bits);
-            }
-            else throw new RuntimeException("Handle Static Huffman.");
         }
     }
-    private Huffman codeCodes;
-    private int writtenBytes = 0;
-    public void dynamicHuffman(BitReader bits)
+    
+    
+    public void dynamicHuffman(ByteBuf output, BitReader bits)
     {
         /*
          * First we need to retrieve the codes that we can use to decode the entire huffman encoded file.
@@ -189,11 +153,7 @@ public class Inflater
         nlen = bits.getInt(5) + 257;// # of literal/length codes
         ndist = bits.getInt(5) + 1;// # of distance codes
         ncode = bits.getInt(4) + 4;// # of code length codes
-        if(firstChunk)
-        {
-
-        }
-        //System.out.println("nlen: " + nlen + ", ndist: " + ndist + ", ncode: " + ncode);
+    
         /*
          * For every code we need to grab a 3 bit value, and assign it to an array that tracks length for each value.
          * The DYNAMIC_ORDER array is used to convert the weird order into a i = 0 = D_O[i] = 16
@@ -209,14 +169,13 @@ public class Inflater
         {
             int len = bits.getInt(3);
             lengths[DYNAMIC_ORDER[i]] = len;
-            //System.out.println("Code: " + len);
         }
-        
+    
         /*
          * We have now created the first set of huffman codes used to decipher the codes for reading the rest of the data.
          */
-        codeCodes = new Huffman(lengths, DYNAMIC_ORDER.length);
-        //System.out.println("Code codes found.");
+        codeCodes = new Huffman(lengths, 0, DYNAMIC_ORDER.length);
+        
         /*
          * We can now feed bits into decode and output the correct symbol to be injected into the output stream.
          * The exact value of the symbol gets modulated depending on it's initial value.
@@ -229,6 +188,8 @@ public class Inflater
          * Value 18 adds some number of 0s = 11 + (the next 7 bits as an int from the input stream)
          */
         int index = 0;
+        int val = 0;
+        int repeat = 0;
         while(index < nlen + ndist)
         {
             int symbol = codeCodes.decode(bits);
@@ -239,13 +200,11 @@ public class Inflater
             }
             if(symbol < 16)
             {
-                //System.out.println("little len: " + symbol);
                 lengths[index++] = symbol;
             }
             else
             {
-                int val = 0;
-                int repeat = 0;
+                val = 0;
                 if(symbol == 16)
                 {
                     if(index == 0) throw new RuntimeException("No previous length to repeat");
@@ -281,10 +240,9 @@ public class Inflater
          *
          * We no longer need the old huffman table and can reuse the pointer.
          */
-        Huffman codes = new Huffman(lengths, nlen);
-        //System.out.println("Length codes found.");
-        Huffman distance = new Huffman(Arrays.copyOfRange(lengths, nlen, nlen + ndist), ndist);
-        //System.out.println("Distance codes found.");
+        codes = new Huffman(lengths, 0, nlen);
+        distance = new Huffman(lengths, nlen, ndist);
+        
         /*
          * Ok listen up. If the symbol is less than 256 then we can write the symbol as is without doing anything strange to it,
          * just like we did with symbols less than 16 in the previous section.
@@ -299,7 +257,9 @@ public class Inflater
          * A symbol gets converted into a byte array and sent to the output.
          */
         int symbol = 0;
-        //int writtenBytes = output.readableBytes();
+        int len = 0;
+        int dist = 0;
+        int start = 0;
         do
         {
             symbol = codes.decode(bits);
@@ -308,39 +268,31 @@ public class Inflater
             if(symbol < 256)
             {
                 output.writeByte(symbol);
-                //System.out.println("Symbol: " + symbol);
                 writtenBytes++;
             }
             else if(symbol > 256)
             {
                 //Lets us index the arrays properly.
                 symbol -= 257;
-                int len = DECODE_LENGTHS[symbol] + bits.getInt(DECODE_EXTRA_BITS[symbol]);
+                len = DECODE_LENGTHS[symbol] + bits.getInt(DECODE_EXTRA_BITS[symbol]);
                 
                 //Fill symbol with the distance from the distance huffman code
                 symbol = distance.decode(bits);
                 if(symbol < 0) throw new RuntimeException("Bad distance symbol: " + symbol);
-                int dist = DISTANCE_OFFSETS[symbol] + bits.getInt(DISTANCE_EXTRA_BITS[symbol]);
+                dist = DISTANCE_OFFSETS[symbol] + bits.getInt(DISTANCE_EXTRA_BITS[symbol]);
     
-                //System.out.println("Dist: " + dist + ", Len: " + len);
                 if(dist > writtenBytes) throw new RuntimeException("Trying to read more bytes than are available - Dist: " + dist + ", Available: " + writtenBytes);
-                //System.out.println("dist " + len + " " + dist);
                 
-                byte[] bytes = new byte[dist];
                 //Starting at distance backwards, fill the array with values.
-                output.getBytes(writtenBytes - dist, bytes);
-    
+                start = writtenBytes - dist;
                 for(int i = 0; i < len; i++)
                 {
-                    output.writeByte(bytes[i % dist]);
+                    output.writeByte(output.getByte(start + (i % dist)));
                     writtenBytes++;
                 }
             }
             
         }while(symbol != 256);
-        //System.out.println("Written Bytes: " + writtenBytes);
-        //System.out.println(output);
-        //System.out.println(bits.getBitS(bits.pointer, bits.pointer + 20));
     }
     
     public boolean isFinal()

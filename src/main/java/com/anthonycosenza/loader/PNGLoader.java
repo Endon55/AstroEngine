@@ -5,14 +5,20 @@ import com.anthonycosenza.text.ByteReader;
 import com.anthonycosenza.util.FileIO;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PNGLoader
 {
+    public static final byte[] PNG_INITIAL_TAG = {(byte) 137, (byte) 80, (byte) 78, (byte) 71, (byte) 13, (byte) 10, (byte) 26, (byte) 10};
+    public static final byte[] PNG_IHDR_TAG = {(byte) 73, (byte) 72, (byte) 68, (byte) 82};
+    public static final byte[] PNG_SRGB_TAG = {(byte) 115, (byte) 82, (byte) 71, (byte) 66};
+    public static final byte[] PNG_GAMA_TAG = {(byte) 103, (byte) 65, (byte) 77, (byte) 65};
+    public static final byte[] PNG_PHYS_TAG = {(byte) 112, (byte) 72, (byte) 89, (byte) 115};
+    public static final byte[] PNG_IDAT_TAG = {(byte) 73, (byte) 68, (byte) 65, (byte) 84};
+    public static final byte[] PNG_IEND_TAG = {(byte) 73, (byte) 69, (byte) 78, (byte) 68};
+    
+    
     public int width;
     public int height;
     private int bitDepth;
@@ -27,65 +33,53 @@ public class PNGLoader
     private int pixelsPerX;
     private int pixelsPerY;
     private int pixelsUnit;
-    private ByteBuf filteredOutput;
-    int[] pixelData;
-    Inflater inflater;
+    private int[] rawPixels;
+    private float[] pixelData;
     
-    public PNGLoader(String filepath, boolean shouldAlpha)
+    public PNGLoader(String filepath)
     {
-        ByteReader reader = new ByteReader(ByteBuffer.wrap(FileIO.getFileBytes(filepath)));
-
+        ByteBuf reader = Unpooled.wrappedBuffer(FileIO.getFileBytes(filepath));
+    
         decode(reader);
-        if(shouldAlpha && channels < 4)
-        {
-            pixelData = addAlpha(pixelData);
-        }
         
-    }
-    private int[] addAlpha(int[] pixels)
-    {
-        int[] newPixels = new int[(pixels.length / 3) * 4];
+        /*
+         * Convert the unfiltered data into it's final form.
+         * It would be more efficient to combine this with this section with the raw pixel array from unFilter.
+         */
+        pixelData = new float[width * height * (hasAlpha ? channels : channels + 1)];
         int index = 0;
-        for(int i = 0; i < newPixels.length; i++)
+        for(int i = 0; i < pixelData.length; i++)
         {
-            if(i % 4 == 3)
+            if(hasAlpha)
             {
-                newPixels[i] = 255;
+                pixelData[i] = rawPixels[index++] / 255f;
             }
-            else newPixels[i] = pixels[index++];
-        }
-        return newPixels;
-    }
-    
-    public boolean validateTag(int[] bytesToCheckAgainst, int... bytesToCheck)
-    {
-        if(bytesToCheckAgainst.length != bytesToCheck.length) throw new RuntimeException("Tag bytes length mismatch");
-        for(int i = 0; i < bytesToCheckAgainst.length; i++)
-        {
-            if(bytesToCheckAgainst[i] !=bytesToCheck[i] )
+            else
             {
-                return false;
+                if(i % 4 == 3)
+                {
+                    pixelData[i] = 1f;
+                }
+                else
+                {
+                    pixelData[i] = rawPixels[index++] / 255f;
+                }
             }
         }
-        return true;
     }
-    
-    
-    private void decode(ByteReader reader)
+
+    private void decode(ByteBuf reader)
     {
-        if(!reader.validateTag1Byte(137, 80, 78, 71, 13, 10, 26, 10))
-        {
-            throw new RuntimeException("PNG Corrupted.");
-        }
+        if(!checkTag(PNG_INITIAL_TAG, reader)) throw new RuntimeException("PNG doesn't have correct header.");
         int tags = 0;
         
-        while(reader.pointer + 8 < reader.getLength())
+        while(reader.readerIndex() < reader.capacity())
         {
-            long chunkLength = reader.getUnsignedInt32();
-            int[] tag = reader.getBytesUnsignedInt8(4);
+            long chunkLength = reader.readUnsignedInt();
+            byte[] tag = getTag(4, reader);
             
             //IHDR
-            if(validateTag(tag, 73, 72, 68, 82))
+            if(checkTag(PNG_IHDR_TAG, tag))
             {
                 if(tags != 0)
                 {
@@ -93,48 +87,44 @@ public class PNGLoader
                 }
                 decodeIHDR(reader);
                 
-                //System.out.println("Image Dimensions: " + width + ", " + height);
-                //System.out.println("Image Type: " + imageType + "-" + bitDepth + "bit");
-                //System.out.println("Compression: " + compressionMethod + ", Filter: " + filterMethod + ", Interlace: " + interlaceMethod);
-    
                 tags++;
             }
             
             //sRGB Optional
-            else if(validateTag(tag, 115, 82, 71, 66))
+            else if(checkTag(PNG_SRGB_TAG, tag))
             {
-                renderingIntent = reader.getUnsignedInt8();
-                long checksum = reader.getUnsignedInt32();
+                renderingIntent = reader.readUnsignedByte();
+                long checksum = reader.readUnsignedInt();
                 tags++;
             }
     
             //gAMA Optional
-            else if(validateTag(tag, 103, 65, 77, 65))
+            else if(checkTag(PNG_GAMA_TAG, tag))
             {
-                gamma = (int) reader.getUnsignedInt32();
-                long checksum = reader.getUnsignedInt32();
+                gamma = (int) reader.readUnsignedInt();
+                long checksum = reader.readUnsignedInt();
                 tags++;
             }
     
             //pHYs Optional
-            else if(validateTag(tag, 112, 72, 89, 115))
+            else if(checkTag(PNG_PHYS_TAG, tag))
             {
-                pixelsPerX = (int) reader.getUnsignedInt32();
-                pixelsPerY = (int) reader.getUnsignedInt32();
-                pixelsUnit = (int) reader.getUnsignedInt8();
-                long checksum = reader.getUnsignedInt32();
-                
+                pixelsPerX = (int) reader.readUnsignedInt();
+                pixelsPerY = (int) reader.readUnsignedInt();
+                pixelsUnit = (int) reader.readUnsignedByte();
+                long checksum = reader.readUnsignedInt();
                 tags++;
             }
     
             //IDAT
-            else if(validateTag(tag, 73, 68, 65, 84))
+            else if(checkTag(PNG_IDAT_TAG, tag))
             {
                 //System.out.println("IDAT Tag, Pointer: " + reader.pointer);
                 decodeIDAT(chunkLength, reader);
+                tags++;
             }
             //IEND
-            else if(validateTag(tag, 73, 69, 78, 68))
+            else if(checkTag(PNG_IEND_TAG, tag))
             {
                 break;
             }
@@ -142,47 +132,67 @@ public class PNGLoader
         }
     }
     
-    private void decodeIDAT(long length, ByteReader reader)
+    private void decodeIHDR(ByteBuf reader)
     {
-        //Concatenate all data.
-        ByteBuf compressed = Unpooled.buffer();
-        do{
-            compressed.writeBytes(reader.getBytes((int) length));
-            //Skip checksum
-            reader.pointer += 4;
-            length = reader.getUnsignedInt32();
+        width = (int) reader.readUnsignedInt();
+        height = (int) reader.readUnsignedInt();
+        bitDepth = reader.readUnsignedByte();
+        imageType = reader.readUnsignedByte();
+        compressionMethod = reader.readUnsignedByte();
+        filterMethod = reader.readUnsignedByte();
+        interlaceMethod = reader.readUnsignedByte();
+        
+        if(!validateImageType(imageType, bitDepth))
+        {
+            throw new RuntimeException("IHDR parsing failed, image of Type: " + imageType + ", with bit depth of: " + bitDepth + ", is not allowed.");
         }
-        while(validateTag(reader.getBytesUnsignedInt8(4), 73, 68, 65, 84));
+        
+        long checksum = reader.readUnsignedInt();
+    }
     
-        inflater = new Inflater(compressed);
-        filteredOutput = inflater.getBytes();
+    private void decodeIDAT(long length, ByteBuf reader)
+    {
+        /*
+         * All IDAT chunks should be concatenated before they're decompressed.
+         * Don't include chunk length, tag, or checksum.
+         */
+        List<ByteBuf> buffers = new ArrayList<>();
+        do{
+            buffers.add(reader.readRetainedSlice((int) length));
+            
+            //Skip checksum
+            reader.skipBytes(4);
+            length = reader.readUnsignedInt();
+        }
+        while(checkTag(PNG_IDAT_TAG, getTag(4, reader)));
+        
+        ByteBuf compressed = Unpooled.copiedBuffer(buffers.toArray(new ByteBuf[]{}));
+        
+        Inflater inflater = new Inflater(compressed);
         
         /*
-        * Checking if that was the last IDAT chunk.
+         * Sent the concatenated data through the decompressor, and leaves us with an uncompressed buffer.
+         */
+        ByteBuf uncompressedData = inflater.inflate(width * height * channels);
+        
+        /*
         * Un-filter the data back to normal.
         */
-        if(inflater.isFinal())
-        {
-            unFilter(filteredOutput);
-        }
-        //Add 4 to skip to the checksum
-        reader.pointer += 4;
-        //System.out.println(Arrays.toString(pixelData));
+        unFilter(uncompressedData);
         
+        //Skip the checksum
+        reader.skipBytes(4);
     }
     private void unFilter(ByteBuf data)
     {
-        pixelData = new int[width * height * channels];
-        
+        rawPixels = new int[width * height * channels];
         int filterFunction = 0;
         int rowWidth = width * channels;
     
-        //data.resetReaderIndex();
         for(int y = 0; y < height; y++)
         {
             //Cut out the filter function
-            //filterFunction = (int)data[rowWidth * y] & 0xff;
-            filterFunction = (int) data.readByte() & 0xff;
+            filterFunction = data.readUnsignedByte();
 
             //start at 1 to
             for(int x = 0; x < rowWidth; x++)
@@ -191,60 +201,42 @@ public class PNGLoader
                 int upIndex = index - rowWidth;
     
                 //Default values above or to the left of the "scanline" are to be treated as 0
-                int z = (data.readByte() & 0xff);
-                //builder.append(z).append(", ");
-                int a = ((x - channels) < 0) ? 0 : pixelData[index - channels];
-                int b = (y == 0) ? 0 : pixelData[upIndex];
-                int c = (y == 0) ? 0 : ((x - channels < 0) ? 0 : pixelData[upIndex - channels]);
+                int z = data.readUnsignedByte();
+                int a = ((x - channels) < 0) ? 0 : rawPixels[index - channels];
+                int b = (y == 0) ? 0 : rawPixels[upIndex];
+                int c = (y == 0) ? 0 : ((x - channels < 0) ? 0 : rawPixels[upIndex - channels]);
                 
                 //Use the filter function to unscramble the data.
-                pixelData[index] = switch(filterFunction)
-                                        {
-                                            //Subtraction(we do the inverse of the subtraction and add the value)
-                                            case 0 -> z;
-                                            case 1 -> (a + z) % 256;
-                                            //Up
-                                            case 2 -> (b + z) % 256;
-                                            //Average
-                                            case 3 -> (z + (a + b) / 2) % 256;
-                                            //Paeth whatever the fuck that means.
-                                            case 4 ->
-                                            {
-                                                int p = a + b - c;
-                                                int pa = Math.abs(p - a);
-                                                int pb = Math.abs(p - b);
-                                                int pc = Math.abs(p - c);
-                                                int val = 0;
-                                                if(pa <= pb && pa <= pc) val = a;
-                                                else if(pb <= pc) val = b;
-                                                else val = c;
-                    
-                                                yield (z + val) % 256;
-                                            }
-                                            default -> throw new RuntimeException("Invalid filter type: " + filterFunction);
-                                        };
-                //pixelData[index] %= 256;
+                rawPixels[index] =
+                    switch(filterFunction)
+                        {
+                            //Subtraction(we do the inverse of the subtraction and add the value)
+                            case 0 -> z;
+                            case 1 -> (a + z) % 256;
+                            //Up
+                            case 2 -> (b + z) % 256;
+                            //Average
+                            case 3 -> (z + (a + b) / 2) % 256;
+                            //Paeth whatever the fuck that means.
+                            case 4 ->
+                            {
+                                int p = a + b - c;
+                                int pa = Math.abs(p - a);
+                                int pb = Math.abs(p - b);
+                                int pc = Math.abs(p - c);
+                                int val = 0;
+                                if(pa <= pb && pa <= pc) val = a;
+                                else if(pb <= pc) val = b;
+                                else val = c;
+    
+                                yield (z + val) % 256;
+                            }
+                            default -> throw new RuntimeException("Invalid filter type: " + filterFunction);
+                        };
             }
         }
     }
-    
-    private void decodeIHDR(ByteReader reader)
-    {
-        width = (int)reader.getUnsignedInt32();
-        height = (int)reader.getUnsignedInt32();
-        bitDepth = reader.getUnsignedInt8();
-        imageType = reader.getUnsignedInt8();
-        compressionMethod = reader.getUnsignedInt8();
-        filterMethod = reader.getUnsignedInt8();
-        interlaceMethod = reader.getUnsignedInt8();
-        
-        if(!validateImageType(imageType, bitDepth))
-        {
-            throw new RuntimeException("IHDR parsing failed, image of Type: " + imageType + ", with bit depth of: " + bitDepth + ", is not allowed.");
-        }
-        
-        long checksum = reader.getUnsignedInt32();
-    }
+
     
     private boolean validateImageType(int imageType, int bitDepth)
     {
@@ -285,96 +277,42 @@ public class PNGLoader
         };
     }
     
-    private byte[] getAllIDATData(ByteReader reader)
+    public float[] getPixelData()
     {
-    
-        //int zLibFlags = reader.getUnsignedInt8();
-        //int otherFlags = reader.getUnsignedInt8();
-    
-        reader.pointer -= 10;
-        
-        
-        
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        int idatCounter = 0;
-        while(true)
-        {
-            //Read length
-            int length = (int) reader.getUnsignedInt32();
-            
-            //Read IDAT header
-            if(!reader.validateTag1Byte(73, 68, 65, 84))
-            {
-                break;
-            }
-            /*int offset = (idatCounter == 0 ? 4 : 2);
-            if(idatCounter != 0)
-            {
-                reader.pointer += 2;
-            }*/
-            //Could also advance the pointer by 4
-            //int zLibFlags = reader.getUnsignedInt8();
-            //int otherFlags = reader.getUnsignedInt8();
-            try
-            {
-                stream.write(reader.getBytes(length + 4));
-            } catch(IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-            //reader.pointer += length + 4;
-            idatCounter++;
-        }
-        
-        //stream.write(0);
-        try
-        {
-            stream.close();
-        } catch(IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-        return stream.toByteArray();
+        return pixelData;
     }
     
-    
-    //Get pretty close by running nowrap=false and adding the checksum to the decompress stream.
-    private byte[] getAllIDATData2(ByteReader reader)
+    private boolean checkTag(byte[] tag, ByteBuf reader)
     {
-        reader.pointer -= 8;
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        while(true)
+        for(byte b : tag)
         {
-            //Read length
-            int length = (int) reader.getUnsignedInt32();
-            
-            //Read IDAT header
-            if(!reader.validateTag1Byte(73, 68, 65, 84))
+            if(reader.readByte() != b)
             {
-                break;
+                return false;
             }
-            //Could also advance the pointer by 4
-            int zLibFlags = reader.getUnsignedInt8();
-            int otherFlags = reader.getUnsignedInt8();
-            try
-            {
-                stream.write(reader.getBytes(length - 2));
-            } catch(IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-            reader.pointer += length + 2;
         }
-    
-        //stream.write(0);
-        try
-        {
-            stream.close();
-        } catch(IOException e)
-        {
-            throw new RuntimeException(e);
-        }
-        return stream.toByteArray();
+        return true;
     }
     
+    private boolean checkTag(byte[] tag, byte[] bytes)
+    {
+        for(int i = 0; i < tag.length; i++)
+        {
+            if(tag[i] != bytes[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private byte[] getTag(int bytes, ByteBuf reader)
+    {
+        byte[] tag = new byte[bytes];
+        for(int i = 0; i < bytes; i++)
+        {
+            tag[i] = reader.readByte();
+        }
+        return tag;
+    }
 }
