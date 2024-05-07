@@ -5,14 +5,16 @@ import com.anthonycosenza.engine.space.entity.Mesh;
 public class ShapeBuilder
 {
     
-    public static Mesh square()
+    public static Mesh square(int width, int height)
     {
+        width /= 2;
+        height /= 2;
         float[] vertices = new float[]
                 {       //X, Y, Z
-                        -1, -1, 0,
-                        -1, 1, 0,
-                        1, -1, 0,
-                        1, 1, 0
+                        -width, -height, 0,
+                        -width, height, 0,
+                        width, -height, 0,
+                        width, height, 0
                 };
         int[] indices = new int[]
                 {

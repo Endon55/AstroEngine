@@ -1,8 +1,8 @@
 package com.anthonycosenza.engine;
 
 import com.anthonycosenza.Project;
+import com.anthonycosenza.engine.space.rendering.CanvasRenderer;
 import com.anthonycosenza.engine.space.rendering.Scene;
-import com.anthonycosenza.engine.space.entity.Texture;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
@@ -10,7 +10,6 @@ import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
 import com.anthonycosenza.engine.space.rendering.Renderer;
 import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
 import com.anthonycosenza.engine.space.rendering.TextRenderer;
-import com.anthonycosenza.test.Benchmark;
 import com.anthonycosenza.engine.util.Constants;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -39,9 +38,7 @@ public class Engine
     float zNear = .01f;
     float zFar = 1000.0f;
     float fov = 60;
-    Scene scene;
     Renderer renderer;
-    TextRenderer textRenderer;
     Input input;
     Project project;
     
@@ -57,12 +54,10 @@ public class Engine
         projection3d = new Projection3d(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         projection2d = new Projection2d(window.getWidth(), window.getHeight());
         
-        scene = new Scene();
         renderer = new Renderer();
-        textRenderer = new TextRenderer();
         input = new Input(window.getWindowHandle());
         EventBus.getDefault().register(this);
-        project = new Project();
+        project = new Project(window.getWidth(), window.getHeight());
         
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
     
@@ -132,7 +127,7 @@ public class Engine
                 }
             }
             //Renders the current scene giving it the delta since the last render call.
-            project.render((double)frameTime / Constants.NANOS_IN_SECOND, renderer, textRenderer, projection3d, projection2d);
+            renderer.render((double)frameTime / Constants.NANOS_IN_SECOND, project.getScene(), projection2d, projection3d);
             
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins loading of the next next frame.
             glfwSwapBuffers(window.getWindowHandle());

@@ -1,6 +1,8 @@
 package com.anthonycosenza.engine.space.entity;
 
 
+import com.anthonycosenza.engine.space.entity.texture.Texture;
+
 public class Model
 {
     private Mesh mesh;

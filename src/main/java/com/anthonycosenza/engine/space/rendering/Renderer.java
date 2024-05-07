@@ -1,65 +1,56 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.entity.Entity;
+import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
 public class Renderer
 {
-    private ShaderPipeline shaderPipeline;
-    private UniformMap uniforms;
+    private SceneRenderer sceneRenderer;
+    private TextRenderer textRenderer;
+    private CanvasRenderer canvasRenderer;
     
     public Renderer()
     {
-        shaderPipeline = new ShaderPipeline(new ShaderData("resources/shaders/scene.vert", GL_VERTEX_SHADER),
-                new ShaderData("resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
+        sceneRenderer = new SceneRenderer();
+        textRenderer = new TextRenderer();
+        canvasRenderer = new CanvasRenderer();
     
-        uniforms = new UniformMap(shaderPipeline.getProgramID());
-        uniforms.createUniform("projectionMatrix");
-        uniforms.createUniform("cameraMatrix");
-        uniforms.createUniform("entityMatrix");
-        uniforms.createUniform("textureSampler");
-    
-        //The color that the window frame gets cleared to right before a new frame is rendered.
-        glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+        /*
+         * GL_SRC_ALPHA - specifies how the source blending factors are computed.
+         *
+         *
+         * GL_ONE_MINUS_SRC_ALPHA - specifies how the destination blending factors are computed.
+         */
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_BLEND);
     }
     
-    
-    public void render(Scene scene, Projection3d projection)
+    public void render(double delta, Scene scene, Projection2d projection2d, Projection3d projection3d)
     {
-        //https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        shaderPipeline.bind();
-        uniforms.setUniform("projectionMatrix", projection.getMatrix());
-        uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
-        uniforms.setUniform("textureSampler", 0);
-        
-        for(Entity entity : scene.getEntities())
-        {
-            entity.getModel().getMesh().bind();
-            glActiveTexture(0);
-            entity.getModel().getTexture().bind();
-            uniforms.setUniform("entityMatrix", entity.getMatrix());
-    
-            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawElements(GL_TRIANGLES, entity.getModel().getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
-        }
-
-        
-        shaderPipeline.unbind();
+        sceneRenderer.render(scene, projection3d);
+        //textRenderer.render(scene, projection2d);
+        canvasRenderer.render(scene, projection2d);
     }
+    
+    
 }

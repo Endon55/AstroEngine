@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.space.entity;
+package com.anthonycosenza.engine.space.entity.texture;
 
 import com.anthonycosenza.engine.loader.image.ImageLoader;
 import org.lwjgl.system.MemoryStack;
@@ -20,6 +20,7 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBImage.stbi_failure_reason;
@@ -40,6 +41,8 @@ public class Texture
     }
     public Texture(String filepath, boolean fast)
     {
+        textureID = glGenTextures();
+        
         if(fast)
         {
             try(MemoryStack stack = MemoryStack.stackPush())
@@ -93,7 +96,6 @@ public class Texture
     
     private void generate(int width, int height, short[] pixelData)
     {
-        textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
         //Setting the alignment of the pixel data 1 = Byte Aligned
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -102,6 +104,12 @@ public class Texture
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_SHORT, pixelData);
         //System.out.println(glGetError());
         glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    
+    
+    public void updateFullTexture(int width, int height, float[] pixelData)
+    {
+        generate(width, height, pixelData);
     }
     
     public void bind()

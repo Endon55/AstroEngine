@@ -55,9 +55,14 @@ public class Vector2i
     
     public Vector2i add(int x, int y)
     {
-        this.x += x;
-        this.y += y;
-        return this;
+        return add(x, y, this);
+    }
+    
+    public Vector2i add(int x, int y, Vector2i destination)
+    {
+        destination.x = this.x + x;
+        destination.y = this.y + y;
+        return destination;
     }
     
     public Vector2i addX(int x)
@@ -79,13 +84,20 @@ public class Vector2i
         return this;
     }
 
-    
     public Vector2i subtract(Vector2i subtract, Vector2i destination)
     {
         destination.x = this.x - subtract.x();
         destination.y = this.y - subtract.y();
         return destination;
     }
+    
+    public float distance(Vector2i to)
+    {
+        float xd = to.x() - x();
+        float yd = to.y() - y();
+        return (float) Math.sqrt(Math.fma(xd, xd, yd * yd));
+    }
+    
     
     public int x()
     {

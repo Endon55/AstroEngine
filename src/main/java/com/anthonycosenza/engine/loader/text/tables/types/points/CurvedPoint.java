@@ -18,4 +18,31 @@ public class CurvedPoint implements FontPoint
         controlPoint2 = new Vector2i(xb, yb);
     }
     
+    @Override
+    public Vector2i getPosition()
+    {
+        return position;
+    }
+    
+    public Vector2i getControlPoint1()
+    {
+        return controlPoint1;
+    }
+    
+    public Vector2i getControlPoint2()
+    {
+        return controlPoint2;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "CurvedPoint{" +
+                "hintMask=" + hintMask +
+                ", position=" + position +
+                ", width=" + width +
+                ", controlPoint1=" + controlPoint1 +
+                ", controlPoint2=" + controlPoint2 +
+                '}';
+    }
 }
