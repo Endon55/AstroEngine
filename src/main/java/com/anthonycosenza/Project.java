@@ -49,28 +49,21 @@ public class Project
         entity.setPosition(0, 0, -10f);
         scene.add(entity);
         
-        font = new Font("resources/fonts/Bagnard.otf");
         
         //scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
     
         Canvas background = new Canvas(width, height, new Color(145, 139, 80));
         scene.add(background);
-        Canvas canvas = new Canvas(width, height);
-        Color blue = new Color(0, 0, 255, 255);
         
+        
+        Canvas canvas = new Canvas(width, height);
+        Color blue = new Color(0, 100, 255, 255);
         
         scene.add(canvas);
         
-        //Mesh mesh = ShapeBuilder.square();
+        font = new Font("resources/fonts/Bagnard.otf");
         Canvas atlas = FontAtlasGenerator.getAtlas(10, font);
-        //TextureAtlas atlas = new TextureAtlas("resources/images/Ai Sasha.png");
         scene.add(atlas);
-        //Model square = new Model(mesh, atlas.getTexture(100, 100, 200, 200));
-        //Model square = new Model(mesh, atlas.getFullTexture());
-        //Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
-        //Entity entity = square.createEntity();
-        //entity.setPosition(0, 0, -.5f);
-        //scene.add(entity);
     }
     
     

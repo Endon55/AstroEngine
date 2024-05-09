@@ -52,7 +52,7 @@ public class Input
         mouseInWindow = true;
         cursorStale = false;
         
-        setMouseType(MouseType.DISABLED);
+        //setMouseType(MouseType.DISABLED);
         EventBus.getDefault().register(this);
         resetMouse();
     }

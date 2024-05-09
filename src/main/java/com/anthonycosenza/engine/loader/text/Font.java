@@ -12,9 +12,9 @@ public class Font
     {
         fontData = FontData.decodeFont(filepath);
     }
-    public List<FontPoint> getGlyph(int index)
+    public List<List<FontPoint>> getGlyph(int index)
     {
-        return fontData.cffCharStringIndex.getData().get(index).getGlyphPath().getPoints();
+        return fontData.cffCharStringIndex.getData().get(index).getGlyphPath().getPaths();
     }
     
 }

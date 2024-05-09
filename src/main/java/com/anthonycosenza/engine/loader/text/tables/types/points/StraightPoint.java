@@ -21,6 +21,7 @@ public class StraightPoint implements FontPoint
         this.hintMask = 0;
         position = new Vector2i(point);
     }
+    
     public StraightPoint setHintMask(int hintMask)
     {
         this.hintMask = hintMask;

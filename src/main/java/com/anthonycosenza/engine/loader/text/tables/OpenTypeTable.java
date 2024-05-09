@@ -19,11 +19,7 @@ public abstract class OpenTypeTable
         reader.pointer = recordIndex;
         this.recordLength = recordLength;
         this.checksum = checksum;
-        
-        
         decode(fontData, reader);
-    
-        System.out.println("---------------" + tag + " End---------------");
     }
     
     private void validateChecksum(ByteReader reader)

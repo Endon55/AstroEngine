@@ -49,13 +49,7 @@ public class FontData
     
     private FormatEncoding encoding;
     
-    
-
-    
-    private FontData()
-    {
-        
-    }
+    private FontData() { }
     
     
     public static FontData decodeFont(String filePath)
@@ -87,8 +81,6 @@ public class FontData
                 long tableChecksum = reader.getUnsignedInt32();
                 int tableOffset = (int)reader.getUnsignedInt32();
                 int tableLength = (int) reader.getUnsignedInt32();
-                System.out.println(tag + " offset: " + tableOffset);
-                System.out.println("tableLength: " + tableLength);
                 
                 int index = reader.pointer;
                 reader.pointer = tableOffset;

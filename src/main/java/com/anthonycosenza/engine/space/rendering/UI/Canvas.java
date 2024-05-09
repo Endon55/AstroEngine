@@ -73,49 +73,110 @@ public class Canvas
         pixels[index++] = b;
         pixels[index++] = a;
     }
+    
+    public void drawVerticalLine(float r, float g, float b, float a, int x, int y0, int y1)
+    {
+        if(y0 > y1)
+        {
+            int temp = y0;
+            y0 = y1;
+            y1 = temp;
+        }
+        int dist = y1 - y0;
+        for(int i = 0; i < dist; i++)
+        {
+            setPixel(r, g, b, a, x, y0 + i);
+        }
+    }
+    
+    public void drawHorizontalLine(float r, float g, float b, float a, int x0, int x1, int y)
+    {
+        if(x0 > x1)
+        {
+            int temp = x0;
+            x0 = x1;
+            x1 = temp;
+        }
+        int dist = x1 - x0;
+        for(int i = 0; i < dist; i++)
+        {
+            setPixel(r, g, b, a, x0 + i, y);
+        }
+    }
+    
     public void drawFlatLine(float r, float g, float b, float a, int x0, int y0, int x1, int y1)
     {
         //Horizontal
         if(y0 == y1)
         {
-            if(x0 > x1)
-            {
-                int temp = x0;
-                x0 = x1;
-                x1 = temp;
-            }
-            int dist = x1 - x0;
-            for(int i = 0; i < dist; i++)
-            {
-                setPixel(r, g, b, a, x0 + i, y0);
-            }
+            drawHorizontalLine(r, g, b, a, x0, x1, y0);
         }
         else //Vertical
         {
-            if(y0 > y1)
-            {
-                int temp = y0;
-                y0 = y1;
-                y1 = temp;
-            }
-            int dist = y1 - y0;
-            for(int i = 0; i < dist; i++)
-            {
-                setPixel(r, g, b, a, x0, y0 + i);
-            }
+            drawVerticalLine(r, g, b, a, x0, y0, y1);
         }
     }
     public void drawLine(Color color, int x0, int y0, int x1, int y1)
     {
         drawLine(color.r(), color.g(), color.b(), color.a(), x0, y0, x1, y1);
     }
+    
+    /*
+     * https://www.baeldung.com/cs/bresenhams-line-algorithm
+     *
+     * For whatever reason the function can't do flat lines so there's a check to do that at the beginning.
+     */
     public void drawLine(float r, float g, float b, float a, int x0, int y0, int x1, int y1)
     {
+        if(x0 == x1) drawVerticalLine(r, g, b, a, x0, y0, y1);
+        if(y0 == y1) drawHorizontalLine(r, g, b, a, x0, x1, y0);
+        
+
+        
+        int distX = Math.abs(x1 - x0);
+        int slopeX = (x0 < x1 ? 1 : -1);
+        
+        int distY = -Math.abs(y1 - y0);
+        int slopeY = (y0 < y1 ? 1 : -1);
+        
+        int error = distX + distY;
+        int error2;
+        while(true)
+        {
+            setPixel(r, g, b, a, x0, y0);
+            
+            if(x0 == x1 && y0 == y1) break;
+            
+            error2 = error * 2;
+            
+            if(error >= distY)
+            {
+                if(x0 == x1) break;
+                
+                error += distY;
+                x0 = x0 + slopeX;
+            }
+            if(error2 <= distX)
+            {
+                if(y0 == y1) break;
+                
+                error += distX;
+                y0 += slopeY;
+            }
+        }
+        
+        
+        
+        /*//It's the same point
+        if(x0 == x1 && y0 == y1) return;
         if(x0 > x1)
         {
             drawLine(r, g, b, a, x1, y1, x0, y0);
             return;
         }
+    
+        System.out.println("Draw Line - x" + x0 + ", y" + y0 + " -- x" + x1 + " y" + y1);
+        
         if(x0 == x1 || y0 == y1) drawFlatLine(r, g, b, a, x0, y0, x1, y1);
         
         
@@ -145,7 +206,7 @@ public class Canvas
                     slope_error_new -= 2 * (x1 - x0);
                 }
             }
-        }
+        }*/
         updateTexture();
     }
     
@@ -212,22 +273,22 @@ public class Canvas
             setPixel(color, pixel.x(), pixel.y());
             
             //Left Pixel
-            if(!getColor(pixel.x() - 1, pixel.y()).equals(color))
+            if(pixel.x() > 0 && !getColor(pixel.x() - 1, pixel.y()).equals(color))
             {
                 positions.push(new Vector2i(pixel.x() - 1, pixel.y()));
             }
             //Right Pixel
-            if(!getColor(pixel.x() + 1, pixel.y()).equals(color))
+            if(pixel.x() < width - 1 && !getColor(pixel.x() + 1, pixel.y()).equals(color))
             {
                 positions.push(new Vector2i(pixel.x() + 1, pixel.y()));
             }
             //Down Pixel
-            if(!getColor(pixel.x(), pixel.y() - 1).equals(color))
+            if(pixel.y() > 0 && !getColor(pixel.x(), pixel.y() - 1).equals(color))
             {
                 positions.push(new Vector2i(pixel.x(), pixel.y() - 1));
             }
             //Up Pixel
-            if(!getColor(pixel.x(), pixel.y() + 1).equals(color))
+            if(pixel.y() < height - 1 && !getColor(pixel.x(), pixel.y() + 1).equals(color))
             {
                 positions.push(new Vector2i(pixel.x(), pixel.y() + 1));
             }
@@ -248,7 +309,7 @@ public class Canvas
         }
         //System.out.println("Distance: " + distance);
         //System.out.println("Raw Distance: " + (points[0].distance(points[points.length - 1])));
-        bezier(color, (int) (distance * 2), points);
+        bezier(color, (int) distance, points);
     }
     /*
      * This Bézier curve algorithm calculates the x, y pixel coordinate at time t,
@@ -267,41 +328,44 @@ public class Canvas
          */
         float timeStep = 1f / timeSteps;
         float time = 0;
-        while(time < 1)
+        float x;
+        float y;
+        int x2 = 0;
+        int y2 = 0;
+        while(time <= 1)
         {
-            int x;
-            int y;
             switch(pointCount)
             {
                 case 3 ->
                 {
-                    x = (int) bezierQuadratic(points[0].x(), points[1].x(), points[2].x(), time);
-                    y = (int) bezierQuadratic(points[0].y(), points[1].y(), points[2].y(), time);
+                    x = bezierQuadratic(points[0].x(), points[1].x(), points[2].x(), time);
+                    y = bezierQuadratic(points[0].y(), points[1].y(), points[2].y(), time);
                 }
                 case 4 ->
                 {
-                    x = (int) bezierCubic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), time);
-                    y = (int) bezierCubic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), time);
+                    x = bezierCubic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), time);
+                    y = bezierCubic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), time);
                 }
                 case 5 ->
                 {
-                    x = (int) bezierQuartic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(),time);
-                    y = (int) bezierQuartic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), time);
+                    x = bezierQuartic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(),time);
+                    y = bezierQuartic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), time);
                 }
                 case 6 ->
                 {
-                    x = (int) bezierQuintic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(), points[5].x(), time);
-                    y = (int) bezierQuintic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), points[5].y(), time);
+                    x = bezierQuintic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(), points[5].x(), time);
+                    y = bezierQuintic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), points[5].y(), time);
                 }
                 case 7 ->
                 {
-                    x = (int) bezierSextic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(), points[5].x(), points[6].x(),time);
-                    y = (int) bezierSextic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), points[5].y(), points[6].y(), time);
+                    x = bezierSextic(points[0].x(), points[1].x(), points[2].x(), points[3].x(), points[4].x(), points[5].x(), points[6].x(),time);
+                    y = bezierSextic(points[0].y(), points[1].y(), points[2].y(), points[3].y(), points[4].y(), points[5].y(), points[6].y(), time);
                 }
                 default -> throw new RuntimeException("We shouldn't be here.");
             }
-    
-            setPixel(color, x, y);
+            int xi = Math.round(x);
+            int yi = Math.round(y);
+            setPixel(color, xi, yi);
             time += timeStep;
         }
         updateTexture();

@@ -68,44 +68,52 @@ public class Color
         return a;
     }
     
-    public void r(float r)
+    public Color r(float r)
     {
         this.r = r;
+        return this;
     }
     
-    public void g(float g)
+    public Color g(float g)
     {
         this.g = g;
+        return this;
     }
     
-    public void b(float b)
+    public Color b(float b)
     {
         this.b = b;
+        return this;
     }
     
-    public void a(float a)
+    public Color a(float a)
     {
         this.a = a;
+        return this;
     }
     
-    public void r(int r)
+    public Color r(int r)
     {
         this.r = r / 255f;
+        return this;
     }
     
-    public void g(int g)
+    public Color g(int g)
     {
         this.g = g / 255f;
+        return this;
     }
     
-    public void b(int b)
+    public Color b(int b)
     {
         this.b = b / 255f;
+        return this;
     }
     
-    public void a(int a)
+    public Color a(int a)
     {
         this.a = a / 255f;
+        return this;
     }
     
     @Override

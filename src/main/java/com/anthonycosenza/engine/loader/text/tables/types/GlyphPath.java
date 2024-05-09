@@ -14,6 +14,8 @@ import java.util.Stack;
 public class GlyphPath
 {
     private Vector2i point;
+    private Vector2i startPoint;
+    private boolean pathOpen;
     private Stack<Number> stack;
     private int width;
     private boolean hasWidth;
@@ -21,7 +23,7 @@ public class GlyphPath
     private int hintMask;
     private int stems;
     private String previousOperator;
-    
+    List<List<FontPoint>> paths;
     List<FontPoint> points;
     List<Hint> hints;
     private int defaultWidth;
@@ -33,6 +35,7 @@ public class GlyphPath
         point = new Vector2i(0, 0);
         points = new ArrayList<>();
         hints = new ArrayList<>();
+        paths = new ArrayList<>();
         stems = 0;
         hintMask = 0;
         width = 0;
@@ -68,7 +71,7 @@ public class GlyphPath
     public void pushValue(int value)
     {
         stack.push(value);
-        System.out.println("Pushed Value, Stack: " + stack);
+        //System.out.println("Pushed Value, Stack: " + stack);
         totalValues++;
     }
     
@@ -76,7 +79,7 @@ public class GlyphPath
     {
         if(operator1 == 247)
         {
-            System.out.println("10 shouldnt be here");
+            System.out.println("10 shouldn't be here");
         }
         String operatorStr = switch(operator1)
                 {
@@ -117,9 +120,6 @@ public class GlyphPath
                     case 19 ->
                     {
                         setWidthStems();
-    
-                        System.out.println(stack);
-                        
                         putHints(Hint.HintType.VERTICAL);
                         
                         yield "hintmask";
@@ -127,9 +127,6 @@ public class GlyphPath
                     case 20 ->
                     {
                         setWidthStems();
-    
-                        System.out.println(stack);
-    
                         putHints(Hint.HintType.VERTICAL);
     
                         yield "cntrmask";
@@ -141,8 +138,8 @@ public class GlyphPath
                             width = popBottom().intValue() + nominalWidth;
                             hasWidth = true;
                         }
+                        endPath();
                         point.add(popBottom().intValue(), popBottom().intValue());
-                        //stack.clear();
                         yield "rmoveto";
                     }
                     case 4 ->
@@ -152,9 +149,8 @@ public class GlyphPath
                             width = popBottom().intValue() + nominalWidth;
                             hasWidth = true;
                         }
-                        
+                        endPath();
                         point.addY(popBottom().intValue());
-                        //stack.clear();
                         yield "vmoveto";
                     }
                     case 22 ->
@@ -164,27 +160,23 @@ public class GlyphPath
                             width = popBottom().intValue() + nominalWidth;
                             hasWidth = true;
                         }
-                        
+                        endPath();
                         point.addX(popBottom().intValue());
-                        //stack.clear();
                         yield "hmoveto";
                     }
                     case 5 ->
                     {
                         rLineTo();
-                        //stack.clear();
                         yield "rlineto";
                     }
                     case 6 ->
                     {
                         hLineTo();
-                        //stack.clear();
                         yield "hlineto";
                     }
                     case 7 ->
                     {
                         vLineTo();
-                        //stack.clear();
                         yield "vlineto";
                     }
                     //Return operator does nothing but signify the end of a subroutine.
@@ -196,72 +188,62 @@ public class GlyphPath
     
                         if(totalValues == 1)
                         {
-                            System.out.println("Stack pre Pop: " + stack);
                             //This is a width overwrite.
                             width = (int)stack.pop() + (int) fontData.cffPrivateDict.getValue("nominalWidthX").get(0);
                         }
                         else if(totalValues == 0)
                         {
-                            System.out.println("Stack without needing pop: " + stack);
                             //this uses the font default width.
                             width = (int) fontData.cffPrivateDict.getValue("defaultWidthX").get(0);
                         }
                         points.add(new StraightPoint(point).setWidth(width).setHintMask(hintMask));
-    
-                        //stack.clear();
+                        endPath();
                         yield "endchar";
                     }
                     case 24 ->
                     {
                         rCurveLine();
-                        //stack.clear();
                         yield "rcurveline";
                     }
                     case 25 ->
                     {
                         rLineCurve();
-                        //stack.clear();
                         yield "rlinecurve";
                     }
     
                     case 8 ->
                     {
                         rrCurveTo();
-                        //stack.empty();
                         yield "rrcurveto";
                     }
                     case 26 ->
                     {
                         vvCurveTo();
-                        //stack.empty();
                         yield "vvcurveto";
                     }
                     case 27 ->
                     {
                         hhCurveTo();
-                        //stack.empty();
                         yield "hhcurveto";
                     }
                     case 29 ->
                     {
                         throw new RuntimeException("Global Subroutines not implemented.");
-                        //yield "callgsubr";
                     }
                     case 30 ->
                     {
                         vhCurveTo();
-                        //stack.clear();
                         yield "vhcurveto";
                     }
                     case 31 ->
                     {
                         hvCurveTo();
-                        //stack.clear();
                         yield "hvcurveto";
                     }
                     case 12 ->
                     {
-                        yield switch(operator2)
+                        throw new RuntimeException("Implement operators set 2");
+                        /*yield switch(operator2)
                                 {
                                     case 0 -> throw new RuntimeException("This operators is deprecated apparently: " + operator2);
                                     case 1, 2, 6, 7, 8, 13, 16, 17, 19, 25, 31, 32, 33 -> throw new RuntimeException("Reserved 2-byte CharString operator: " + operator2);
@@ -293,17 +275,28 @@ public class GlyphPath
                                     {
                                         throw new RuntimeException("Anything this high is reserved: " + operator2);
                                     }
-                                };
+                                };*/
                     }
                     default -> throw new RuntimeException("I don't think anything should be here...: " + operator1);
                 };
-        System.out.println("Operator Pushed: " + operatorStr + "(" + operator1 + ")");
+        //System.out.println("Operator Pushed: " + operatorStr + "(" + operator1 + ")");
         previousOperator = (!operatorStr.equals("return")) ? operatorStr : previousOperator;
         if(operatorStr.equals("endchar")) return;
     }
     
-    
-    
+    private void endPath()
+    {
+        /*
+         * Not the first point in a series. We never start with a base point.
+         */
+        pathOpen = false;
+        if(!points.isEmpty())
+        {
+            if(startPoint != null) points.add(new StraightPoint(startPoint));
+            paths.add(points);
+            points = new ArrayList<>();
+        }
+    }
     
     private void vhCurveTo()
     {
@@ -313,10 +306,10 @@ public class GlyphPath
             int c1y = point.y() + popBottom().intValue();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.x(c2x + popBottom().intValue());
-            point.y(c2y + (stack.size() == 1 ? popBottom().intValue() : 0));
+            int c3x = c2x + popBottom().intValue();
+            int c3y = c2y + (stack.size() == 1 ? popBottom().intValue() : 0);
             
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         
             if(stack.size() == 0)
             {
@@ -327,62 +320,11 @@ public class GlyphPath
             c1y = point.y();
             c2x = c1x + popBottom().intValue();
             c2y = c1y + popBottom().intValue();
-            point.y(c2y + popBottom().intValue());
-            point.x(c2x + (stack.size() == 1 ? popBottom().intValue() : 0));
+            c3y = c2y + popBottom().intValue();
+            c3x = c2x + (stack.size() == 1 ? popBottom().intValue() : 0);
             
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         }
-        
-        
-/*        int size = stack.size();
-        int mod = size % 8;
-        
-        if(mod == 0 || mod == 1)
-        {
-            size--;
-            int x = 0;
-            
-            for(int i = 0; i < size; i += 8)
-            {
-                curveTo(0, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), 0);
-                if(i + 8 == size)
-                {
-                    x = popAt(4).intValue();
-                }
-                curveTo(popBottom().intValue(), 0,
-                        popBottom().intValue(), popBottom().intValue(),
-                        x, popBottom().intValue());
-            }
-        }
-        else
-        {
-            size--;
-            int y = 0;
-            
-            if(size == 4)
-            {
-                y = popAt(4).intValue();
-            }
-            curveTo(0, popBottom().intValue(),
-                    popBottom().intValue(), popBottom().intValue(),
-                    popBottom().intValue(), y);
-            y = 0;
-            for(int i = 4; i < size; i += 8)
-            {
-                curveTo(popBottom().intValue(), 0,
-                        popBottom().intValue(), popBottom().intValue(),
-                        0, popBottom().intValue());
-                if(i + 1 == size)
-                {
-                    y = popAt(4).intValue();
-                }
-                curveTo(0, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), y);
-            }
-        }*/
     }
     private void hvCurveTo()
     {
@@ -392,9 +334,10 @@ public class GlyphPath
             int c1y =  point.y();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.y(c2y + popBottom().intValue());
-            point.x(c2x + (stack.size() == 1 ? popBottom().intValue() : 0));
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            int c3y = c2y + popBottom().intValue();
+            int c3x = c2x + (stack.size() == 1 ? popBottom().intValue() : 0);
+            
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
             
             if(stack.size() == 0)
             {
@@ -405,59 +348,11 @@ public class GlyphPath
             c1y = point.y() + popBottom().intValue();
             c2x = c1x + popBottom().intValue();
             c2y = c1y + popBottom().intValue();
-            point.x(c2x + popBottom().intValue());
-            point.y(c2y + (stack.size() == 1 ? popBottom().intValue() : 0));
+            c3x = c2x + popBottom().intValue();
+            c3y = c2y + (stack.size() == 1 ? popBottom().intValue() : 0);
             
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         }
-        
-        
-        /*int size = stack.size();
-        int mod = size % 8;
-        
-        size--;
-        if(mod == 0 || mod == 1)
-        {
-            int y = 0;
-            for(int i = 0; i < size; i += 8)
-            {
-                curveTo(popBottom().intValue(), 0,
-                        popBottom().intValue(), popBottom().intValue(),
-                        0, popBottom().intValue());
-                if(i + 8 == size)
-                {
-                    y = popAt(4).intValue();
-                }
-                curveTo(0, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), y);
-            }
-        }
-        else
-        {
-            int x = 0;
-            if(size == 4)
-            {
-                x = popAt(4).intValue();
-            }
-            curveTo(popBottom().intValue(), 0,
-                    popBottom().intValue(), popBottom().intValue(),
-                    x, popBottom().intValue());
-            x = 0;
-            for(int i = 4; i < size; i += 8)
-            {
-                curveTo(0, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), 0);
-                if(i + 8 == size)
-                {
-                    x = popAt(4).intValue();
-                }
-                curveTo(popBottom().intValue(), 0,
-                        popBottom().intValue(), popBottom().intValue(),
-                        x, popBottom().intValue());
-            }
-        }*/
     }
     
     private void rLineCurve()
@@ -471,9 +366,9 @@ public class GlyphPath
         int c1y = point.y() + popBottom().intValue();
         int c2x = c1x + popBottom().intValue();
         int c2y = c1y + popBottom().intValue();
-        point.x(c2x + popBottom().intValue());
-        point.y(c2y + popBottom().intValue());
-        curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+        int c3x = c2x + popBottom().intValue();
+        int c3y = c2y + popBottom().intValue();
+        curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
     
     }
     private void rCurveLine()
@@ -485,9 +380,9 @@ public class GlyphPath
             int c1y = point.y() + popBottom().intValue();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.x(c2x + popBottom().intValue());
-            point.y(c2y + popBottom().intValue());
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            int c3x = c2x + popBottom().intValue();
+            int c3y = c2y + popBottom().intValue();
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         }
         
         lineTo(popBottom().intValue(), popBottom().intValue());
@@ -501,9 +396,9 @@ public class GlyphPath
             int c1y = point.y() + popBottom().intValue();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.x(c2x + popBottom().intValue());
-            point.y(c2y + popBottom().intValue());
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            int c3x = c2x + popBottom().intValue();
+            int c3y = c2y + popBottom().intValue();
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         }
     }
     
@@ -520,32 +415,10 @@ public class GlyphPath
             int c1y = point.y() + popBottom().intValue();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.x(c2x);
-            point.y(c2y + popBottom().intValue());
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            int c3x = c2x;
+            int c3y = c2y + popBottom().intValue();
+            curveTo(c1x, c1y, c2x, c2y, c3x, c3y);
         }
-        
-/*        //Odd values let you set the y value before starting the flat curve.
-        if(stack.size() % 2 == 1)
-        {
-            int x = popBottom().intValue();
-            for(int i = 0; i < stack.size() / 4; i++)
-            {
-                curveTo(x, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        0, popBottom().intValue());
-                x = 0;
-            }
-        }
-        else
-        {
-            for(int i = 0; i < stack.size() / 4; i++)
-            {
-                curveTo(0, popBottom().intValue(),
-                        popBottom().intValue(), popBottom().intValue(),
-                        0, popBottom().intValue());
-            }
-        }*/
     }
     
     //Starts and ends horizontal, which means the y value stays the same.
@@ -555,57 +428,35 @@ public class GlyphPath
         {
             point.addY(popBottom().intValue());
         }
+        
         while(stack.size() > 0)
         {
             int c1x = point.x() + popBottom().intValue();
             int c1y = point.y();
             int c2x = c1x + popBottom().intValue();
             int c2y = c1y + popBottom().intValue();
-            point.x(c2x + popBottom().intValue());
-            point.y(c2y);
-            curveTo(c1x, c1y, c2x, c2y, point.x(), point.y());
+            int c3x = c2x + popBottom().intValue();
+            
+            //c2y being passed twice is not a mistake
+            curveTo(c1x, c1y, c2x, c2y, c3x, c2y);
         }
         
-       /* //Odd values let you set the y value before starting the flat curve.
-        if(stack.size() % 2 == 1)
-        {
-            int y = popBottom().intValue();
-            for(int i = 0; i < stack.size() / 4; i++)
-            {
-                curveTo(popBottom().intValue(), y,
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), 0);
-                y = 0;
-            }
-        }
-        else
-        {
-            for(int i = 0; i < stack.size() / 4; i++)
-            {
-                curveTo(popBottom().intValue(), 0,
-                        popBottom().intValue(), popBottom().intValue(),
-                        popBottom().intValue(), 0);
-            }
-        }*/
     }
     
     private void curveTo(int xa, int ya, int xb, int yb, int xc, int yc)
     {
-        //All of these points are relative, so they must be added to the previous point to get the actual position.
-        /*xa += point.x();
-        ya += point.y();
-        xb += xa;
-        yb += ya;
-        xc += xb;
-        yc += yb;*/
+        if(!pathOpen)
+        {
+            startPoint = new Vector2i(point);
+            pathOpen = true;
+        }
+        point.add(xc, yc);
         points.add(new CurvedPoint(xa, ya, xb, yb, xc, yc));
         point.set(xc, yc);
     }
     
     private void rLineTo()
     {
-        
-        //for(int i = 0; i < stack.size() / 2; i++)
         while(!stack.isEmpty())
         {
             lineTo((int) popBottom(), (int) popBottom());
@@ -641,6 +492,11 @@ public class GlyphPath
 
     private void lineTo(int x, int y)
     {
+        if(!pathOpen)
+        {
+            startPoint = new Vector2i(point);
+            pathOpen = true;
+        }
         point.add(x, y);
         points.add(new StraightPoint(point));
     }
@@ -672,7 +528,7 @@ public class GlyphPath
         //Stems are always in batches of 2
         if(stack.size() % 2 == 1)
         {
-            System.out.println("Popped it for a width");
+            //System.out.println("Popped it for a width");
             width = nominalWidth + (int) popBottom();
             hasWidth = true;
         }
@@ -696,5 +552,10 @@ public class GlyphPath
     public List<FontPoint> getPoints()
     {
         return points;
+    }
+    
+    public List<List<FontPoint>> getPaths()
+    {
+        return paths;
     }
 }
