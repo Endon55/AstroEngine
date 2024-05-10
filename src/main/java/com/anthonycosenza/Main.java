@@ -8,8 +8,8 @@ public class Main
 {
     public static void main(String[] args)
     {
-        //Font font = new Font("resources/fonts/Bagnard.otf");
-        Engine engine = new Engine();
-        engine.run();
+        Font font = new Font("resources/fonts/Bagnard.otf");
+        //Engine engine = new Engine();
+        //engine.run();
     }
 }

@@ -5,9 +5,12 @@ import com.anthonycosenza.engine.loader.text.tables.types.points.CurvedPoint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.FontPoint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.StraightPoint;
 import com.anthonycosenza.engine.space.rendering.UI.Canvas;
+import com.anthonycosenza.engine.util.math.BezierCurves;
 import com.anthonycosenza.engine.util.math.Color;
+import com.anthonycosenza.engine.util.math.Lines;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FontAtlasGenerator
@@ -16,7 +19,182 @@ public class FontAtlasGenerator
     private FontAtlasGenerator(){}
     
     
-    
+    public static Canvas getAtlas2(float fontSize, Font font)
+    {
+        //72 pixels per point * how many points you want.
+        fontSize = fontSize / 72f;
+        
+        int gutterOffset = 100;
+        int width = 2000;
+        int height = 1000;
+        Canvas canvas = new Canvas(width, height);
+        Color color = new Color(0, 0, 0, 255);
+        //White gutter line.
+        canvas.drawLine(100, 100, 100, 255, 0, 100, 1999, 100);
+        
+        List<List<FontPoint>> paths = font.getGlyph(1);
+        
+        List<List<StraightPoint>> straightPaths = new ArrayList<>();
+        
+        
+        /*
+         * First I need to replace each curve with some # of straight points.
+         *
+         * Second I iterate through each pixel and count intersections and light up pixel.
+         */
+        float smoothness = 10;
+        float timeInc = 1 / smoothness;
+        List<StraightPoint> straightPoints;
+        
+        Vector2i previous = null;
+        for(List<FontPoint> path : paths)
+        {
+            straightPoints = new ArrayList<>();
+            for(int i = 0; i < path.size(); i++)
+            {
+                FontPoint point = path.get(i);
+                if(point instanceof StraightPoint)
+                {
+                    StraightPoint newStraight = new StraightPoint((int) (point.getPosition().x() * fontSize), (int) ((point.getPosition().y() + gutterOffset) * fontSize));
+                    straightPoints.add(newStraight);
+                    previous = newStraight.getPosition();
+                }
+                else
+                {
+                    CurvedPoint cPoint = (CurvedPoint) point;
+                    /*
+                     * J needs to be inclusive of 1
+                     * time into 2 sections means 3 points
+                     * 0, .5, 1
+                     */
+                    for(int j = 0; j <= smoothness; j++)
+                    {
+                        Vector2i curvedPoint = BezierCurves.bezier(timeInc * j,path.get(i - 1 >= 0 ? i - 1 : path.size() - 1).getPosition(),
+                                cPoint.getControlPoint1(), cPoint.getControlPoint2(), cPoint.getPosition());
+                        curvedPoint.addY(gutterOffset);
+                        curvedPoint.mult(fontSize);
+                        /*
+                         * This is consolidating flat points into a single point.
+                         * Once a curve is split into line segments and rounded to integers it's quite likely that multiple sequential points
+                         * fall on the same vertical or horizontal plane, instead of having 3 line segments they're combined into 1 line segment,
+                         * this makes checking way more efficient and reduces errors.
+                         */
+                        if(previous != null && !straightPoints.isEmpty() &&
+                                (Lines.isHorizontal(previous, curvedPoint) || Lines.isVertical(previous, curvedPoint)))
+                        {
+                            straightPoints.set(straightPoints.size() - 1, new StraightPoint(curvedPoint));
+                        }
+                        else straightPoints.add(new StraightPoint(curvedPoint));
+                        previous = curvedPoint;
+                    }
+                    
+                }
+            }
+            straightPaths.add(straightPoints);
+        }
+        
+        
+        Vector2i l0 = new Vector2i(0, 0);
+        Vector2i l1 = new Vector2i();
+        Vector2i r0 = new Vector2i();
+        Vector2i r1 = new Vector2i(width, 0);
+        int leftIntersections = 0;
+        int rightIntersections = 0;
+        List<Vector2i> intersectedPoints = new ArrayList<>();
+        
+        for(int y = 0; y < height; y++)
+        {
+            
+            for(int x = 0; x < width; x++)
+            {
+                leftIntersections = 0;
+                rightIntersections = 0;
+                r0.set(x, y);
+                r1.set(width, y);
+                l0.set(0, y);
+                l1.set(x, y);
+                intersectedPoints.clear();
+                //Check all points to the right
+                for(List<StraightPoint> path : straightPaths)
+                {
+                    for(int i = 0; i < path.size(); i++)
+                    {
+                        StraightPoint point = path.get(i);
+                        StraightPoint nextPoint = (i + 1 < path.size() ? path.get(i + 1) : path.get(0));
+                        
+                        Vector2i intersection = Lines.intersection(r0, r1, point.getPosition(), nextPoint.getPosition());
+                        
+                        /*
+                         * I track each intersected point so that I can avoid double counting the 1px overlap from each line.
+                         *
+                         * and check to make sure that if there is an intersection, that it's within the y bounds of the line segment.
+                         */
+                        if(intersection == null
+                            ||  intersectedPoints.contains(intersection)
+                            || !Lines.checkY(intersection.y(), point.getPosition().y(), nextPoint.getPosition().y()))
+                        {
+                            continue;
+                        }
+                        /*
+                         * Check if the line intersection is to the right or to the left, and increment that side.
+                         */
+                        if(Lines.checkX(intersection.x(), r0.x(), r1.x()))
+                        {
+                            rightIntersections++;
+                            intersectedPoints.add(intersection);
+                        }
+                        else if(Lines.checkX(intersection.x(), l0.x(), l1.x()))
+                        {
+                            leftIntersections++;
+                            intersectedPoints.add(intersection);
+                        }
+                    }
+                }
+                /*
+                 * This is probably overly complicated but fuck it, it works.
+                 *
+                 * When evaluating left and right hits, if one of them is 0 then it necessarily means it's outside the letter either to the left or right.
+                 * If we're left or right of the shape we need to be as strict as possible when determining if we should draw a pixel.
+                 * Otherwise errors lead to horizontal lines that span the whole canvas.
+                 *
+                 * If we're pretty sure we're in the shape then we want to double-check that we have an odd number of hits in either direction,
+                 * even on one and odd on the other usually means that we double counted a point on the even one.
+                 */
+                if((rightIntersections & 1) == 1 && (leftIntersections  != 0))
+                {
+                    canvas.setPixel(color, x, y);
+                }
+                else if((leftIntersections & 1) == 1 && (rightIntersections != 0))
+                {
+                    canvas.setPixel(color, x, y);
+                }
+                else if((rightIntersections & 1) == 1 && (leftIntersections & 1) == 1)
+                {
+                    canvas.setPixel(color, x, y);
+                }
+                /*if((rightIntersections & 1) == 1 && (leftIntersections & 1) == 1)
+                {
+                    canvas.setPixel(color, x, y);
+                }*/
+            }
+        }
+        Color dotColor = new Color(255, 0, 0);
+        for(List<StraightPoint> path : straightPaths)
+        {
+            for(int i = 0; i < path.size(); i++)
+            {
+                FontPoint point = path.get(i);
+             
+                canvas.setPixel(dotColor, point.getPosition().x(), point.getPosition().y());
+                //canvas.drawCircle(dotColor, 5, point.getPosition().x(), point.getPosition().y(), false);
+            }
+        }
+        //canvas.fill(color, 150, 105);
+        
+        
+        canvas.updateTexture();
+        return canvas;
+    }
     public static Canvas getAtlas(int fontSize, Font font)
     {
         Canvas canvas = new Canvas(2000, 1000);
@@ -24,12 +202,13 @@ public class FontAtlasGenerator
         //White gutter line.
         canvas.drawLine(100, 100, 100, 255, 0, 100, 1999, 100);
         
-        List<List<FontPoint>> paths = font.getGlyph(1);
+        List<List<FontPoint>> paths = font.getGlyph(2);
         
         /*
          * Each character is made up of multiple paths. The hole cut out from a D or the dot over an i.
          * We loop through each of those paths and draw them.
          */
+        
         for(List<FontPoint> path: paths)
         {
             for(int i = 0; i < path.size(); i++)
@@ -53,10 +232,11 @@ public class FontAtlasGenerator
                 }
                 else throw new RuntimeException("What kind of point are you? " + nextPoint.getClass());
             }
-            
-            //canvas.fill(color, 150, 105);
         }
+        canvas.fill(color, 150, 105);
         
+        
+        canvas.updateTexture();
         return canvas;
     }
 }

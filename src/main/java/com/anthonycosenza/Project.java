@@ -62,7 +62,7 @@ public class Project
         scene.add(canvas);
         
         font = new Font("resources/fonts/Bagnard.otf");
-        Canvas atlas = FontAtlasGenerator.getAtlas(10, font);
+        Canvas atlas = FontAtlasGenerator.getAtlas2(12, font);
         scene.add(atlas);
     }
     

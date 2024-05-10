@@ -57,7 +57,7 @@ public class Canvas
         color.a(pixels[index++]);
         return color;
     }
-    private void setPixel(Color color, int posX, int posY)
+    public void setPixel(Color color, int posX, int posY)
     {
         setPixel(color.r(), color.g(), color.b(), color.a(), posX, posY);
     }
@@ -68,6 +68,7 @@ public class Canvas
     {
         posY = (height - 1) - posY;
         int index = posY * rowWidth + (posX * 4);
+        if(index > getPixels().length) return;
         pixels[index++] = r;
         pixels[index++] = g;
         pixels[index++] = b;
@@ -164,50 +165,6 @@ public class Canvas
                 y0 += slopeY;
             }
         }
-        
-        
-        
-        /*//It's the same point
-        if(x0 == x1 && y0 == y1) return;
-        if(x0 > x1)
-        {
-            drawLine(r, g, b, a, x1, y1, x0, y0);
-            return;
-        }
-    
-        System.out.println("Draw Line - x" + x0 + ", y" + y0 + " -- x" + x1 + " y" + y1);
-        
-        if(x0 == x1 || y0 == y1) drawFlatLine(r, g, b, a, x0, y0, x1, y1);
-        
-        
-        int m_new = 2 * (y1 - y0);
-        int slope_error_new = m_new - (x1 - x0);
-        
-        int y = y0;
-        for(int x = x0; x <= x1; x++)
-        {
-            
-            setPixel(r, g, b, a, x, y);
-            
-            slope_error_new += m_new;
-            if(m_new < 0)
-            {
-                if(slope_error_new <= 0)
-                {
-                    y--;
-                    slope_error_new += 2 * (x1 - x0);
-                }
-            }
-            else
-            {
-                if(slope_error_new >= 0)
-                {
-                    y++;
-                    slope_error_new -= 2 * (x1 - x0);
-                }
-            }
-        }*/
-        updateTexture();
     }
     
     private void setCircleArc(float r, float g, float b, float a, int xc, int yc, int x, int y)
@@ -266,6 +223,7 @@ public class Canvas
     public void fill(Color color, int xPos, int yPos)
     {
         Stack<Vector2i> positions = new Stack<>();
+        if(xPos > width - 1 || yPos > height - 1) return;
         positions.add(new Vector2i(xPos, yPos));
         while(!positions.isEmpty())
         {
@@ -273,22 +231,22 @@ public class Canvas
             setPixel(color, pixel.x(), pixel.y());
             
             //Left Pixel
-            if(pixel.x() > 0 && !getColor(pixel.x() - 1, pixel.y()).equals(color))
+            if(pixel.x() > 0 && pixel.x() < width && pixel.y() < height && !color.equals(getColor(pixel.x() - 1, pixel.y())))
             {
                 positions.push(new Vector2i(pixel.x() - 1, pixel.y()));
             }
             //Right Pixel
-            if(pixel.x() < width - 1 && !getColor(pixel.x() + 1, pixel.y()).equals(color))
+            if(pixel.x() > 0 && pixel.x() < width - 1 &&pixel.y() < height && !color.equals(getColor(pixel.x() + 1, pixel.y())))
             {
                 positions.push(new Vector2i(pixel.x() + 1, pixel.y()));
             }
             //Down Pixel
-            if(pixel.y() > 0 && !getColor(pixel.x(), pixel.y() - 1).equals(color))
+            if(pixel.x() < width && pixel.y() > 0 && pixel.y() < height && !color.equals(getColor(pixel.x(), pixel.y() - 1)))
             {
                 positions.push(new Vector2i(pixel.x(), pixel.y() - 1));
             }
             //Up Pixel
-            if(pixel.y() < height - 1 && !getColor(pixel.x(), pixel.y() + 1).equals(color))
+            if(pixel.x() < width && pixel.y() > 0 && pixel.y() < height - 1 && !color.equals(getColor(pixel.x(), pixel.y() + 1)))
             {
                 positions.push(new Vector2i(pixel.x(), pixel.y() + 1));
             }
@@ -309,7 +267,7 @@ public class Canvas
         }
         //System.out.println("Distance: " + distance);
         //System.out.println("Raw Distance: " + (points[0].distance(points[points.length - 1])));
-        bezier(color, (int) distance, points);
+        bezier(color, (int) distance * 20, points);
     }
     /*
      * This Bézier curve algorithm calculates the x, y pixel coordinate at time t,
@@ -363,12 +321,23 @@ public class Canvas
                 }
                 default -> throw new RuntimeException("We shouldn't be here.");
             }
+            setPixel(color, (int) x, (int) y);
             int xi = Math.round(x);
             int yi = Math.round(y);
+            /*int dist = Math.abs(xi - x2) + Math.abs(yi - y2);
+            if(time > 0 && dist > 1)
+            {
+                drawLine(color.r(), color.g(), color.b(), color.a(), x2, y2, xi, yi);
+            }
+            else setPixel(color, xi, yi);
+            
+            x2 = xi;
+            y2 = yi;*/
+    
             setPixel(color, xi, yi);
+            
             time += timeStep;
         }
-        updateTexture();
     }
     
     private float mixBezier(float a, float b, float t)
@@ -416,6 +385,60 @@ public class Canvas
         float BCDEFG = bezierQuintic(B, C, D, E, F, G, t);
         return mixBezier(ABCDEF, BCDEFG, t);
     }
+    
+    /*private void fixPath(Color color, int xStart, int yStart)
+    {
+        int x = xStart;
+        int y = yStart;
+        
+        while(true)
+        {
+            //Up Left Pixel
+            if(x > 0 && y > 0 && !getColor(x - 1, y - 1).equals(color))
+            {
+                positions.push(new Vector2i(x + 1, y));
+            }
+            //Up Right Pixel
+            if(x < width - 1 && y > 0 && !getColor(x + 1, y - 1).equals(color))
+            {
+                positions.push(new Vector2i(x + 1, y));
+            }
+            //Down Left Pixel
+            if(x > 0 && y < height - 1 && !getColor(x - 1, y + 1).equals(color))
+            {
+                positions.push(new Vector2i(x - 1, y));
+            }
+            //Down Right Pixel
+            if(x < width - 1 && y < height - 1 && !getColor(x + 1, y + 1).equals(color))
+            {
+                positions.push(new Vector2i(x + 1, y));
+            }
+            
+            
+            
+            //Left Pixel
+            if(x > 0 && !getColor(x - 1, y).equals(color))
+            {
+                positions.push(new Vector2i(x - 1, y));
+            }
+            //Right Pixel
+            if(x < width - 1 && !getColor(x + 1, y).equals(color))
+            {
+                positions.push(new Vector2i(x + 1, y));
+            }
+            //Down Pixel
+            if(y > 0 && !getColor(x, y - 1).equals(color))
+            {
+                positions.push(new Vector2i(x, y - 1));
+            }
+            //Up Pixel
+            if(y < height - 1 && !getColor(x, y + 1).equals(color))
+            {
+                positions.push(new Vector2i(x, y + 1));
+            }
+        }
+    }*/
+    
     
     public void updateTexture()
     {
