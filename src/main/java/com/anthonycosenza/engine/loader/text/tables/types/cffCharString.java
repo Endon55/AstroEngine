@@ -28,7 +28,6 @@ public class cffCharString
         this.type = type;
         this.index = reader.pointer;
         this.length = length;
-        //System.out.println("CharString Length: " + length);
         
         
         switch(type)
@@ -43,11 +42,9 @@ public class cffCharString
     private void type2(int length, FontData fontData, ByteReader reader)
     {
         int start = reader.pointer;
-        //System.out.println("charstring Index: " + start);
         while(reader.pointer < start + length)
         {
             int b0 = reader.getUnsignedInt8();
-            //System.out.println("b0: " + b0);
     
     
             if((b0 >= 0 && b0 <= 27) || (b0 >= 29 && b0 <= 31))
@@ -55,7 +52,6 @@ public class cffCharString
                 //subroutine operator
                 if(b0 == 10)
                 {
-                    //System.out.println("Calling Subroutine");
                     cffSubroutine subroutine = fontData.cffLocalSubroutine.getIndex((int) getGlyphPath().popStack() + fontData.cffSubroutineBias);
                     int pointer = reader.pointer;
                     reader.pointer = subroutine.getStartIndex();
@@ -117,7 +113,6 @@ public class cffCharString
             //5 bytes long
             else if(b0 == 255)
             {
-                //System.out.println("255");
                 path.pushValue(reader.getInt32());
                 throw new RuntimeException("255");
             }

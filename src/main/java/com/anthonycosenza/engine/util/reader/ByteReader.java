@@ -70,6 +70,13 @@ public class ByteReader
         return value;
     }
     
+    public int getInt16()
+    {
+        int value = buffer.getShort(pointer);
+        pointer += 2;
+        return value;
+    }
+    
     
     public String getByteString()
     {

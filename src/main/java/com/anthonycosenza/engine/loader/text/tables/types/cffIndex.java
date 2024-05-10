@@ -69,7 +69,6 @@ public class cffIndex<T>
             lastOffset = offsets[i];
             totalOffset += entryLength;
         }
-        //System.out.println(data);
         length = reader.pointer - startIndex;
     }
     
@@ -87,10 +86,6 @@ public class cffIndex<T>
         {
             return reader.getUnsignedInt24();
         }
-/*        else if(offsetSize == 4)
-        {
-            return (int)reader.getUnsignedInt32();
-        }*/
         throw new RuntimeException("Can't handle offsets of size: " + offsetSize);
     }
     

@@ -48,54 +48,29 @@ public class CFF extends OpenTypeTable
         fontData.cffNameIndex = new cffIndex<>(fontData, reader, String.class);
     
         //Global Subroutine Index
-        //globalSubroutineIndex = new cffIndex<>(reader, cffGlobalSubroutine.class);
         int glSbrCount = reader.getUnsignedInt16();
         if(glSbrCount > 0) throw new RuntimeException("Learn to handle global subroutines boyo.");
     
-        
         //Private
         List<Number> privateVals = fontData.cffTopDict.getValue("Private");
         reader.pointer = getRecordIndex() + (int) privateVals.get(1);
         int privateIndex = reader.pointer;
-        System.out.println("Private Index: " + reader.pointer);
         fontData.cffPrivateDict = new cffDict((int) privateVals.get(0), true, fontData, reader);
-        System.out.println(fontData.cffPrivateDict.getTable());
         
         //Local Subroutines
         privateVals = fontData.cffPrivateDict.getValue("Subrs");
         if(privateVals != null)
         {
             reader.pointer = privateIndex + (int) privateVals.get(0);
-            System.out.println("Private Index: " + reader.pointer);
             fontData.cffLocalSubroutine = new cffIndex<>(fontData, reader, cffSubroutine.class);
             fontData.cffSubroutineBias = cffSubroutine.getBias(fontData.cffLocalSubroutine.getData().size());
-            /*System.out.println("Subroutines: ");
-            font.cffLocalSubroutine.getData().forEach(cffSubroutine ->
-                    {
-                        System.out.println(reader.peekHex(cffSubroutine.getStartIndex(), cffSubroutine.getLength()));
-                    }
-            );*/
         }
         
         //CharStrings
         reader.pointer = getRecordIndex() + (int) fontData.cffTopDict.getValue("CharStrings").get(0);
         //System.out.println("CharString Index: " + reader.pointer);
         fontData.cffCharStringIndex = new cffIndex<>(fontData, reader, cffCharString.class);
-    
-    
-        //reader.pointer = getRecordIndex() + (int) topDict.getValue("charset").get(0);
-        //cffCharset charset = new cffCharset(reader);
-        
-        //Encodings
-        /*List<Number> topDictEncoding = topDict.getValue("encoding");
-        if(topDictEncoding == null)
-        {
-            //No encoding found means it's a CID font. I don't know what that means yet.
-        }
-        cffEncoding encoding = new cffEncoding(reader);*/
-        /*int encoding = reader.getUnsignedInt8();
-        if(encoding > 0) throw new RuntimeException("Learn to handle encodings boyo.(Also double check encodings and charsets are in the right order.)");
-        */
+
         
     }
 }

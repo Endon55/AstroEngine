@@ -23,10 +23,11 @@ public class cffDict
     }
     public cffDict(int length, boolean raw, FontData fontData, ByteReader reader)
     {
-        //So we read the first byte and based on the data that bit holds we can determine the size of the data.
-        //Keys(1 or 2 bytes) called operators, Values(integer or real numbers) called operands.
-        //They're encoded backwards as (Values, Keys) or (Operands, Operators)
-    
+        /*
+         * So we read the first byte and based on the data that bit holds we can determine the size of the data.
+         * Keys(1 or 2 bytes) called operators, Values(integer or real numbers) called operands.
+         * They're encoded backwards as (Values, Keys) or (Operands, Operators)
+         */
         table = new HashMap<>();
         if(raw)
         {
@@ -35,9 +36,7 @@ public class cffDict
         }
         else
         {
-            System.out.println("cffIndex: " + reader.pointer);
             entryCount = reader.getUnsignedInt16();
-            System.out.println("entryCount: " + entryCount);
             offsetByteCount = reader.getUnsignedInt8();
     
             int offsetStart = reader.getUnsignedInt8();
@@ -46,26 +45,13 @@ public class cffDict
     
             System.out.println();
             startIndex = reader.pointer;
-    
-    
-            System.out.println("entryCount: " + entryCount);
         }
         List<Number> values = new ArrayList<>();
         
         int start = reader.pointer;
         while(reader.pointer < start + offsetBetweenEntries)
         {
-            /*if(reader.pointer - start > offsetBetweenEntries - 1)
-            {
-                throw new RuntimeException("Dictionary read too much data.");
-            }
-            else if(reader.pointer - start == offsetBetweenEntries - 1)
-            {
-                return;
-            }
-            */
             int b0 = reader.getUnsignedInt8();
-            //System.out.println("b0: " + b0);
             
             //0 to 21 specifies an operator.
             if(b0 >= 0 && b0 <= 21)

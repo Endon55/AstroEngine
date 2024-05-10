@@ -36,6 +36,65 @@ public class FontData
     public cffIndex<cffSubroutine> cffLocalSubroutine;
     public int cffSubroutineBias;
     public GPOS gpos;
+    
+    /*
+     * OS2 values
+     * https://learn.microsoft.com/en-us/typography/opentype/spec/os2
+     *
+     */
+    public int os2Version;
+    public int xAvgCharWidth;
+    public int usWeightClass;
+    public int usWidthClass;
+    public int fsType;
+    public int ySubscriptXSize;
+    public int ySubscriptYSize;
+    public int ySubscriptXOffset;
+    public int ySubscriptYOffset;
+    public int ySuperscriptXSize;
+    public int ySuperscriptYSize;
+    public int ySuperscriptXOffset;
+    public int ySuperscriptYOffset;
+    public int yStrikeoutSize;
+    public int yStrikeoutPosition;
+    public int sFamilyClass;
+    
+    //10 Panose bytes - https://learn.microsoft.com/en-us/typography/opentype/spec/os2#panose
+    public short bFamilyType;
+    public short bSerifStyle;
+    public short bWeight;
+    public short bProportion;
+    public short bContrast;
+    public short bStrokeVariation;
+    public short bArmStyle;
+    public short bLetterForm;
+    public short bMidline;
+    public short bXHeight;
+    
+    public long ulUnicodeRange1;
+    public long ulUnicodeRange2;
+    public long ulUnicodeRange3;
+    public long ulUnicodeRange4;
+    public String achVendID;
+    public int fsSelection;
+    public int usFirstCharIndex;
+    public int usLastCharIndex;
+    public int sTypoAscender;
+    public int sTypoDescender;
+    public int sTypoLineGap;
+    public int usWinAscent;
+    public int usWinDescent;
+    public long ulCodePageRange1 = -1;
+    public long ulCodePageRange2 = -1;
+    public int sxHeight = -1;
+    public int sCapHeight = -1;
+    public int usDefaultChar = -1;
+    public int usBreakChar = -1;
+    public int usMaxContext = -1;
+    public int usLowerOpticalPointSize = -1;
+    public int usUpperOpticalPointSize = -1;
+    
+    
     public OS2 os2;
     public Head head;
     public Hhea hhea;
@@ -84,6 +143,7 @@ public class FontData
                 
                 int index = reader.pointer;
                 reader.pointer = tableOffset;
+
                 
 
                 
@@ -91,7 +151,7 @@ public class FontData
                 {
                     case "CFF" -> fontData.cff = new CFF(tableOffset, tableLength, tableChecksum, fontData, reader);
                     case "GPOS" -> fontData.gpos = new GPOS(tableOffset, tableLength, tableChecksum, fontData, reader);
-                    case "OS/2" -> fontData.os2 = new OS2(tableOffset, tableLength, tableChecksum, fontData, reader);
+                    case "OS/2" -> OS2(fontData, reader);
                     /*case "cmap" ->
                     {
                         Cmap cmap = new Cmap(tableOffset, reader);
@@ -121,6 +181,94 @@ public class FontData
     
         return fontData;
     }
+    
+    private static void OS2(FontData fontData, ByteReader reader)
+    {
+    
+        fontData.os2Version = reader.getUnsignedInt16();
+        
+        //Version 5 also has usLowerOpticalPointSize, and usUpperOpticalPointSize
+        //Version 2, 3, and 4 are identical and also have sxHeight, sCapHeight, usDefaultChar, usBreakChar, and usMaxContext
+        //Version 1 also has ulCodePageRange1 and ulCodePageRange2
+        //Version 0 is all the default values;
+        
+        //Version 0 values
+        fontData.xAvgCharWidth = reader.getInt16();
+        fontData.usWeightClass = reader.getUnsignedInt16();
+        fontData.usWidthClass = reader.getUnsignedInt16();
+        fontData.fsType = reader.getUnsignedInt16();
+        
+        fontData.ySubscriptXSize = reader.getInt16();
+        fontData.ySubscriptYSize = reader.getInt16();
+        fontData.ySubscriptXOffset = reader.getInt16();
+        fontData.ySubscriptYOffset = reader.getInt16();
+        
+        fontData.ySuperscriptXSize = reader.getInt16();
+        fontData.ySuperscriptYSize = reader.getInt16();
+        fontData.ySuperscriptXOffset = reader.getInt16();
+        fontData.ySuperscriptYOffset = reader.getInt16();
+        
+        fontData.yStrikeoutSize = reader.getInt16();
+        fontData.yStrikeoutPosition = reader.getInt16();
+        fontData.sFamilyClass = reader.getInt16();
+        
+        //10 Panose Bytes
+        fontData.bFamilyType = (short) reader.getUnsignedInt8();
+        fontData.bSerifStyle = (short) reader.getUnsignedInt8();
+        fontData.bWeight = (short) reader.getUnsignedInt8();
+        fontData.bProportion = (short) reader.getUnsignedInt8();
+        fontData.bContrast = (short) reader.getUnsignedInt8();
+        fontData.bStrokeVariation = (short) reader.getUnsignedInt8();
+        fontData.bArmStyle = (short) reader.getUnsignedInt8();
+        fontData.bLetterForm = (short) reader.getUnsignedInt8();
+        fontData.bMidline = (short) reader.getUnsignedInt8();
+        fontData.bXHeight = (short) reader.getUnsignedInt8();
+    
+        fontData.ulUnicodeRange1 = reader.getUnsignedInt32();
+        fontData.ulUnicodeRange2 = reader.getUnsignedInt32();
+        fontData.ulUnicodeRange3 = reader.getUnsignedInt32();
+        fontData.ulUnicodeRange4 = reader.getUnsignedInt32();
+        
+        fontData.achVendID = reader.getString(4);
+        fontData.fsSelection = reader.getUnsignedInt16();
+        fontData.usFirstCharIndex = reader.getUnsignedInt16();
+        fontData.usLastCharIndex = reader.getUnsignedInt16();
+        
+        fontData.sTypoAscender = reader.getInt16();
+        fontData.sTypoDescender = reader.getInt16();
+        fontData.sTypoLineGap = reader.getInt16();
+        
+        fontData.usWinAscent = reader.getUnsignedInt16();
+        fontData.usWinDescent = reader.getUnsignedInt16();
+        //Version 1 additional values
+        if(fontData.os2Version > 0)
+        {
+            fontData.ulCodePageRange1 = reader.getUnsignedInt32();
+            fontData.ulCodePageRange2 = reader.getUnsignedInt32();
+        }
+        //Version 2/3/4 additional values
+        if(fontData.os2Version > 1)
+        {
+            fontData.sxHeight = reader.getInt16();
+            fontData.sCapHeight = reader.getInt16();
+            fontData.usDefaultChar = reader.getUnsignedInt16();
+            fontData.usBreakChar = reader.getUnsignedInt16();
+            fontData.usMaxContext = reader.getUnsignedInt16();
+    
+            System.out.println("sxHeight: " + fontData.sxHeight);
+            System.out.println("sCapHeight: " + fontData.sCapHeight);
+            System.out.println("usDefaultChar: " + fontData.usDefaultChar);
+            System.out.println("usBreakChar: " + fontData.usBreakChar);
+            System.out.println("usMaxContext: " + fontData.usMaxContext);
+        }
+        //Version 5 additional values
+        if(fontData.os2Version == 5)
+        {
+            fontData.usLowerOpticalPointSize = reader.getUnsignedInt16();
+            fontData.usUpperOpticalPointSize = reader.getUnsignedInt16();
+        }
+    }
+    
     
     public CFF getCff()
     {

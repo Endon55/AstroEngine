@@ -71,7 +71,6 @@ public class GlyphPath
     public void pushValue(int value)
     {
         stack.push(value);
-        //System.out.println("Pushed Value, Stack: " + stack);
         totalValues++;
     }
     
@@ -279,7 +278,6 @@ public class GlyphPath
                     }
                     default -> throw new RuntimeException("I don't think anything should be here...: " + operator1);
                 };
-        //System.out.println("Operator Pushed: " + operatorStr + "(" + operator1 + ")");
         previousOperator = (!operatorStr.equals("return")) ? operatorStr : previousOperator;
         if(operatorStr.equals("endchar")) return;
     }
@@ -528,7 +526,6 @@ public class GlyphPath
         //Stems are always in batches of 2
         if(stack.size() % 2 == 1)
         {
-            //System.out.println("Popped it for a width");
             width = nominalWidth + (int) popBottom();
             hasWidth = true;
         }
@@ -537,8 +534,6 @@ public class GlyphPath
     
     private Number popBottom()
     {
-        //Number number = (int) stack.get(0);
-        //stack.remove(0);
         return popAt(0);
     }
     
