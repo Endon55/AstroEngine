@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.loader.text.tables;
 
+import com.anthonycosenza.engine.loader.text.tables.types.Glyph;
 import com.anthonycosenza.engine.util.reader.ByteReader;
 import com.anthonycosenza.engine.loader.text.FontData;
 import com.anthonycosenza.engine.loader.text.tables.types.cffCharString;
@@ -8,6 +9,7 @@ import com.anthonycosenza.engine.loader.text.tables.types.cffIndex;
 import com.anthonycosenza.engine.loader.text.tables.types.cffSubroutine;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CFF extends OpenTypeTable
 {
@@ -68,8 +70,9 @@ public class CFF extends OpenTypeTable
         
         //CharStrings
         reader.pointer = getRecordIndex() + (int) fontData.cffTopDict.getValue("CharStrings").get(0);
-        //System.out.println("CharString Index: " + reader.pointer);
         fontData.cffCharStringIndex = new cffIndex<>(fontData, reader, cffCharString.class);
+        //Extract the glyphs from the charstrings to have a more easily accessible list.
+        fontData.glyphs = fontData.cffCharStringIndex.getData().stream().map(cffCharString::getGlyph).collect(Collectors.toList());
 
         
     }

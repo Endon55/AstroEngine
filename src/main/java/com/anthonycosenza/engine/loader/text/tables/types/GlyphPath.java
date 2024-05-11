@@ -553,4 +553,8 @@ public class GlyphPath
     {
         return paths;
     }
+    public Glyph getGlyph()
+    {
+        return new CharacterGlyph(paths);
+    }
 }

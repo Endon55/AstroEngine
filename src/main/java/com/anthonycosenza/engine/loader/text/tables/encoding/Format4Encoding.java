@@ -6,12 +6,16 @@ public class Format4Encoding implements FormatEncoding
     private int[] endCodes;
     private int[] idDeltas;
     private int[] idRangeOffsets;
+    private int[] glyphIds;
+    private int segCount;
     
-    public Format4Encoding(int[] startCodes, int[] endCodes, int[] idDeltas, int[] idRangeOffsets)
+    public Format4Encoding(int segCount, int[] glyphIds, int[] startCodes, int[] endCodes, int[] idDeltas, int[] idRangeOffsets)
     {
+        this.segCount = segCount;
         this.startCodes = startCodes;
         this.endCodes = endCodes;
         this.idDeltas = idDeltas;
+        this.glyphIds = glyphIds;
         this.idRangeOffsets = idRangeOffsets;
     }
     
@@ -22,18 +26,17 @@ public class Format4Encoding implements FormatEncoding
         {
             if(endCodes[i] >= characterCode && startCodes[i] <= characterCode)
             {
-                if(idRangeOffsets[i] == 0)
+               /* if(idRangeOffsets[i] == 0)
                 {
                     return characterCode + idDeltas[i];
                 }
-                else //Relies on extracting the glyphIDArray Value
-                {
-                    throw new RuntimeException("Need to extract glyphIDArray Value");
+                else //Relies on extracting the glyphIDArray Value*/
+                    //throw new RuntimeException("Need to extract glyphIDArray Value");
                     //return (idRangeOffsets[i] / 2 + (characterCode - startCodes[i]) + idRangeOffsets[i]);
-                }
+                return glyphIds[i - segCount + idRangeOffsets[i] / 2 + (characterCode - startCodes[i])] + idDeltas[i];
             }
         }
-        return 0;
+        return -1;
     }
     
 }

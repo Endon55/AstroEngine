@@ -1,14 +1,14 @@
 package com.anthonycosenza.engine.loader.text;
 
 import com.anthonycosenza.engine.loader.text.tables.CFF;
+import com.anthonycosenza.engine.loader.text.tables.Cmap;
 import com.anthonycosenza.engine.loader.text.tables.Name;
-import com.anthonycosenza.engine.loader.text.tables.OS2;
 import com.anthonycosenza.engine.loader.text.tables.Post;
 import com.anthonycosenza.engine.loader.text.tables.encoding.FormatEncoding;
+import com.anthonycosenza.engine.loader.text.tables.types.Glyph;
 import com.anthonycosenza.engine.loader.text.tables.types.cffDict;
 import com.anthonycosenza.engine.loader.text.tables.types.cffIndex;
 import com.anthonycosenza.engine.loader.text.tables.GPOS;
-import com.anthonycosenza.engine.loader.text.tables.Head;
 import com.anthonycosenza.engine.loader.text.tables.Hhea;
 import com.anthonycosenza.engine.loader.text.tables.Hmtx;
 import com.anthonycosenza.engine.loader.text.tables.Kern;
@@ -20,6 +20,7 @@ import com.anthonycosenza.engine.util.FileIO;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 
 public class FontData
@@ -33,9 +34,35 @@ public class FontData
     public cffIndex<String> cffStringIndex;
     public cffDict cffPrivateDict;
     public cffIndex<cffCharString> cffCharStringIndex;
+    public List<Glyph> glyphs;
     public cffIndex<cffSubroutine> cffLocalSubroutine;
     public int cffSubroutineBias;
     public GPOS gpos;
+    public Cmap cmap;
+    
+    
+    /*
+     * Head Values
+     * https://learn.microsoft.com/en-us/typography/opentype/spec/head
+     */
+    public int majorVersion;
+    public int minorVersion;
+    public long fontRevision;
+    public long checksumAdjustment;
+    public long magicNumber;
+    public int flags;
+    public int unitsPerEm;
+    public long created;
+    public long modified;
+    public int xMin;
+    public int yMin;
+    public int xMax;
+    public int yMax;
+    public int macStyle;
+    public int lowestRecPPEM;
+    public int fontDirectionHint;
+    public int indexToLocFormat;
+    public int glyphDataFormat;
     
     /*
      * OS2 values
@@ -95,8 +122,6 @@ public class FontData
     public int usUpperOpticalPointSize = -1;
     
     
-    public OS2 os2;
-    public Head head;
     public Hhea hhea;
     public Hmtx hmtx;
     public Kern kern;
@@ -130,7 +155,6 @@ public class FontData
             int entrySelector = reader.getUnsignedInt16();
             //System.out.println("Entry Selector: " + entrySelector);
             int rangeShift = reader.getUnsignedInt16();
-            //System.out.println("Range Shift: " + rangeShift);
     
             for(int i = 0; i < tableCount; i++)
             {
@@ -145,20 +169,17 @@ public class FontData
                 reader.pointer = tableOffset;
 
                 
-
-                
                 switch(tag)
                 {
                     case "CFF" -> fontData.cff = new CFF(tableOffset, tableLength, tableChecksum, fontData, reader);
                     case "GPOS" -> fontData.gpos = new GPOS(tableOffset, tableLength, tableChecksum, fontData, reader);
                     case "OS/2" -> OS2(fontData, reader);
-                    /*case "cmap" ->
+                    case "cmap" ->
                     {
-                        Cmap cmap = new Cmap(tableOffset, reader);
-                        encoding = cmap.getEncoding();
-                        yield cmap;
-                    }*/
-                    case "head" -> fontData.head = new Head(tableOffset, tableLength, tableChecksum, fontData, reader);
+                        fontData.cmap = new Cmap(tableOffset, tableLength, tableChecksum, fontData, reader);
+                        //FormatEncoding encoding = cmap.getEncoding();
+                    }
+                    case "head" -> head(fontData, reader);
                     case "hhea" -> fontData.hhea = new Hhea(tableOffset, tableLength, tableChecksum, fontData, reader);
                     case "hmtx" -> fontData.hmtx = new Hmtx(tableOffset, tableLength, tableChecksum, fontData, reader);
                     case "kern" -> fontData.kern = new Kern(tableOffset, tableLength, tableChecksum, fontData, reader);
@@ -180,6 +201,32 @@ public class FontData
         else throw new RuntimeException("No valid font header data");
     
         return fontData;
+    }
+    
+    private static void head(FontData fontData, ByteReader reader)
+    {
+        fontData.majorVersion = reader.getUnsignedInt16();
+        fontData.minorVersion = reader.getUnsignedInt16();
+        fontData.fontRevision = reader.getUnsignedInt32();
+        
+        fontData.checksumAdjustment = reader.getUnsignedInt32();
+        fontData.magicNumber = reader.getUnsignedInt32();
+        fontData.flags = reader.getUnsignedInt16();
+        
+        fontData.unitsPerEm = reader.getUnsignedInt16();
+        fontData.created = reader.getUnsignedLong64();
+        fontData.modified = reader.getUnsignedLong64();
+        
+        fontData.xMin = reader.getInt16();
+        fontData.yMin = reader.getInt16();
+        fontData.xMax = reader.getInt16();
+        fontData.yMax = reader.getInt16();
+        
+        fontData.macStyle = reader.getUnsignedInt16();
+        fontData.lowestRecPPEM = reader.getUnsignedInt16();
+        fontData.fontDirectionHint = reader.getInt16();
+        fontData.indexToLocFormat = reader.getInt16();
+        fontData.glyphDataFormat = reader.getInt16();
     }
     
     private static void OS2(FontData fontData, ByteReader reader)
@@ -254,12 +301,6 @@ public class FontData
             fontData.usDefaultChar = reader.getUnsignedInt16();
             fontData.usBreakChar = reader.getUnsignedInt16();
             fontData.usMaxContext = reader.getUnsignedInt16();
-    
-            System.out.println("sxHeight: " + fontData.sxHeight);
-            System.out.println("sCapHeight: " + fontData.sCapHeight);
-            System.out.println("usDefaultChar: " + fontData.usDefaultChar);
-            System.out.println("usBreakChar: " + fontData.usBreakChar);
-            System.out.println("usMaxContext: " + fontData.usMaxContext);
         }
         //Version 5 additional values
         if(fontData.os2Version == 5)
@@ -269,54 +310,9 @@ public class FontData
         }
     }
     
-    
-    public CFF getCff()
+    public int getGlyphCode(int charCode)
     {
-        return cff;
+        return cmap.getGlyphId(charCode);
     }
-    
-    public GPOS getGpos()
-    {
-        return gpos;
-    }
-    
-    public OS2 getOs2()
-    {
-        return os2;
-    }
-    
-    public Head getHead()
-    {
-        return head;
-    }
-    
-    public Hhea getHhea()
-    {
-        return hhea;
-    }
-    
-    public Hmtx getHmtx()
-    {
-        return hmtx;
-    }
-    
-    public Kern getKern()
-    {
-        return kern;
-    }
-    
-    public Maxp getMaxp()
-    {
-        return maxp;
-    }
-    
-    public Name getName()
-    {
-        return name;
-    }
-    
-    public Post getPost()
-    {
-        return post;
-    }
+
 }

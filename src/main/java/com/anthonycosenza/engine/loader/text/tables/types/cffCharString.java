@@ -118,7 +118,10 @@ public class cffCharString
             }
         }
     }
-    
+    public Glyph getGlyph()
+    {
+        return path.getGlyph();
+    }
     public GlyphPath getGlyphPath()
     {
         return path;

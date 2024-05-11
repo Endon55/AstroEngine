@@ -43,7 +43,6 @@ public class cffDict
             int offsetEnd = reader.getUnsignedInt8();
             offsetBetweenEntries = offsetEnd - offsetStart;
     
-            System.out.println();
             startIndex = reader.pointer;
         }
         List<Number> values = new ArrayList<>();
@@ -152,7 +151,6 @@ public class cffDict
                         table.get(operatorStr).addAll(values);
                     }
                     else table.put(operatorStr, values);
-                    System.out.println("Operator - " + operatorStr + "(" + b0 + ") " + values);
                 }
                 values = new ArrayList<>();
             }

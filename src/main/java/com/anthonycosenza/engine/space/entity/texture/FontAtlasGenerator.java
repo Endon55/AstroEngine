@@ -32,7 +32,7 @@ public class FontAtlasGenerator
         //White gutter line.
         canvas.drawLine(100, 100, 100, 255, 0, 100, 1999, 100);
         
-        List<List<FontPoint>> paths = font.getGlyph(1);
+        List<List<FontPoint>> paths = font.getGlyph(1).getPoints();
         
         List<List<StraightPoint>> straightPaths = new ArrayList<>();
         
@@ -202,7 +202,7 @@ public class FontAtlasGenerator
         //White gutter line.
         canvas.drawLine(100, 100, 100, 255, 0, 100, 1999, 100);
         
-        List<List<FontPoint>> paths = font.getGlyph(2);
+        List<List<FontPoint>> paths = font.getGlyph(2).getPoints();
         
         /*
          * Each character is made up of multiple paths. The hole cut out from a D or the dot over an i.
