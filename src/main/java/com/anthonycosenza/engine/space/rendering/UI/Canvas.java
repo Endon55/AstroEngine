@@ -1,48 +1,71 @@
 package com.anthonycosenza.engine.space.rendering.UI;
 
 import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.entity.texture.Image;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
+import com.anthonycosenza.engine.space.entity.texture.atlas.CanvasAtlas;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
 import com.anthonycosenza.engine.util.math.Color;
+import com.anthonycosenza.engine.util.math.matrix.Matrix4;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
-import java.util.Arrays;
 import java.util.Stack;
 
-public class Canvas
+public class Canvas implements Image
 {
     private int width;
     private int height;
     private int rowWidth;
     private float[] pixels;
-    private Texture texture;
+    private int channels;
     private Mesh mesh;
     
     /*
      * Canvas coordinates start bottom left of the screen, up is positive y, and right is positive x.
      */
-    public Canvas(int width, int height, Color fill)
+    public Canvas(CanvasAtlas atlas)
+    {
+        this.width = atlas.getWidth();
+        this.height = atlas.getHeight();
+        pixels = atlas.getPixelData();
+        System.out.println("Width: " + width);
+        System.out.println("Height: " + height);
+        mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
+    }
+    
+    public Canvas(int width, int height, float[] pixelData)
     {
         this.width = width;
         this.height = height;
-        rowWidth = width * 4;
+        pixels = pixelData;
+        mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
+    }
+    public Canvas(int width, int height, Color fill)
+    {
+        this.channels = getColorChannels();
+        this.width = width;
+        this.height = height;
+        rowWidth = width * channels;
         pixels = new float[rowWidth * height];
     
         for(int i = 0; i < width * height; i++)
         {
             setPixel(fill, i % width, i / width);
         }
-        texture = new Texture(width, height, pixels);
-        mesh = ShapeBuilder.square(2, 2);
+        mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
     }
     public Canvas(int width, int height)
     {
+        this(width, height, DEFAULT_COLOR_CHANNELS);
+    }
+    public Canvas(int width, int height, int colorChannels)
+    {
         this.width = width;
         this.height = height;
-        rowWidth = width * 4;
+        this.channels = colorChannels;
+        rowWidth = width * channels;
         pixels = new float[rowWidth * height];
 
-        texture = new Texture(width, height, pixels);
         
         mesh = ShapeBuilder.square(2, 2);
     }
@@ -50,7 +73,7 @@ public class Canvas
     {
         Color color = new Color();
         y = (height - 1) - y;
-        int index = y * rowWidth + (x * 4);
+        int index = y * rowWidth + (x * channels);
         color.r(pixels[index++]);
         color.g(pixels[index++]);
         color.b(pixels[index++]);
@@ -67,8 +90,8 @@ public class Canvas
     private void setPixel(float r, float g, float b, float a, int posX, int posY)
     {
         posY = (height - 1) - posY;
-        int index = posY * rowWidth + (posX * 4);
-        if(index > getPixels().length) return;
+        int index = posY * rowWidth + (posX * channels);
+        if(index > getPixelData().length) return;
         pixels[index++] = r;
         pixels[index++] = g;
         pixels[index++] = b;
@@ -210,8 +233,6 @@ public class Canvas
         {
             fill(color, xPos, yPos);
         }
-    
-        updateTexture();
     }
     
     
@@ -385,74 +406,46 @@ public class Canvas
         float BCDEFG = bezierQuintic(B, C, D, E, F, G, t);
         return mixBezier(ABCDEF, BCDEFG, t);
     }
-    
-    /*private void fixPath(Color color, int xStart, int yStart)
+
+    /*public void updateTexture()
     {
-        int x = xStart;
-        int y = yStart;
-        
-        while(true)
-        {
-            //Up Left Pixel
-            if(x > 0 && y > 0 && !getColor(x - 1, y - 1).equals(color))
-            {
-                positions.push(new Vector2i(x + 1, y));
-            }
-            //Up Right Pixel
-            if(x < width - 1 && y > 0 && !getColor(x + 1, y - 1).equals(color))
-            {
-                positions.push(new Vector2i(x + 1, y));
-            }
-            //Down Left Pixel
-            if(x > 0 && y < height - 1 && !getColor(x - 1, y + 1).equals(color))
-            {
-                positions.push(new Vector2i(x - 1, y));
-            }
-            //Down Right Pixel
-            if(x < width - 1 && y < height - 1 && !getColor(x + 1, y + 1).equals(color))
-            {
-                positions.push(new Vector2i(x + 1, y));
-            }
-            
-            
-            
-            //Left Pixel
-            if(x > 0 && !getColor(x - 1, y).equals(color))
-            {
-                positions.push(new Vector2i(x - 1, y));
-            }
-            //Right Pixel
-            if(x < width - 1 && !getColor(x + 1, y).equals(color))
-            {
-                positions.push(new Vector2i(x + 1, y));
-            }
-            //Down Pixel
-            if(y > 0 && !getColor(x, y - 1).equals(color))
-            {
-                positions.push(new Vector2i(x, y - 1));
-            }
-            //Up Pixel
-            if(y < height - 1 && !getColor(x, y + 1).equals(color))
-            {
-                positions.push(new Vector2i(x, y + 1));
-            }
-        }
+        texture.updateFullTexture(width, height, pixels);
     }*/
     
     
-    public void updateTexture()
-    {
-        texture.updateFullTexture(width, height, pixels);
-    }
-    
-    public float[] getPixels()
+    @Override
+    public float[] getPixelData()
     {
         return pixels;
     }
     
+    @Override
+    public int getColorChannels()
+    {
+        return DEFAULT_COLOR_CHANNELS;
+    }
+    
+    @Override
+    public int getWidth()
+    {
+        return width;
+    }
+    
+    @Override
+    public int getHeight()
+    {
+        return height;
+    }
+    
+    @Override
+    public int getRowWidth()
+    {
+        return rowWidth;
+    }
+    
     public Texture getTexture()
     {
-        return texture;
+        return new Texture(width, height, pixels);
     }
     
     public Mesh getMesh()

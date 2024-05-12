@@ -1,7 +1,11 @@
-package com.anthonycosenza.engine.space.entity.texture;
+package com.anthonycosenza.engine.space.entity.texture.atlas;
 
 import com.anthonycosenza.engine.loader.image.ImageLoader;
+import com.anthonycosenza.engine.space.entity.texture.Texture;
+import com.anthonycosenza.engine.space.rendering.UI.Canvas;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
+
+import java.util.List;
 
 public class TextureAtlas
 {
@@ -26,6 +30,9 @@ public class TextureAtlas
         height = dimensions[1];
         this.rowWidth = width * 4;
     }
+    
+
+    
     
     public Texture getTexture(int xPos, int yPos, int width, int height)
     {

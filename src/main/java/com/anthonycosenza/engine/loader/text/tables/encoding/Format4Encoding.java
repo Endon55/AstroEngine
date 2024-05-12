@@ -33,7 +33,15 @@ public class Format4Encoding implements FormatEncoding
                 else //Relies on extracting the glyphIDArray Value*/
                     //throw new RuntimeException("Need to extract glyphIDArray Value");
                     //return (idRangeOffsets[i] / 2 + (characterCode - startCodes[i]) + idRangeOffsets[i]);
-                return glyphIds[i - segCount + idRangeOffsets[i] / 2 + (characterCode - startCodes[i])] + idDeltas[i];
+                int index = i - segCount + idRangeOffsets[i] / 2 + (characterCode - startCodes[i]);
+                if(index > glyphIds.length || index < 0)
+                {
+                    return glyphIds[0];
+                }
+                else
+                {
+                    return glyphIds[index] + idDeltas[i];
+                }
             }
         }
         return -1;

@@ -5,10 +5,10 @@ import com.anthonycosenza.engine.space.entity.Mesh;
 public class ShapeBuilder
 {
     
-    public static Mesh square(int width, int height)
+    public static Mesh square(float width, float height)
     {
-        width /= 2;
-        height /= 2;
+        width /= 2f;
+        height /= 2f;
         float[] vertices = new float[]
                 {       //X, Y, Z
                         -width, -height, 0,

@@ -28,4 +28,8 @@ public class Font
     {
         return fontData;
     }
+    public int getUnitsPerEm()
+    {
+        return fontData.unitsPerEm;
+    }
 }

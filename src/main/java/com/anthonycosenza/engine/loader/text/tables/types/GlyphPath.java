@@ -21,7 +21,6 @@ public class GlyphPath
     private boolean hasWidth;
     private int totalValues;
     private int hintMask;
-    private int stems;
     private String previousOperator;
     List<List<FontPoint>> paths;
     List<FontPoint> points;
@@ -36,7 +35,6 @@ public class GlyphPath
         points = new ArrayList<>();
         hints = new ArrayList<>();
         paths = new ArrayList<>();
-        stems = 0;
         hintMask = 0;
         width = 0;
         hasWidth = false;

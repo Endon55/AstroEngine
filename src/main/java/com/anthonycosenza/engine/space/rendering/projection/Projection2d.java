@@ -32,10 +32,11 @@ public class Projection2d
     
     private void updateMatrix()
     {
-        
-        projectionMatrix.identity()
-                //.m00(2 / width)
-                .m11(1 / aspectRatio)
+        projectionMatrix
+                .identity()
+                .m00(1f / width)
+                .m11(1f / height)
+                //z is always 0
                 .m33(0);
     }
     

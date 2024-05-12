@@ -6,5 +6,12 @@ import java.util.List;
 
 public interface Glyph
 {
-    List<List<FontPoint>> getPoints();
+    List<List<FontPoint>> getPaths();
+    int getMinX();
+    int getMaxX();
+    int getMinY();
+    int getMaxY();
+    
+    int getWidth();
+    int getHeight();
 }

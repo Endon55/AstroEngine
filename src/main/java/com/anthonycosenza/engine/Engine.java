@@ -31,6 +31,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Engine
 {
+    
     private Window window;
     private boolean running = true;
     Projection3d projection3d;
@@ -136,7 +137,6 @@ public class Engine
         cleanup();
     }
     
-
     
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessage(MessageEvent event)

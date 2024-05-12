@@ -7,7 +7,6 @@ public class StraightPoint implements FontPoint
     private int hintMask;
     private Vector2i position;
     private int width;
-    private boolean horizontal;
     
     public StraightPoint(Vector2i point)
     {
