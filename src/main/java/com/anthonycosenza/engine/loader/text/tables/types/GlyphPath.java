@@ -193,7 +193,6 @@ public class GlyphPath
                             //this uses the font default width.
                             width = (int) fontData.cffPrivateDict.getValue("defaultWidthX").get(0);
                         }
-                        points.add(new StraightPoint(point).setWidth(width).setHintMask(hintMask));
                         endPath();
                         yield "endchar";
                     }
@@ -288,7 +287,7 @@ public class GlyphPath
         pathOpen = false;
         if(!points.isEmpty())
         {
-            if(startPoint != null && points.get(points.size() - 1) instanceof StraightPoint)
+            if(startPoint != null && (points.get(points.size() - 1) instanceof StraightPoint))
             {
                 points.add(new StraightPoint(startPoint));
             }
@@ -442,17 +441,7 @@ public class GlyphPath
         
     }
     
-    private void curveTo(int xa, int ya, int xb, int yb, int xc, int yc)
-    {
-        if(!pathOpen)
-        {
-            startPoint = new Vector2i(point);
-            pathOpen = true;
-        }
-        point.add(xc, yc);
-        points.add(new CurvedPoint(xa, ya, xb, yb, xc, yc));
-        point.set(xc, yc);
-    }
+
     
     private void rLineTo()
     {
@@ -497,9 +486,20 @@ public class GlyphPath
             pathOpen = true;
         }
         point.add(x, y);
-        points.add(new StraightPoint(point));
+        points.add(new StraightPoint(point).setHintMask(hintMask));
     }
     
+    private void curveTo(int xa, int ya, int xb, int yb, int xc, int yc)
+    {
+        if(!pathOpen)
+        {
+            startPoint = new Vector2i(point);
+            pathOpen = true;
+        }
+        point.add(xc, yc);
+        points.add(new CurvedPoint(xa, ya, xb, yb, xc, yc).setHintMask(hintMask));
+        point.set(xc, yc);
+    }
     public Number popStack()
     {
         return stack.pop();
@@ -525,7 +525,7 @@ public class GlyphPath
     private void setWidthStems()
     {
         //Stems are always in batches of 2
-        if(stack.size() % 2 == 1)
+        if((stack.size() & 1) == 1)
         {
             width = nominalWidth + (int) popBottom();
             hasWidth = true;
@@ -554,8 +554,9 @@ public class GlyphPath
     {
         return paths;
     }
+    
     public Glyph getGlyph()
     {
-        return new CharacterGlyph(paths);
+        return new CharacterGlyph(hints, paths);
     }
 }

@@ -59,6 +59,10 @@ public class cffIndex<T>
             }
             else if(clazz.equals(cffCharString.class))
             {
+                if(i == 24)
+                {
+                    System.out.println("O");
+                }
                 data.add((T) new cffCharString(entryLength, fontData, reader));
             }
             else if(clazz.equals(cffSubroutine.class))

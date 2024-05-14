@@ -49,7 +49,8 @@ public class Project
         Canvas background = new Canvas(width, height, new Color(145, 139, 80));
         scene.add(background);
 
-        int fontSize = 320;
+        //320
+        int fontSize = 1000;
         
         font = new Font("resources/fonts/Bagnard.otf");
         CanvasAtlas letter = (CanvasAtlas) FontAtlasGenerator.getFilledAtlas(fontSize, font);

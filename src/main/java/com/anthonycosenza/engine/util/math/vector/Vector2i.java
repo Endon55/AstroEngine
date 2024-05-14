@@ -24,10 +24,16 @@ public class Vector2i
     
     public Vector2i mult(float scalar)
     {
-        this.x *= scalar;
-        this.y *= scalar;
-        return this;
+        return mult(scalar, this);
     }
+    
+    public Vector2i mult(float scalar, Vector2i destination)
+    {
+        destination.x *= scalar;
+        destination.y *= scalar;
+        return destination;
+    }
+    
     public Vector2i set(Vector2i vector)
     {
         return this.set(vector.x(), vector.y());

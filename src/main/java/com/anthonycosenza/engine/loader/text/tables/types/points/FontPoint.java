@@ -5,4 +5,7 @@ import com.anthonycosenza.engine.util.math.vector.Vector2i;
 public interface FontPoint
 {
     Vector2i getPosition();
+    int getHintMask();
+    FontPoint scale(float scale);
+    FontPoint copy();
 }

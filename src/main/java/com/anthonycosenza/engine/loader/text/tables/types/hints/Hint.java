@@ -32,4 +32,14 @@ public class Hint
         VERTICAL,
         HORIZONTAL
     }
+    
+    @Override
+    public String toString()
+    {
+        return "Hint{" +
+                "type=" + hintType +
+                ", lowerEdge=" + lowerEdge +
+                ", upperEdge=" + upperEdge +
+                '}';
+    }
 }

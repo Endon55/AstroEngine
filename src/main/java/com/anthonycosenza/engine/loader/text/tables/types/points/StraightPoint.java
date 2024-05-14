@@ -5,20 +5,19 @@ import com.anthonycosenza.engine.util.math.vector.Vector2i;
 public class StraightPoint implements FontPoint
 {
     private int hintMask;
-    private Vector2i position;
+    private final Vector2i position;
     private int width;
     
     public StraightPoint(Vector2i point)
     {
-        this(point.x(), point.y());
+        this(0, point.x(), point.y());
     }
     
-    public StraightPoint(int x, int y)
+    public StraightPoint(int hintMask, int x, int y)
     {
         width = 0;
-        this.hintMask = 0;
+        this.hintMask = hintMask;
         position = new Vector2i(x, y);
-        
     }
     
     public StraightPoint setHintMask(int hintMask)
@@ -35,6 +34,25 @@ public class StraightPoint implements FontPoint
     public Vector2i getPosition()
     {
         return position;
+    }
+    
+    @Override
+    public FontPoint scale(float scale)
+    {
+        this.position.mult(scale);
+        return this;
+    }
+    
+    @Override
+    public int getHintMask()
+    {
+        return hintMask;
+    }
+    
+    @Override
+    public FontPoint copy()
+    {
+        return new StraightPoint(hintMask, position.x(), position.y());
     }
     
     @Override

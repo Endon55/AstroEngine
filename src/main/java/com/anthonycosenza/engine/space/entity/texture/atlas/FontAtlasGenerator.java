@@ -32,11 +32,11 @@ public class FontAtlasGenerator
             preAtlas.add(getCanvas(i, fontSize, font));
         }*/
         //Uppercase
-        for(int i = 65; i <= 90; i++)
+        /*for(int i = 65; i <= 90; i++)
         {
             preAtlas.add(createLetter(i, fontSize, font));
-        }
-        //preAtlas.add(createLetter('S', fontSize, font));
+        }*/
+        preAtlas.add(createLetter('R', fontSize, font));
         //preAtlas.add(createLetter('W', fontSize, font));
         //preAtlas.add(createLetter('I', fontSize, font));
         //preAtlas.add(getFilledLetter('Q', fontSize, font));
@@ -69,27 +69,37 @@ public class FontAtlasGenerator
     
     private static Canvas createLetter(int charCode, float fontSize, Font font)
     {
-        fontSize = fontSize / font.getUnitsPerEm();
-        
         Color color = new Color(0, 0, 0, 255);
-        Glyph glyph = font.getGlyph(charCode);
+        Glyph glyph = font.getGlyph(charCode).getAtSize(font.getUnitsPerEm(), fontSize);
+        glyph.removeCurves(11f);
         
-        List<List<Vector2i>> straightPaths = convertPoints(
-                //Flip the offset to shift it the other way.
-                glyph.getMinX() * -1, glyph.getMinY() * -1,
-                fontSize, glyph.getPaths());
+        
     
-        Vector2i dimensions = findDimensions(straightPaths);
+        //System.out.println(glyph.getHints());
+        
+        
+        List<List<Vector2i>> straightPaths = new ArrayList<>();
+        
+        for(List<FontPoint> path : glyph.getPaths())
+        {
+            List<Vector2i> newPath = new ArrayList<>();
+            for(FontPoint point : path)
+            {
+                newPath.add(point.getPosition());
+            
+            }
+            straightPaths.add(newPath);
+        }
     
-        Canvas canvas = new Canvas(dimensions.x(), dimensions.y());
+        Canvas canvas = new Canvas(glyph.getWidth(), glyph.getHeight());
         
         /*
          * First I need to replace each curve with some # of straight points.
          *
          * Second I iterate through each pixel and count intersections and light up pixel.
          */
-        evaluateRows(dimensions.x(), dimensions.y(), color, straightPaths, canvas);
-        evaluateColumns(dimensions.x(), dimensions.y(), color, straightPaths, canvas);
+        evaluateRows(glyph.getWidth(), glyph.getHeight(), color, straightPaths, canvas);
+        evaluateColumns(glyph.getWidth(), glyph.getHeight(), color, straightPaths, canvas);
         
         canvas.fillStraglers(3, color);
         
@@ -130,7 +140,7 @@ public class FontAtlasGenerator
     {
         List<List<Vector2i>> straightPaths = new ArrayList<>();
         
-        float smoothness = 10;
+        float smoothness = 11f;
         float timeInc = 1 / smoothness;
         List<Vector2i> straightPoints;
     
@@ -285,12 +295,12 @@ public class FontAtlasGenerator
                     canvas.setPixel(color, x, y);
                 }
             }
-            Color color1 = new Color(50, 100, 150);
+            /*Color color1 = new Color(50, 100, 150);
             for(Vector2i intersection :
                     intersections)
             {
                 canvas.setPixel(color1, intersection.x(), y);
-            }
+            }*/
         }
     }
     private static void evaluateColumns(int width, int height, Color color, List<List<Vector2i>> straightPaths, Canvas canvas)
@@ -321,13 +331,13 @@ public class FontAtlasGenerator
                         Vector2i intersection = inter.getVector2i();
                     
                         //(nextPoint.y() > point.y() ? nextPoint.y() -.0001 : nextPoint.y() + .0001)
-                        if(intersection.x() == x && Lines.checkX(intersection.x(), point.x(), nextPoint.x() + (nextPoint.x() > point.x() ? -.0001f : .0001f)))
+                        if(Lines.checkX(intersection.x(), point.x(), nextPoint.x() + (nextPoint.x() > point.x() ? -.0001f : .0001f)))
                         {
                             if(point.x() == x)
                             {
                                 Vector2i previousPoint = (i - 1 < 0 ? path.get(path.size() - 1) : path.get(i - 1));
                                 double angle = Lines.angle(point, previousPoint, nextPoint);
-                                if(angle > 1 && angle < 5)
+                                if(angle > 1.5 && angle < 3.5)
                                 {
                                     intersections.add(intersection);
                                 }
@@ -352,7 +362,7 @@ public class FontAtlasGenerator
                     {
                         bottomIntersections++;
                     }
-                    else if(Lines.checkY(intersection.y(), c0.y(), y))
+                    else if(Lines.checkY(intersection.y(), y, c0.y()))
                     {
                         topIntersections++;
                     }
