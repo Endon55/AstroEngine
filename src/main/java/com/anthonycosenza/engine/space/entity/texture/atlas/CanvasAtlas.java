@@ -9,8 +9,12 @@ import java.util.List;
 
 public class CanvasAtlas implements Atlas
 {
-    public static int PADDING = 1;
-    private static int MAX_ATLAS_WIDTH = 1000;
+    public static final int DEFAULT_PADDING = 1;
+    private static final int DEFAULT_MAX_ATLAS_WIDTH = 2000;
+    
+    
+    private final int maxAtlasWidth;
+    private final int padding;
     private Vector2i[] subImagePositions;
     private Vector2i[] subImageDimensions;
     private int width;
@@ -20,16 +24,19 @@ public class CanvasAtlas implements Atlas
     
     public CanvasAtlas(List<Canvas> canvasList)
     {
+        this(DEFAULT_PADDING, DEFAULT_MAX_ATLAS_WIDTH, canvasList);
+    }
+    public CanvasAtlas(int padding, int maxAtlasWidth, List<Canvas> canvasList)
+    {
+        this.padding = padding;
+        this.maxAtlasWidth = maxAtlasWidth;
         assembleAtlas(canvasList);
     }
+
     private void assembleAtlas(List<Canvas> canvasList)
     {
-        
         /*
-         * Need to figure out the dimensions for the pixels float array
-         * I do this setting by laying out all the images left to right, top to bottom, and assigning a Vector2i for each image.
-         *
-         * Then I can determine the largest x and y coordinate then fill the array.
+         * Remembering the subImage coordinate as well as it's dimensions is all we need to grab the pixels from the atlas.
          */
         subImagePositions = new Vector2i[canvasList.size()];
         subImageDimensions = new Vector2i[canvasList.size()];
@@ -47,9 +54,9 @@ public class CanvasAtlas implements Atlas
              * We always add at least 1 element, and we keep adding until the next element would exceed the edge limit,
              * then wrap around to the next line.
              */
-            if(x != 0 && x + canvas.getWidth() > MAX_ATLAS_WIDTH)
+            if(x != 0 && x + canvas.getWidth() > getMaxAtlasWidth())
             {
-                y += rowMaxY + PADDING;
+                y += rowMaxY + getPadding();
                 x = 0;
                 rowMaxY = 0;
             }
@@ -58,7 +65,8 @@ public class CanvasAtlas implements Atlas
             subImageDimensions[i] = new Vector2i(canvas.getWidth(), canvas.getHeight());
         
             //Increment horizontally
-            x += canvas.getWidth() + PADDING;
+            x += canvas.getWidth() + getPadding();
+            
             //Keep track of the largest row x value.
             if(x > maxX)
             {
@@ -71,22 +79,22 @@ public class CanvasAtlas implements Atlas
             }
         }
         
-        width = maxX;
-        height = rowMaxY + y;
-        rowWidth = maxX * getColorChannels();
+        width = maxX + getPadding();
+        height = rowMaxY + y + getPadding();
+        rowWidth = width * getColorChannels();
         pixels = new float[rowWidth * height];
         
         /*
-         * Fill the newely created array.
+         * Fill the newly created array.
          *
-         * Loop each pixel in each canvas
+         * Loop through each pixel in each canvas
          */
         for(int i = 0; i < canvasList.size(); i++)
         {
             Vector2i position = subImagePositions[i];
             Canvas canvas = canvasList.get(i);
             int posWidth = position.x() * canvas.getColorChannels();
-            int rowWidth = canvas.getWidth() * canvas.getColorChannels();
+            int rowWidth = canvas.getRowWidth();
             
             //Reuse original X and Y variables
             for(y = 0; y < canvas.getHeight(); y++)
@@ -100,15 +108,22 @@ public class CanvasAtlas implements Atlas
                 }
             }
         }
+    }
     
-        //System.out.println(Arrays.toString(pixels));
+    public int getMaxAtlasWidth()
+    {
+        return maxAtlasWidth;
+    }
+    
+    public int getPadding()
+    {
+        return padding;
     }
     
     public float getAspectRatio()
     {
         return width / (float)height;
     }
-    
     
     public Vector2i getPosition(int index)
     {
@@ -132,7 +147,6 @@ public class CanvasAtlas implements Atlas
         return new Texture(getWidth(), getHeight(), getPixelData());
     }
 
-    
     @Override
     public float[] getPixelData()
     {

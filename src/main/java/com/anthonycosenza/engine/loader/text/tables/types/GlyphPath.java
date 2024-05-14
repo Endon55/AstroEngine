@@ -288,7 +288,10 @@ public class GlyphPath
         pathOpen = false;
         if(!points.isEmpty())
         {
-            if(startPoint != null) points.add(new StraightPoint(startPoint));
+            if(startPoint != null && points.get(points.size() - 1) instanceof StraightPoint)
+            {
+                points.add(new StraightPoint(startPoint));
+            }
             paths.add(points);
             points = new ArrayList<>();
         }

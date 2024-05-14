@@ -28,8 +28,6 @@ public class Canvas implements Image
         this.width = atlas.getWidth();
         this.height = atlas.getHeight();
         pixels = atlas.getPixelData();
-        System.out.println("Width: " + width);
-        System.out.println("Height: " + height);
         mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
     }
     
@@ -69,6 +67,16 @@ public class Canvas implements Image
         
         mesh = ShapeBuilder.square(2, 2);
     }
+    
+    public boolean hasColor(int x, int y)
+    {
+        y = (height - 1) - y;
+        int index = y * rowWidth + (x * channels);
+        if(index >= getPixelData().length || index < 0) return false;
+        //Skip rgb by adding 3 and only evaluate alpha.
+        return pixels[index + 3] != 0;
+    }
+    
     public Color getColor(int x, int y)
     {
         Color color = new Color();
@@ -89,13 +97,33 @@ public class Canvas implements Image
      */
     private void setPixel(float r, float g, float b, float a, int posX, int posY)
     {
+        if(posY >= height || posY < 0 || posX >= width || posX < 0) return;
         posY = (height - 1) - posY;
         int index = posY * rowWidth + (posX * channels);
-        if(index > getPixelData().length) return;
+        //if(index >= getPixelData().length || index < 0) return;
         pixels[index++] = r;
         pixels[index++] = g;
         pixels[index++] = b;
-        pixels[index++] = a;
+        pixels[index] = a;
+    }
+    
+    public void addPixel(Color color, int posX, int posY)
+    {
+        addPixel(color.r(), color.g(), color.b(), color.a(), posX, posY);
+    }
+    public void addPixel(float r, float g, float b, float a, int posX, int posY)
+    {
+        posY = (height - 1) - posY;
+        int index = posY * rowWidth + (posX * channels);
+        if(index >= getPixelData().length || index < 0) return;
+        pixels[index] += r;
+        pixels[index++] %= 255;
+        pixels[index] += g;
+        pixels[index++] %= 255;
+        pixels[index] += b;
+        pixels[index++] %= 255;
+        pixels[index] += a;
+        pixels[index] %= 255;
     }
     
     public void drawVerticalLine(float r, float g, float b, float a, int x, int y0, int y1)
@@ -241,6 +269,32 @@ public class Canvas implements Image
         drawCircle(color, radius, xPos, yPos, true);
     }
     
+    public void fillStraglers(int fillEdges, Color color)
+    {
+        if(fillEdges > 4) throw new RuntimeException("Fill Edges can't be larger than 4: " + fillEdges);
+        int edges = 0;
+        for(int y = 0; y < height; y++)
+        {
+            for(int x = 0; x < width; x++)
+            {
+            
+                //No color in current pixel, but has color in the 4 cardinal pixels.
+                if(!hasColor(x, y))
+                {
+                    edges = 0;
+                    edges += (hasColor(x + 1, y) ? 1 : 0);
+                    edges += (hasColor(x - 1, y) ? 1 : 0);
+                    edges += (hasColor(x, y + 1) ? 1 : 0);
+                    edges += (hasColor(x, y - 1) ? 1 : 0);
+                }
+                if(edges >= fillEdges)
+                {
+                    setPixel(color, x, y);
+                }
+            }
+        }
+    }
+    
     public void fill(Color color, int xPos, int yPos)
     {
         Stack<Vector2i> positions = new Stack<>();
@@ -273,6 +327,8 @@ public class Canvas implements Image
             }
         }
     }
+    
+    
     
     public void bezier(Color color, Vector2i... points)
     {
@@ -345,16 +401,7 @@ public class Canvas implements Image
             setPixel(color, (int) x, (int) y);
             int xi = Math.round(x);
             int yi = Math.round(y);
-            /*int dist = Math.abs(xi - x2) + Math.abs(yi - y2);
-            if(time > 0 && dist > 1)
-            {
-                drawLine(color.r(), color.g(), color.b(), color.a(), x2, y2, xi, yi);
-            }
-            else setPixel(color, xi, yi);
             
-            x2 = xi;
-            y2 = yi;*/
-    
             setPixel(color, xi, yi);
             
             time += timeStep;

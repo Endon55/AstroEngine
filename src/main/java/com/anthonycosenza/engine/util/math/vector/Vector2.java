@@ -1,5 +1,8 @@
 package com.anthonycosenza.engine.util.math.vector;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 public class Vector2
 {
     private float x;
@@ -78,7 +81,47 @@ public class Vector2
         this.y -= vector.y();
         return this;
     }
+    
+    
+    public Vector2 roundX(float tolerance)
+    {
+        int x = (int) x();
+        if(Math.abs(x() - x) < tolerance)
+        {
+            x(x);
+            return this;
+        }
+        x = x < 0 ? x - 1 : x + 1;
+        if(Math.abs(x() - x)  <= tolerance) x(x);
+        return this;
+    }
+    
+    public Vector2i getVector2i()
+    {
+        return new Vector2i(Math.round(x()), Math.round(y()));
+    }
+    
+    public Vector2 roundY(float tolerance)
+    {
+        int y = (int) y();
+        if(Math.abs(y() - y) < tolerance) y(y);
+        y++;
+        if(Math.abs(y() - y) < tolerance) y(y);
+        return this;
+    }
+    
+    public Vector2 round(float tolerance)
+    {
+        roundX(tolerance);
+        return roundY(tolerance);
+    }
 
+    public Vector2 round()
+    {
+        x(Math.round(x()));
+        y(Math.round(y()));
+        return this;
+    }
     
     public Vector2 subtract(Vector2 subtract, Vector2 destination)
     {
@@ -112,5 +155,26 @@ public class Vector2
     public String toString()
     {
         return "[" + x + ", " + y + "]";
+    }
+    
+    
+    @Override
+    public boolean equals(Object o)
+    {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        
+        Vector2 vector2 = (Vector2) o;
+        
+        if(Float.compare(vector2.x, x) != 0) return false;
+        return Float.compare(vector2.y, y) == 0;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
+        result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
+        return result;
     }
 }

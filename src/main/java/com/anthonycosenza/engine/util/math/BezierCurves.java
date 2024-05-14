@@ -1,10 +1,11 @@
 package com.anthonycosenza.engine.util.math;
 
+import com.anthonycosenza.engine.util.math.vector.Vector2;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
 public class BezierCurves
 {
-    public static Vector2i bezier(Vector2i... points)
+    public static Vector2 bezier(Vector2i... points)
     {
         float distance = 0;
         Vector2i lastPoint = null;
@@ -27,7 +28,7 @@ public class BezierCurves
      * Obviously you can't know that easily so call the other function instead where it's
      * estimated based on distance.
      */
-    public static Vector2i bezier(float time, Vector2i... points)
+    public static Vector2 bezier(float time, Vector2i... points)
     {
         //System.out.println(Arrays.toString(points));
         int pointCount = points.length;
@@ -68,7 +69,7 @@ public class BezierCurves
             }
             default -> throw new RuntimeException("We shouldn't be here.");
         }
-    return new Vector2i((int) x, (int) y);
+    return new Vector2( x, y);
 
     }
     

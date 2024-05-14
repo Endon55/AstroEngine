@@ -1,14 +1,10 @@
 package com.anthonycosenza;
 
-import com.anthonycosenza.engine.loader.image.ImageLoader;
 import com.anthonycosenza.engine.space.entity.Entity;
 import com.anthonycosenza.engine.space.entity.Mesh;
-import com.anthonycosenza.engine.space.entity.MeshBuilder;
 import com.anthonycosenza.engine.space.entity.Model;
-import com.anthonycosenza.engine.space.entity.texture.atlas.Atlas;
 import com.anthonycosenza.engine.space.entity.texture.atlas.CanvasAtlas;
 import com.anthonycosenza.engine.space.entity.texture.atlas.FontAtlasGenerator;
-import com.anthonycosenza.engine.space.entity.texture.atlas.TextureAtlas;
 import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.input.Input;
@@ -52,21 +48,17 @@ public class Project
     
         Canvas background = new Canvas(width, height, new Color(145, 139, 80));
         scene.add(background);
-        
-        
-        Canvas canvas = new Canvas(width, height);
-        Color blue = new Color(0, 100, 255, 255);
-        
-        scene.add(canvas);
-        //float[] pixels = ImageLoader.load(new int[2], "resources/images/Ai Sasha.png");
-        //Canvas sasha = new Canvas(1024, 1024, pixels);
-        //scene.add(sasha);
+
+        int fontSize = 320;
         
         font = new Font("resources/fonts/Bagnard.otf");
-        CanvasAtlas atlas = (CanvasAtlas) FontAtlasGenerator.getAtlas2(500, font);
-        Canvas canvas2 = new Canvas(atlas);
-        //Model fontModel = new Model(ShapeBuilder.square(2, 2), atlas.getFullTexture());
+        CanvasAtlas letter = (CanvasAtlas) FontAtlasGenerator.getFilledAtlas(fontSize, font);
+        Canvas canvas2 = new Canvas(letter);
         scene.add(canvas2);
+    
+        //CanvasAtlas letterOutline = (CanvasAtlas) FontAtlasGenerator.getOutlinedAtlas(fontSize, font);
+        //Canvas canvas3 = new Canvas(letterOutline);
+        //scene.add(canvas3);
     }
     
     
