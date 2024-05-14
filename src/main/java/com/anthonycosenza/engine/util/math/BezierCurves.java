@@ -1,34 +1,17 @@
 package com.anthonycosenza.engine.util.math;
 
 import com.anthonycosenza.engine.util.math.vector.Vector2;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
 public class BezierCurves
 {
-    public static Vector2 bezier(Vector2i... points)
-    {
-        float distance = 0;
-        Vector2i lastPoint = null;
-        for(Vector2i point : points)
-        {
-            if(lastPoint != null)
-            {
-                distance += lastPoint.distance(point);
-            }
-            else lastPoint = point;
-        }
-        //System.out.println("Distance: " + distance);
-        //System.out.println("Raw Distance: " + (points[0].distance(points[points.length - 1])));
-        return bezier((int) distance * 20, points);
-    }
-    
+
     /*
      * This Bézier curve algorithm calculates the x, y pixel coordinate at time t,
      * to get an accurate graphing the number of timesteps needs to be the number of pixels.
      * Obviously you can't know that easily so call the other function instead where it's
      * estimated based on distance.
      */
-    public static Vector2 bezier(float time, Vector2i... points)
+    public static Vector2 bezier(float time, Vector2... points)
     {
         //System.out.println(Arrays.toString(points));
         int pointCount = points.length;

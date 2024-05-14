@@ -1,23 +1,24 @@
 package com.anthonycosenza.engine.loader.text.tables.types.points;
 
+import com.anthonycosenza.engine.util.math.vector.Vector2;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
 public class StraightPoint implements FontPoint
 {
     private int hintMask;
-    private final Vector2i position;
+    private final Vector2 position;
     private int width;
     
-    public StraightPoint(Vector2i point)
+    public StraightPoint(Vector2 point)
     {
         this(0, point.x(), point.y());
     }
     
-    public StraightPoint(int hintMask, int x, int y)
+    public StraightPoint(int hintMask, float x, float y)
     {
         width = 0;
         this.hintMask = hintMask;
-        position = new Vector2i(x, y);
+        position = new Vector2(x, y);
     }
     
     public StraightPoint setHintMask(int hintMask)
@@ -31,7 +32,7 @@ public class StraightPoint implements FontPoint
         return this;
     }
     
-    public Vector2i getPosition()
+    public Vector2 getPosition()
     {
         return position;
     }

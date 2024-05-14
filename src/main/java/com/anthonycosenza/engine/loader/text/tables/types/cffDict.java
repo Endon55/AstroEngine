@@ -235,4 +235,11 @@ public class cffDict
         throw new RuntimeException("Can't handle offsets of size: " + offsetSize);
     }
     
+    @Override
+    public String toString()
+    {
+        return "cffDict{" +
+                "table=" + table +
+                '}';
+    }
 }

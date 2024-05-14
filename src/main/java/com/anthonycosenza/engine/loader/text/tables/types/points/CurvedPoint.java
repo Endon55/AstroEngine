@@ -1,30 +1,31 @@
 package com.anthonycosenza.engine.loader.text.tables.types.points;
 
 
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
+import com.anthonycosenza.engine.util.math.vector.Vector2;
 
 public class CurvedPoint implements FontPoint
 {
     private int hintMask;
-    private final Vector2i position;
+    private final Vector2 position;
     private int width;
-    private final Vector2i controlPoint1;
-    private final Vector2i controlPoint2;
+    private final Vector2 controlPoint1;
+    private final Vector2 controlPoint2;
     
     
-    public CurvedPoint(int hintMask, int xa, int ya, int xb, int yb, int posX, int posY)
+    public CurvedPoint(int hintMask, float xa, float ya, float xb, float yb, float posX, float posY)
     {
         this.hintMask = hintMask;
-        position = new Vector2i(posX, posY);
-        controlPoint1 = new Vector2i(xa, ya);
-        controlPoint2 = new Vector2i(xb, yb);
+        position = new Vector2(posX, posY);
+        controlPoint1 = new Vector2(xa, ya);
+        controlPoint2 = new Vector2(xb, yb);
     }
     
-    public CurvedPoint(int xa, int ya, int xb, int yb, int posX, int posY)
+    public CurvedPoint(float xa, float ya, float xb, float yb, float posX, float posY)
     {
-        position = new Vector2i(posX, posY);
-        controlPoint1 = new Vector2i(xa, ya);
-        controlPoint2 = new Vector2i(xb, yb);
+        hintMask = 0;
+        position = new Vector2(posX, posY);
+        controlPoint1 = new Vector2(xa, ya);
+        controlPoint2 = new Vector2(xb, yb);
     }
     
     public CurvedPoint setHintMask(int hintMask)
@@ -34,7 +35,7 @@ public class CurvedPoint implements FontPoint
     }
     
     @Override
-    public Vector2i getPosition()
+    public Vector2 getPosition()
     {
         return position;
     }
@@ -60,12 +61,12 @@ public class CurvedPoint implements FontPoint
         return new CurvedPoint(hintMask, controlPoint1.x(), controlPoint1.y(), controlPoint2.x(), controlPoint2.y(), position.x(), position.y());
     }
     
-    public Vector2i getControlPoint1()
+    public Vector2 getControlPoint1()
     {
         return controlPoint1;
     }
     
-    public Vector2i getControlPoint2()
+    public Vector2 getControlPoint2()
     {
         return controlPoint2;
     }

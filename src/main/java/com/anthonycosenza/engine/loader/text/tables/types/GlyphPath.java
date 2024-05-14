@@ -289,7 +289,7 @@ public class GlyphPath
         {
             if(startPoint != null && (points.get(points.size() - 1) instanceof StraightPoint))
             {
-                points.add(new StraightPoint(startPoint));
+                points.add(new StraightPoint(hintMask, startPoint.x(), startPoint.y()));
             }
             paths.add(points);
             points = new ArrayList<>();
@@ -486,7 +486,7 @@ public class GlyphPath
             pathOpen = true;
         }
         point.add(x, y);
-        points.add(new StraightPoint(point).setHintMask(hintMask));
+        points.add(new StraightPoint(hintMask, point.x(), point.y()));
     }
     
     private void curveTo(int xa, int ya, int xb, int yb, int xc, int yc)

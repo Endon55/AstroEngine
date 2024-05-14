@@ -45,14 +45,15 @@ public class Project
         
         
         //scene.getTextStrips().add(new TextStrip("Anthony", 10, new Vector3(100, 100, 100), new Vector2(100, 200), font));
-    
+        
         Canvas background = new Canvas(width, height, new Color(145, 139, 80));
         scene.add(background);
 
         //320
-        int fontSize = 1000;
+        int fontSize = 750;
         
         font = new Font("resources/fonts/Bagnard.otf");
+        System.out.println(font.getFontData().cffPrivateDict);
         CanvasAtlas letter = (CanvasAtlas) FontAtlasGenerator.getFilledAtlas(fontSize, font);
         Canvas canvas2 = new Canvas(letter);
         scene.add(canvas2);

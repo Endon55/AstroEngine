@@ -9,12 +9,16 @@ public interface Glyph
 {
     List<List<FontPoint>> getPaths();
     List<Hint> getHints();
-    int getMinX();
-    int getMaxX();
-    int getMinY();
-    int getMaxY();
-    int getWidth();
-    int getHeight();
+    
+    float getMinX();
+    
+    float getMaxX();
+    
+    float getMinY();
+    
+    float getMaxY();
+    float getWidth();
+    float getHeight();
     
     void shiftOffset();
     boolean hasCurves();

@@ -63,6 +63,12 @@ public class Vector2
         return this;
     }
     
+    public Vector2 add(int x, int y, Vector2 destination)
+    {
+        destination.x = this.x + x;
+        destination.y = this.y + y;
+        return destination;
+    }
     public Vector2 addX(float x)
     {
         this.x += x;

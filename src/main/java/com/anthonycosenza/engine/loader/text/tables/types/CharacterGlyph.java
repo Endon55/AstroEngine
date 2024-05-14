@@ -13,10 +13,10 @@ import java.util.List;
 
 public class CharacterGlyph implements Glyph
 {
-    private int xMin = 10000;
-    private int xMax = 0;
-    private int yMin = 10000;
-    private int yMax = 0;
+    private float xMin = 10000;
+    private float xMax = 0;
+    private float yMin = 10000;
+    private float yMax = 0;
     private int gutter = 0;
     private List<List<FontPoint>> paths;
     private List<Hint> hints;
@@ -60,7 +60,7 @@ public class CharacterGlyph implements Glyph
             for(FontPoint point : path)
             {
                 if(point instanceof CurvedPoint) hasCurves = true;
-                Vector2i position = point.getPosition();
+                Vector2 position = point.getPosition();
                 
                 if(position.x() > xMax) xMax = position.x();
                 if(position.x() < xMin) xMin = position.x();
@@ -79,31 +79,31 @@ public class CharacterGlyph implements Glyph
     
     
     @Override
-    public int getMaxX()
+    public float getMaxX()
     {
         return xMax;
     }
     
     @Override
-    public int getMinX()
+    public float getMinX()
     {
         return xMin;
     }
     
     @Override
-    public int getMaxY()
+    public float getMaxY()
     {
         return yMax;
     }
     
     @Override
-    public int getMinY()
+    public float getMinY()
     {
         return yMin;
     }
     
     @Override
-    public int getWidth()
+    public float getWidth()
     {
         return getMaxX() - getMinX();
     }
@@ -115,7 +115,7 @@ public class CharacterGlyph implements Glyph
     }
     
     @Override
-    public int getHeight()
+    public float getHeight()
     {
         return getMaxY() - getMinY();
     }
@@ -197,8 +197,9 @@ public class CharacterGlyph implements Glyph
     @Override
     public void shiftOffset()
     {
-        int xOffset = xMin * -1;
-        int yOffset = yMin * -1;
+        float xOffset = xMin * -1;
+        float yOffset = yMin * -1;
+        
         for(List<FontPoint> path : paths)
         {
             for(FontPoint point : path)
