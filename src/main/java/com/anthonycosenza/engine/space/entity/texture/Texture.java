@@ -31,7 +31,17 @@ public class Texture
 {
     private int textureID;
     
+    
+    public Texture(int width, int height, ByteBuffer pixelData)
+    {
+        generate(width, height, pixelData);
+    }
     public Texture(int width, int height, float[] pixelData)
+    {
+        generate(width, height, pixelData);
+    }
+    
+    public Texture(int width, int height, int[] pixelData)
     {
         generate(width, height, pixelData);
     }
@@ -90,6 +100,18 @@ public class Texture
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, pixelData);
+        //System.out.println(glGetError());
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    
+    private void generate(int width, int height, int[] pixelData)
+    {
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        //Setting the alignment of the pixel data 1 = Byte Aligned
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_SHORT, pixelData);
         //System.out.println(glGetError());
         glGenerateMipmap(GL_TEXTURE_2D);
     }

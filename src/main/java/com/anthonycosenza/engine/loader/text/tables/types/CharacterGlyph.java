@@ -147,15 +147,15 @@ public class CharacterGlyph implements Glyph
                      * 0, .5, 1
                      */
                     FontPoint prevPoint = path.get(i - 1 >= 0 ? i - 1 : path.size() - 1);
-                    List<Vector2i> points = new ArrayList<>();
+                    List<Vector2> points = new ArrayList<>();
                     
                     for(int j = 0; j <= smoothness; j++)
                     {
-                        Vector2i curvedSegment = BezierCurves.bezier(timeInc * j,
+                        Vector2 curvedSegment = BezierCurves.bezier(timeInc * j,
                                 prevPoint.getPosition(),
                                 cPoint.getControlPoint1(),
                                 cPoint.getControlPoint2(),
-                                cPoint.getPosition()).getVector2i();
+                                cPoint.getPosition());
                     
                         /*
                          * This is consolidating flat points into a single point.
@@ -180,7 +180,7 @@ public class CharacterGlyph implements Glyph
                         }
                     }
                     
-                    for(Vector2i line : points)
+                    for(Vector2 line : points)
                     {
                         straightPoints.add(new StraightPoint(cPoint.getHintMask(), line.x(), line.y()));
                     }
@@ -199,7 +199,6 @@ public class CharacterGlyph implements Glyph
     {
         float xOffset = xMin * -1;
         float yOffset = yMin * -1;
-        
         for(List<FontPoint> path : paths)
         {
             for(FontPoint point : path)

@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.space.rendering.shader;
 
 import com.anthonycosenza.engine.util.math.matrix.Matrix4;
+import com.anthonycosenza.engine.util.math.vector.Vector2;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 
@@ -9,6 +10,7 @@ import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUniform1i;
+import static org.lwjgl.opengl.GL20.glUniform2f;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 
 public class UniformMap
@@ -42,6 +44,12 @@ public class UniformMap
     {
         glUniform1i(getUniformID(uniformName), data);
     }
+    
+    public void setUniform(String uniformName, Vector2 data)
+    {
+        glUniform2f(getUniformID(uniformName), data.x(), data.y());
+    }
+    
     public void setUniform(String uniformName, Matrix4f data)
     {
         try(MemoryStack stack = MemoryStack.stackPush())

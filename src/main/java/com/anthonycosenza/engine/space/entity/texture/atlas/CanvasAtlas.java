@@ -92,17 +92,20 @@ public class CanvasAtlas implements Atlas
         for(int i = 0; i < canvasList.size(); i++)
         {
             Vector2i position = subImagePositions[i];
+            Vector2i dimension = subImageDimensions[i];
             Canvas canvas = canvasList.get(i);
-            int posWidth = position.x() * canvas.getColorChannels();
+            int subRowOffset = position.x() * canvas.getColorChannels();
             int rowWidth = canvas.getRowWidth();
             
             //Reuse original X and Y variables
-            for(y = 0; y < canvas.getHeight(); y++)
+            for(y = 0; y < dimension.y(); y++)
             {
                 for(x = 0; x < rowWidth; x++)
                 {
+                    
+                    
                     int subIndex = y * rowWidth + x;
-                    int atlasIndex = (y + position.y()) * getRowWidth() + (x + posWidth);
+                    int atlasIndex = (y + position.y()) * getRowWidth() + (x + subRowOffset);
                     
                     pixels[atlasIndex] = canvas.getPixelData()[subIndex];
                 }

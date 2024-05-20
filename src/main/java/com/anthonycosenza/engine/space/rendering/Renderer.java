@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.space.rendering;
 
+import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.space.entity.Entity;
 import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
@@ -28,12 +29,14 @@ public class Renderer
     private SceneRenderer sceneRenderer;
     private TextRenderer textRenderer;
     private CanvasRenderer canvasRenderer;
+    private InterfaceRenderer interfaceRenderer;
     
-    public Renderer()
+    public Renderer(Window window)
     {
         sceneRenderer = new SceneRenderer();
         textRenderer = new TextRenderer();
         canvasRenderer = new CanvasRenderer();
+        interfaceRenderer = new InterfaceRenderer(window);
     
         /*
          * GL_SRC_ALPHA - specifies how the source blending factors are computed.
@@ -50,7 +53,17 @@ public class Renderer
         sceneRenderer.render(scene, projection3d);
         //textRenderer.render(scene, projection2d);
         canvasRenderer.render(scene, projection2d);
+        interfaceRenderer.render(scene);
     }
     
+    public void resize(int width, int height)
+    {
+        interfaceRenderer.resize(width, height);
+    }
+    
+    public void cleanup()
+    {
+        interfaceRenderer.cleanup();
+    }
     
 }

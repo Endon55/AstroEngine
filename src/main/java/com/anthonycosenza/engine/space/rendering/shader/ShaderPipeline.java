@@ -91,7 +91,7 @@ public class ShaderPipeline
         return FileIO.getFileContents(shaderPath);
     }
     
-    private void cleanup()
+    public void cleanup()
     {
         glDeleteProgram(programID);
     }

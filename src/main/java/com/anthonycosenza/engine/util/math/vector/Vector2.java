@@ -157,6 +157,11 @@ public class Vector2
     }
     
     
+    public boolean approxEquals(Vector2 vector)
+    {
+        return Math.abs(vector.x() - x()) < .001f && Math.abs(vector.y() - y()) < .001f;
+    }
+    
     @Override
     public String toString()
     {

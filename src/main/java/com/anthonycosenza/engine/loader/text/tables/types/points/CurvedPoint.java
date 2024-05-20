@@ -74,12 +74,10 @@ public class CurvedPoint implements FontPoint
     @Override
     public String toString()
     {
-        return "CurvedPoint{" +
-                "hintMask=" + hintMask +
-                ", position=" + position +
-                ", width=" + width +
-                ", controlPoint1=" + controlPoint1 +
-                ", controlPoint2=" + controlPoint2 +
+        return "Curved{" +
+                "pos=" + position +
+                ", cp1=" + controlPoint1 +
+                ", cp2=" + controlPoint2 +
                 '}';
     }
 }

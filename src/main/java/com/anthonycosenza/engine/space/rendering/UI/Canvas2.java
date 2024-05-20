@@ -6,45 +6,31 @@ import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.entity.texture.atlas.CanvasAtlas;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
 import com.anthonycosenza.engine.util.math.Color;
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 
 import java.util.Stack;
 
-public class Canvas implements Image
+public class Canvas2
 {
     private int width;
     private int height;
     private int rowWidth;
-    private float[] pixels;
+    private int[] pixels;
     private int channels;
     private Mesh mesh;
     
     /*
      * Canvas coordinates start bottom left of the screen, up is positive y, and right is positive x.
      */
-    public Canvas(CanvasAtlas atlas)
-    {
-        this.width = atlas.getWidth();
-        this.height = atlas.getHeight();
-        pixels = atlas.getPixelData();
-        mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
-    }
+
     
-    public Canvas(int width, int height, float[] pixelData)
+
+    public Canvas2(int width, int height, Color fill)
     {
+        this.channels =4;
         this.width = width;
         this.height = height;
-        pixels = pixelData;
-        mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
-    }
-    public Canvas(int width, int height, Color fill)
-    {
-        this.channels = getColorChannels();
-        this.width = width;
-        this.height = height;
-        rowWidth = width * channels;
-        pixels = new float[rowWidth * height];
+        pixels = new int[width * height];
     
         for(int i = 0; i < width * height; i++)
         {
@@ -52,21 +38,7 @@ public class Canvas implements Image
         }
         mesh = ShapeBuilder.square((2f * width) / 1920, (2f * height) / 1080);
     }
-    public Canvas(int width, int height)
-    {
-        this(width, height, DEFAULT_COLOR_CHANNELS);
-    }
-    public Canvas(int width, int height, int colorChannels)
-    {
-        this.width = width;
-        this.height = height;
-        this.channels = colorChannels;
-        rowWidth = width * channels;
-        pixels = new float[rowWidth * height];
 
-        
-        mesh = ShapeBuilder.square(2, 2);
-    }
     
     public boolean hasColor(int x, int y)
     {
@@ -99,11 +71,10 @@ public class Canvas implements Image
     {
         if(posY >= height || posY < 0 || posX >= width || posX < 0) return;
         posY = (height - 1) - posY;
-        int index = posY * rowWidth + (posX * channels);
-        pixels[index++] = r;
-        pixels[index++] = g;
-        pixels[index++] = b;
-        pixels[index] = a;
+        
+        int color  = (int)(r * 255) << 24 | (int) (g * 255) << 16 | (int) (b * 255) << 8 | (int) (a * 255);
+        int index = width * posY + posX;
+        pixels[index] = color;
     }
     
     public void addPixel(Color color, int posX, int posY)
@@ -459,36 +430,22 @@ public class Canvas implements Image
     }*/
     
     
-    @Override
-    public float[] getPixelData()
+    public int[] getPixelData()
     {
         return pixels;
     }
-    
-    @Override
-    public int getColorChannels()
-    {
-        return DEFAULT_COLOR_CHANNELS;
-    }
-    
-    @Override
+
     public int getWidth()
     {
         return width;
     }
     
-    @Override
     public int getHeight()
     {
         return height;
     }
     
-    @Override
-    public int getRowWidth()
-    {
-        return rowWidth;
-    }
-    
+
     public Texture getTexture()
     {
         return new Texture(width, height, pixels);

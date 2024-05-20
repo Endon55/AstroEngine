@@ -11,6 +11,10 @@ import com.anthonycosenza.engine.space.rendering.Renderer;
 import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
 import com.anthonycosenza.engine.space.rendering.TextRenderer;
 import com.anthonycosenza.engine.util.Constants;
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiWindowFlags;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -19,6 +23,7 @@ import org.lwjgl.opengl.GL;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
+import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -31,7 +36,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Engine
 {
-    
+    private boolean vsync = false;
     private Window window;
     private boolean running = true;
     Projection3d projection3d;
@@ -47,7 +52,7 @@ public class Engine
     
     public Engine()
     {
-        window = new Window("AstroEngine", 1920, 1080, false);
+        window = new Window("AstroEngine", 1920, 1080, vsync);
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
@@ -55,13 +60,18 @@ public class Engine
         projection3d = new Projection3d(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         projection2d = new Projection2d(window.getWidth(), window.getHeight());
         
-        renderer = new Renderer();
+        renderer = new Renderer(window);
         input = new Input(window.getWindowHandle());
         EventBus.getDefault().register(this);
         project = new Project(window.getWidth(), window.getHeight());
         
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
-    
+        
+        //Vsync is enabled by default, so we only ever have to disable it.
+        if(!vsync)
+        {
+            glfwSwapInterval(0);
+        }
 /*        Benchmark benchmark = new Benchmark(10,
                 () ->{
             new Texture("resources/images/Ai Sasha.png", true);
@@ -70,14 +80,42 @@ public class Engine
                         new Texture("resources/images/Ai Sasha.png", false);
         });
         benchmark.test();*/
+        
+    }
+    
+    
+    
+    
+    private boolean handleGuiInput()
+    {
+        ImGuiIO io = ImGui.getIO();
+        io.setMousePos(input.getMousePosition().x(), input.getMousePosition().y());
+        io.setMouseDown(0, input.isLeftMouseButtonPressed());
+        io.setMouseDown(1, input.isRightMouseButtonPressed());
+        
+        return io.getWantCaptureMouse() || io.getWantCaptureKeyboard();
     }
     
     private void resize(long windowHandle, int width, int height)
     {
         projection3d.resize(width, height);
         projection2d.resize(width, height);
+        renderer.resize(width, height);
     }
     
+    private void systemDiagnostics(double fps)
+    {
+        ImGui.newFrame();
+        int windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags.NoTitleBar;
+        windowFlags |= ImGuiWindowFlags.NoResize;
+        ImGui.setNextWindowPos(ImGui.getIO().getDisplaySizeX() - 40, 0, ImGuiCond.FirstUseEver);
+        ImGui.begin("Window", windowFlags);
+        ImGui.text("" + (((int)(fps * 1000)) / 1000));
+        ImGui.end();
+        ImGui.endFrame();
+        ImGui.render();
+    }
     
     public void run()
     {
@@ -105,13 +143,10 @@ public class Engine
             
             //Don't wake up the physics simulation for less this much of a frame
             //We do this so that the physics simulation smooths out compared to the rendering
-            
-            while(accumulator >= updateInterval * .6)
+            while(accumulator >= updateInterval * 1)
             {
                 physicsUpdates++;
                 //Update physics with an entire timestep
-                //project.physicsUpdate(updateTime, input);
-                //accumulator -= updateInterval;
                 
                 if(accumulator >= updateInterval)
                 {
@@ -127,10 +162,16 @@ public class Engine
                     accumulator = 0;
                 }
             }
-            //Renders the current scene giving it the delta since the last render call.
-            renderer.render((double)frameTime / Constants.NANOS_IN_SECOND, project.getScene(), projection2d, projection3d);
+            double delta = (double) frameTime / Constants.NANOS_IN_SECOND;
             
-            //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins loading of the next next frame.
+            handleGuiInput();
+            systemDiagnostics(Constants.NANOS_IN_SECOND / (double)frameTime);
+            project.uiUpdate(delta, input);
+            //Renders the current scene giving it the delta since the last render call.
+            
+            renderer.render(delta, project.getScene(), projection2d, projection3d);
+            
+            //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
             glfwSwapBuffers(window.getWindowHandle());
         }
     
@@ -147,6 +188,7 @@ public class Engine
     
     public void cleanup()
     {
+        renderer.cleanup();
         window.cleanup();
     }
     

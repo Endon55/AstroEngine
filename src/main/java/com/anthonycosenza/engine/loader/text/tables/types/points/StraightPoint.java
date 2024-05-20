@@ -59,10 +59,8 @@ public class StraightPoint implements FontPoint
     @Override
     public String toString()
     {
-        return "StraightPoint{" +
-                "hintMask=" + hintMask +
-                ", position=" + position +
-                ", width=" + width +
+        return "Straight{" +
+                "position=" + position +
                 '}';
     }
 }

@@ -2,6 +2,8 @@ package com.anthonycosenza.engine.input;
 
 import com.anthonycosenza.engine.events.KeyEvent;
 import com.anthonycosenza.engine.util.math.vector.Vector2;
+import imgui.ImGui;
+import imgui.ImGuiIO;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -11,9 +13,20 @@ import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SUPER;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SUPER;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
+import static org.lwjgl.glfw.GLFW.glfwSetCharCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorEnterCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
@@ -28,6 +41,8 @@ public class Input
     private Vector2 currentMousePosition;
     
     private boolean mouseInWindow;
+    private boolean leftMouseButtonPressed;
+    private boolean rightMouseButtonPressed;
     private boolean cursorStale;
     private long windowID;
     
@@ -39,6 +54,7 @@ public class Input
         glfwSetMouseButtonCallback(windowID, this::mouseButtonCallback);
         glfwSetCursorPosCallback(windowID, this::mouseCursorCallback);
         glfwSetCursorEnterCallback(windowID, this::mouseEnterCallback);
+        glfwSetCharCallback(windowID, this::characterCallback);
         keys = new HashMap<>();
     
         for(Key key : Key.values())
@@ -56,6 +72,8 @@ public class Input
         EventBus.getDefault().register(this);
         resetMouse();
     }
+    
+
     
     private void resetMouse()
     {
@@ -78,6 +96,16 @@ public class Input
     public KeyAction getState(Key key)
     {
         return keys.get(key);
+    }
+    
+    public boolean isLeftMouseButtonPressed()
+    {
+        return leftMouseButtonPressed;
+    }
+    
+    public boolean isRightMouseButtonPressed()
+    {
+        return rightMouseButtonPressed;
     }
     
     public Vector2 getMouseDirection()
@@ -103,6 +131,27 @@ public class Input
             return;
         }
         
+        ImGuiIO io = ImGui.getIO();
+        //Im gui wants to consume an input
+        if(io.getWantCaptureKeyboard())
+        {
+            if(action == GLFW_PRESS)
+            {
+                io.setKeysDown(key, true);
+            }
+            else if(action == GLFW_RELEASE)
+            {
+                io.setKeysDown(key, false);
+            }
+    
+            io.setKeyCtrl(io.getKeysDown(GLFW_KEY_LEFT_CONTROL) || io.getKeysDown(GLFW_KEY_RIGHT_CONTROL));
+            io.setKeyShift(io.getKeysDown(GLFW_KEY_LEFT_SHIFT) || io.getKeysDown(GLFW_KEY_RIGHT_SHIFT));
+            io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
+            io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
+    
+        }
+        
+
         for(Map.Entry<Key, KeyAction> keyEntry : keys.entrySet())
         {
             if(keyEntry.getKey().getGlfwKey() == key)
@@ -114,6 +163,15 @@ public class Input
         }
     }
     
+    private void characterCallback(long handle, int key)
+    {
+        ImGuiIO io = ImGui.getIO();
+        
+        if(io.getWantCaptureKeyboard())
+        {
+            io.addInputCharacter(key);
+        }
+    }
     
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onKey(KeyEvent event)
@@ -141,7 +199,14 @@ public class Input
     
     private void mouseButtonCallback(long handle, int button, int action, int mods)
     {
-    
+        if(button == GLFW_MOUSE_BUTTON_1)
+        {
+            leftMouseButtonPressed = (action == GLFW_PRESS);
+        }
+        else if(button == GLFW_MOUSE_BUTTON_2)
+        {
+            rightMouseButtonPressed = (action == GLFW_PRESS);
+        }
     }
     
     private void mouseCursorCallback(long handle, double x, double y)
