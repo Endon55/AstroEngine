@@ -162,11 +162,12 @@ public class Engine
                     accumulator = 0;
                 }
             }
-            double delta = (double) frameTime / Constants.NANOS_IN_SECOND;
+            float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
             
             handleGuiInput();
             systemDiagnostics(Constants.NANOS_IN_SECOND / (double)frameTime);
             project.uiUpdate(delta, input);
+            project.update(delta, input);
             //Renders the current scene giving it the delta since the last render call.
             
             renderer.render(delta, project.getScene(), projection2d, projection3d);

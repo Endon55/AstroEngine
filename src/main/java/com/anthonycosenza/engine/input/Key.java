@@ -10,6 +10,8 @@ public enum Key
     W(GLFW_KEY_W),
     ESCAPE(GLFW_KEY_ESCAPE),
     ALT(GLFW_KEY_LEFT_ALT),
+    LEFT_SHIFT(GLFW_KEY_LEFT_SHIFT),
+    RIGHT_SHIFT(GLFW_KEY_RIGHT_SHIFT),
     ;
     
     private final int glfwKey;

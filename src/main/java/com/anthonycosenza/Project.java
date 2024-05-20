@@ -23,6 +23,7 @@ public class Project
     float rotation = 0;
     float moveSpeed = 1f;
     float rotationSpeed = 100;
+    float mouseSensitivity = 100;
     Font font;
     
     public Project(int width, int height)
@@ -52,51 +53,48 @@ public class Project
     
     public void uiUpdate(double delta, Input input)
     {
-        /*ImGui.newFrame();
-        ImGui.setNextWindowPos(0, 0, ImGuiCond.Always);
-        ImGui.showDemoWindow();
-        ImGui.endFrame();
-        ImGui.render();*/
+
     }
     
+    public void update(float delta, Input input)
+    {
+        boolean sprint = input.getState(Key.LEFT_SHIFT) == KeyAction.PRESSED || input.getState(Key.RIGHT_SHIFT) == KeyAction.PRESSED;
+        float deltaSpeed = (moveSpeed * delta);
+        if(sprint) deltaSpeed *= 2f;
+        
+        if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+        {
+            scene.getCamera().moveLocalX(-deltaSpeed);
+        }
+        if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.D) == KeyAction.REPEAT)
+        {
+            scene.getCamera().moveLocalX(deltaSpeed);
+        }
+        if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.W) == KeyAction.REPEAT)
+        {
+            scene.getCamera().moveLocalZ(deltaSpeed);
+        }
+        if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.S) == KeyAction.REPEAT)
+        {
+            scene.getCamera().moveLocalZ(-deltaSpeed);
+        }
     
+        if(!input.isCursorStale() && input.isMouseLocked())
+        {
+            float mouseDelta = mouseSensitivity * delta;
+            scene.getCamera().rotateDeg(input.getMouseDirection().x() * mouseDelta, input.getMouseDirection().y() * mouseDelta);
+        }
+    }
     public void physicsUpdate(float delta, Input input)
     {
-        
-        
         rotation += rotationSpeed * delta;
         rotation = rotation % 360;
+        
         for(Entity entity1 : scene.getEntities())
         {
             //entity1.rotate(1, 1, 1, rotation);
         }
-        if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
-        {
-            scene.getCamera().moveLocalX(-moveSpeed * delta);
-        }
-        if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.D) == KeyAction.REPEAT)
-        {
-            scene.getCamera().moveLocalX(moveSpeed * delta);
-        }
-        if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.W) == KeyAction.REPEAT)
-        {
-            scene.getCamera().moveLocalZ(moveSpeed * delta);
-        }
-        if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.S) == KeyAction.REPEAT)
-        {
-            scene.getCamera().moveLocalZ(-moveSpeed * delta);
-        }
-        
-        if(!input.isCursorStale())
-        {
-            scene.getCamera().rotateDeg(input.getMouseDirection().x() / 10, input.getMouseDirection().y() / 10);
-        }
-        //scene.getCamera().rotateDeg(new Vector2(1, 0));
-        //System.out.println("Pos: " + input.getMousePosition());
-        //System.out.println("Dir: " + input.getMouseDirection());
-    
-        //scene.getCamera().moveLocalX(-rotation);
-    
+
     }
     
     

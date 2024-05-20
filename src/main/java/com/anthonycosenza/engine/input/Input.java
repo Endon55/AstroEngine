@@ -45,6 +45,7 @@ public class Input
     private boolean rightMouseButtonPressed;
     private boolean cursorStale;
     private long windowID;
+    private MouseType mouseType;
     
     
     public Input(long windowID)
@@ -67,14 +68,14 @@ public class Input
         
         mouseInWindow = true;
         cursorStale = false;
-        
-        //setMouseType(MouseType.DISABLED);
+        setMouseType(MouseType.DISABLED);
         EventBus.getDefault().register(this);
         resetMouse();
     }
-    
-
-    
+    public boolean isMouseLocked()
+    {
+        return mouseType == MouseType.DISABLED;
+    }
     private void resetMouse()
     {
         double[] x = new double[1];
@@ -85,6 +86,7 @@ public class Input
     }
     public void setMouseType(MouseType mouseType)
     {
+        this.mouseType = mouseType;
         glfwSetInputMode(windowID, GLFW_CURSOR, mouseType.getType());
     }
     

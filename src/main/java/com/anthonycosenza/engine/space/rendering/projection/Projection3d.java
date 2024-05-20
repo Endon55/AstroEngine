@@ -17,7 +17,7 @@ public class Projection3d
     public Projection3d(float fovDegrees, int width, int height, float zMin, float zMax)
     {
         this.fov = (float) Math.toRadians(fovDegrees);
-        this.aspectRatio = (float) width / height;
+        this.aspectRatio = (float) height / width;
         this.zMin = zMin;
         this.zMax = zMax;
         projectionMatrix = new Matrix4();
@@ -27,7 +27,7 @@ public class Projection3d
     
     public void resize(int width, int height)
     {
-        aspectRatio = (float) width / (float) height;
+        aspectRatio = (float) height / (float) width;
         updateMatrix();
     }
     public void zDistance(float zNear, float zFar)
@@ -103,6 +103,7 @@ public class Projection3d
     
     e5 is set to -1 because the w value of clip space is -z, and since that column gets multiplied by z we set it to -1 so it becomes -1 * z = -z
      */
+
         float tangent = (float)Math.tan(fov / 2);
         float right = zMin * tangent;
         float top = right * aspectRatio;
@@ -112,14 +113,6 @@ public class Projection3d
                 .m00(zMin / right).m11(zMin / top)
                 .m22(-(zMax + zMin) / zDist).m23(-2 * (zMax * zMin) / zDist)
                 .m32(-1).m33(0);
-        
-        /*
-        float zDist = zMax - zMin;
-        float calc = (float) (zMin / (Math.tan(fov / 2)));
-        projectionMatrix
-                .m00(calc).m11(calc / aspectRatio)
-                .m22(-(zMax + zMin) / zDist).m23(-2 * (zMax * zMin) / zDist)
-                .m32(-1).m33(0);*/
     }
     
 }
