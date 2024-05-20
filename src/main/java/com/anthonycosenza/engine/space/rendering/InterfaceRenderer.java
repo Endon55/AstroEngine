@@ -1,10 +1,8 @@
 package com.anthonycosenza.engine.space.rendering;
 
-import com.anthonycosenza.engine.loader.text.TextStrip;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.space.entity.UIMesh;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
-import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
@@ -35,7 +33,6 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
@@ -43,7 +40,6 @@ import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawElements;
@@ -60,13 +56,11 @@ import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
 public class InterfaceRenderer
 {
-    private ShaderPipeline shaderPipeline;
-    private UniformMap uniforms;
+    private final ShaderPipeline shaderPipeline;
+    private final UniformMap uniforms;
     private Texture atlasTexture;
     private UIMesh uiMesh;
-    private Vector2 scale;
-    GLFWKeyCallback keyCallback;
-    
+    private final Vector2 scale;
     
     public InterfaceRenderer(Window window)
     {
@@ -79,7 +73,7 @@ public class InterfaceRenderer
         createInterface(window);
     }
 
-    private void setKeyCallback(Window window)
+    private void setKeyCallback()
     {
         ImGuiIO io = ImGui.getIO();
         io.setKeyMap(ImGuiKey.Tab, GLFW_KEY_TAB);
@@ -99,8 +93,6 @@ public class InterfaceRenderer
         io.setKeyMap(ImGuiKey.Enter, GLFW_KEY_ENTER);
         io.setKeyMap(ImGuiKey.Escape, GLFW_KEY_ESCAPE);
         io.setKeyMap(ImGuiKey.KeyPadEnter, GLFW_KEY_KP_ENTER);
-        
-
     }
     
     private void createInterface(Window window)
@@ -116,6 +108,7 @@ public class InterfaceRenderer
         ImInt height = new ImInt();
         ByteBuffer buffer = fontAtlas.getTexDataAsRGBA32(width, height);
         atlasTexture = new Texture(width.get(), height.get(), buffer);
+        setKeyCallback();
         
         uniforms.createUniform("scale");
     }

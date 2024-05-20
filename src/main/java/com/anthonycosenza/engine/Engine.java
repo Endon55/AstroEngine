@@ -1,15 +1,11 @@
 package com.anthonycosenza.engine;
 
 import com.anthonycosenza.Project;
-import com.anthonycosenza.engine.space.rendering.CanvasRenderer;
-import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
-import com.anthonycosenza.engine.space.rendering.projection.Projection2d;
 import com.anthonycosenza.engine.space.rendering.Renderer;
-import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
-import com.anthonycosenza.engine.space.rendering.TextRenderer;
+import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.util.Constants;
 import imgui.ImGui;
 import imgui.ImGuiIO;
@@ -25,30 +21,21 @@ import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Engine
 {
     private boolean vsync = false;
-    private Window window;
+    private final Window window;
     private boolean running = true;
-    Projection3d projection3d;
-    Projection2d projection2d;
-    float zNear = .01f;
-    float zFar = 1000.0f;
-    float fov = 60;
-    Renderer renderer;
-    Input input;
-    Project project;
-    
-    float physicsUpdatesSecond = 60;
+    private final Projection projection;
+    private float zNear = .01f;
+    private float zFar = 1000.0f;
+    private float fov = 60;
+    private final Renderer renderer;
+    private final Input input;
+    private Project project;
+    private float physicsUpdatesSecond = 60;
     
     public Engine()
     {
@@ -57,66 +44,21 @@ public class Engine
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
-        projection3d = new Projection3d(fov, window.getWidth(), window.getHeight(), zNear, zFar);
-        projection2d = new Projection2d(window.getWidth(), window.getHeight());
+        projection = new Projection(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         
         renderer = new Renderer(window);
         input = new Input(window.getWindowHandle());
         EventBus.getDefault().register(this);
         project = new Project(window.getWidth(), window.getHeight());
-        
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
-        
         //Vsync is enabled by default, so we only ever have to disable it.
         if(!vsync)
         {
             glfwSwapInterval(0);
         }
-/*        Benchmark benchmark = new Benchmark(10,
-                () ->{
-            new Texture("resources/images/Ai Sasha.png", true);
-        },
-                () ->{
-                        new Texture("resources/images/Ai Sasha.png", false);
-        });
-        benchmark.test();*/
-        
     }
     
-    
-    
-    
-    private boolean handleGuiInput()
-    {
-        ImGuiIO io = ImGui.getIO();
-        io.setMousePos(input.getMousePosition().x(), input.getMousePosition().y());
-        io.setMouseDown(0, input.isLeftMouseButtonPressed());
-        io.setMouseDown(1, input.isRightMouseButtonPressed());
-        
-        return io.getWantCaptureMouse() || io.getWantCaptureKeyboard();
-    }
-    
-    private void resize(long windowHandle, int width, int height)
-    {
-        projection3d.resize(width, height);
-        projection2d.resize(width, height);
-        renderer.resize(width, height);
-    }
-    
-    private void systemDiagnostics(double fps)
-    {
-        ImGui.newFrame();
-        int windowFlags = 0;
-        windowFlags |= ImGuiWindowFlags.NoTitleBar;
-        windowFlags |= ImGuiWindowFlags.NoResize;
-        ImGui.setNextWindowPos(ImGui.getIO().getDisplaySizeX() - 40, 0, ImGuiCond.FirstUseEver);
-        ImGui.begin("Window", windowFlags);
-        ImGui.text("" + (((int)(fps * 1000)) / 1000));
-        ImGui.end();
-        ImGui.endFrame();
-        ImGui.render();
-    }
-    
+
     public void run()
     {
         running = true;
@@ -165,12 +107,14 @@ public class Engine
             float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
             
             handleGuiInput();
+            ImGui.newFrame();
             systemDiagnostics(Constants.NANOS_IN_SECOND / (double)frameTime);
             project.uiUpdate(delta, input);
+            ImGui.render();
             project.update(delta, input);
             //Renders the current scene giving it the delta since the last render call.
             
-            renderer.render(delta, project.getScene(), projection2d, projection3d);
+            renderer.render(delta, project.getScene(), projection);
             
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
             glfwSwapBuffers(window.getWindowHandle());
@@ -180,12 +124,41 @@ public class Engine
     }
     
     
+    private boolean handleGuiInput()
+    {
+        ImGuiIO io = ImGui.getIO();
+        io.setMousePos(input.getMousePosition().x(), input.getMousePosition().y());
+        io.setMouseDown(0, input.isLeftMouseButtonPressed());
+        io.setMouseDown(1, input.isRightMouseButtonPressed());
+        
+        return io.getWantCaptureMouse() || io.getWantCaptureKeyboard();
+    }
+    
+    
+    private void systemDiagnostics(double fps)
+    {
+        int windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags.NoTitleBar;
+        windowFlags |= ImGuiWindowFlags.NoResize;
+        ImGui.setNextWindowPos(ImGui.getIO().getDisplaySizeX() - 40, 0, ImGuiCond.FirstUseEver);
+        ImGui.begin("Window", windowFlags);
+        ImGui.text("" + (((int) (fps * 1000)) / 1000));
+        ImGui.end();
+        //ImGui.endFrame();
+    }
+    
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessage(MessageEvent event)
     {
         //System.out.println(event.message);
     }
-
+    
+    
+    private void resize(long windowHandle, int width, int height)
+    {
+        projection.resize(width, height);
+        renderer.resize(width, height);
+    }
     
     public void cleanup()
     {

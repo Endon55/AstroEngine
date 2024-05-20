@@ -2,19 +2,19 @@ package com.anthonycosenza.engine.space.rendering.projection;
 
 import com.anthonycosenza.engine.util.math.matrix.Matrix4;
 
-public class Projection3d
+public class Projection
 {
     private float fov;
     private float aspectRatio;
     private float zMin;
     private float zMax;
-    private Matrix4 projectionMatrix;
+    private final Matrix4 projectionMatrix;
     
     /**
      *
      * @param fovDegrees how wide the camera lens is and how much of the world it captures. Bigger captures more objects but makes everything smaller.
      */
-    public Projection3d(float fovDegrees, int width, int height, float zMin, float zMax)
+    public Projection(float fovDegrees, int width, int height, float zMin, float zMax)
     {
         this.fov = (float) Math.toRadians(fovDegrees);
         this.aspectRatio = (float) height / width;

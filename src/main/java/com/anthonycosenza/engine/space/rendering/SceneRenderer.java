@@ -1,35 +1,26 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.entity.Entity;
-import com.anthonycosenza.engine.space.rendering.projection.Projection3d;
+import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_FILL;
-import static org.lwjgl.opengl.GL11.GL_FRONT_AND_BACK;
-import static org.lwjgl.opengl.GL11.GL_LINE;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawElements;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glPolygonMode;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
 public class SceneRenderer
 {
-    private ShaderPipeline shaderPipeline;
-    private UniformMap uniforms;
+    private final ShaderPipeline shaderPipeline;
+    private final UniformMap uniforms;
     
     public SceneRenderer()
     {
@@ -49,7 +40,7 @@ public class SceneRenderer
     }
     
     
-    public void render(Scene scene, Projection3d projection)
+    public void render(Scene scene, Projection projection)
     {
         //https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

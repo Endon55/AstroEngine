@@ -3,19 +3,13 @@ package com.anthonycosenza;
 import com.anthonycosenza.engine.space.entity.Entity;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
-import com.anthonycosenza.engine.space.entity.texture.atlas.CanvasAtlas;
-import com.anthonycosenza.engine.space.entity.texture.atlas.FontAtlasGenerator;
 import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.input.Key;
 import com.anthonycosenza.engine.input.KeyAction;
-import com.anthonycosenza.engine.space.rendering.UI.Canvas;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
-import com.anthonycosenza.engine.loader.text.Font;
-import com.anthonycosenza.engine.util.math.Color;
 import imgui.ImGui;
-import imgui.flag.ImGuiCond;
 
 public class Project
 {
@@ -24,17 +18,10 @@ public class Project
     float moveSpeed = 1f;
     float rotationSpeed = 100;
     float mouseSensitivity = 100;
-    Font font;
     
     public Project(int width, int height)
     {
         scene = new Scene();
-/*        Model model = new Model(new Pyramid3(50, 30));
-        Entity entity = model.createEntity();
-        
-        entity.setPosition(0, 0, -50);
-        scene.add(entity);*/
-    
     
         Mesh mesh = ShapeBuilder.square(10, 10);
         //TextureAtlas atlas = FontAtlasGenerator.getAtlas(10, font);
@@ -53,7 +40,7 @@ public class Project
     
     public void uiUpdate(double delta, Input input)
     {
-
+        ImGui.showDemoWindow();
     }
     
     public void update(float delta, Input input)
