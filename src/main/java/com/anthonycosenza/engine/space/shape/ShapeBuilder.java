@@ -4,7 +4,31 @@ import com.anthonycosenza.engine.space.entity.Mesh;
 
 public class ShapeBuilder
 {
-    
+    public static Mesh plane(float width, float depth)
+    {
+        width /= 2f;
+        depth /= 2f;
+        float[] vertices = new float[]
+                {       //X, Y, Z
+                        -width, 0, -depth,
+                        -width, 0, depth,
+                        width, 0, -depth,
+                        width, 0, depth
+                };
+        int[] indices = new int[]
+                {
+                        0, 1, 2,
+                        2, 1, 3
+                };
+        float[] texture = new float[]
+                {       //X, Y
+                        0, 1,
+                        0, 0,
+                        1, 1,
+                        1, 0
+                };
+        return new Mesh(vertices, indices, texture);
+    }
     public static Mesh square(float width, float height)
     {
         width /= 2f;

@@ -36,6 +36,24 @@ public class Vector3
         return this;
     }
     
+    public Vector3 addX(float x)
+    {
+        this.x += x;
+        return this;
+    }
+    
+    public Vector3 addY(float y)
+    {
+        this.y += y;
+        return this;
+    }
+    
+    public Vector3 addZ(float z)
+    {
+        this.z += z;
+        return this;
+    }
+    
     public Vector3 getUnit()
     {
         float magnitude = (float) Math.sqrt(Math.fma(x, x, Math.fma(y, y, z * z)));
@@ -111,6 +129,23 @@ public class Vector3
         return z;
     }
     
+    public Vector3 x(float x)
+    {
+        this.x = x;
+        return this;
+    }
+    
+    public Vector3 y(float y)
+    {
+        this.y = y;
+        return this;
+    }
+    
+    public Vector3 z(float z)
+    {
+        this.z = z;
+        return this;
+    }
     @Override
     public String toString()
     {

@@ -91,6 +91,25 @@ public class Camera
         position.add(zAxisLocal);
         updateMatrix();
     }
+    
+    public void moveGlobalX(float distance)
+    {
+        position.addX(distance);
+        updateMatrix();
+    }
+    
+    public void moveGlobalY(float distance)
+    {
+        position.addY(distance);
+        updateMatrix();
+    }
+    
+    public void moveGlobalZ(float distance)
+    {
+        position.addZ(distance);
+        updateMatrix();
+    }
+    
     public Vector3 direction()
     {
         return new Vector3();

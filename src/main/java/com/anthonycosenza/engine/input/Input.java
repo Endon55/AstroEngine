@@ -100,6 +100,12 @@ public class Input
         return keys.get(key);
     }
     
+    public boolean isPressed(Key key)
+    {
+        KeyAction action = getState(key);
+        return action == KeyAction.PRESSED || action == KeyAction.REPEAT;
+    }
+    
     public boolean isLeftMouseButtonPressed()
     {
         return leftMouseButtonPressed;

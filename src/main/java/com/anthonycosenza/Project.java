@@ -23,12 +23,8 @@ public class Project
     {
         scene = new Scene();
     
-        Mesh mesh = ShapeBuilder.square(10, 10);
-        //TextureAtlas atlas = FontAtlasGenerator.getAtlas(10, font);
-        //TextureAtlas atlas = new TextureAtlas("resources/images/Ai Sasha.png");
-        //Model square = new Model(mesh, atlas.getTexture(100, 100, 200, 200));
+        Mesh mesh = ShapeBuilder.plane(1000, 1000);
         Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
-        //Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
         Entity entity = square.createEntity();
         entity.setPosition(0, 0, -10f);
         scene.add(entity);
@@ -40,7 +36,7 @@ public class Project
     
     public void uiUpdate(double delta, Input input)
     {
-        ImGui.showDemoWindow();
+        //ImGui.showDemoWindow();
     }
     
     public void update(float delta, Input input)
@@ -49,21 +45,29 @@ public class Project
         float deltaSpeed = (moveSpeed * delta);
         if(sprint) deltaSpeed *= 2f;
         
-        if(input.getState(Key.A) == KeyAction.PRESSED || input.getState(Key.A) == KeyAction.REPEAT)
+        if(input.isPressed(Key.A))
         {
             scene.getCamera().moveLocalX(-deltaSpeed);
         }
-        if(input.getState(Key.D) == KeyAction.PRESSED || input.getState(Key.D) == KeyAction.REPEAT)
+        if(input.isPressed(Key.D))
         {
             scene.getCamera().moveLocalX(deltaSpeed);
         }
-        if(input.getState(Key.W) == KeyAction.PRESSED || input.getState(Key.W) == KeyAction.REPEAT)
+        if(input.isPressed(Key.W))
         {
             scene.getCamera().moveLocalZ(deltaSpeed);
         }
-        if(input.getState(Key.S) == KeyAction.PRESSED || input.getState(Key.S) == KeyAction.REPEAT)
+        if(input.isPressed(Key.S))
         {
             scene.getCamera().moveLocalZ(-deltaSpeed);
+        }
+        if(input.isPressed(Key.C))
+        {
+            scene.getCamera().moveGlobalY(-deltaSpeed);
+        }
+        if(input.isPressed(Key.SPACE))
+        {
+            scene.getCamera().moveGlobalY(deltaSpeed);
         }
     
         if(!input.isCursorStale() && input.isMouseLocked())
