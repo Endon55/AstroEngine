@@ -30,7 +30,7 @@ public class Engine
     private boolean running = true;
     private final Projection projection;
     private float zNear = .01f;
-    private float zFar = 1000.0f;
+    private float zFar = 3000.0f;
     private float fov = 60;
     private final Renderer renderer;
     private final Input input;

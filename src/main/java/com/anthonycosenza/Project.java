@@ -9,15 +9,22 @@ import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.input.Key;
 import com.anthonycosenza.engine.input.KeyAction;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
-import imgui.ImGui;
+import com.anthonycosenza.engine.util.math.EngineMath;
 
 public class Project
 {
     Scene scene;
     float rotation = 0;
-    float moveSpeed = 1f;
+    float moveSpeed = 10f;
+    final float minMoveSpeed = 10f;
+    final float maxMoveSpeed = 1000f;
+    final float moveSpeedIncrement = 2f;
+    
     float rotationSpeed = 100;
     float mouseSensitivity = 100;
+    final float minMouseSensitivity = 0;
+    final float maxMouseSensitivity = 1000;
+    final float mouseIncrement = 10;
     
     public Project(int width, int height)
     {
@@ -31,8 +38,6 @@ public class Project
         
 
     }
-    
-    
     
     public void uiUpdate(double delta, Input input)
     {
@@ -61,15 +66,24 @@ public class Project
         {
             scene.getCamera().moveLocalZ(-deltaSpeed);
         }
-        if(input.isPressed(Key.C))
-        {
-            scene.getCamera().moveGlobalY(-deltaSpeed);
-        }
+        //Up
         if(input.isPressed(Key.SPACE))
         {
             scene.getCamera().moveGlobalY(deltaSpeed);
         }
+        //Down
+        if(input.isPressed(Key.C))
+        {
+            scene.getCamera().moveGlobalY(-deltaSpeed);
+        }
+
     
+        if(input.getScrollPosition() != 0)
+        {
+            moveSpeed += moveSpeedIncrement * input.getScrollPosition();
+            moveSpeed = EngineMath.clamp(moveSpeed, minMoveSpeed, maxMoveSpeed);
+        }
+        
         if(!input.isCursorStale() && input.isMouseLocked())
         {
             float mouseDelta = mouseSensitivity * delta;

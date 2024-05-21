@@ -32,6 +32,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 
 public class Input
@@ -46,6 +47,7 @@ public class Input
     private boolean cursorStale;
     private long windowID;
     private MouseType mouseType;
+    private int scrollPosition;
     
     
     public Input(long windowID)
@@ -56,6 +58,7 @@ public class Input
         glfwSetCursorPosCallback(windowID, this::mouseCursorCallback);
         glfwSetCursorEnterCallback(windowID, this::mouseEnterCallback);
         glfwSetCharCallback(windowID, this::characterCallback);
+        glfwSetScrollCallback(windowID, this::scrollCallback);
         keys = new HashMap<>();
     
         for(Key key : Key.values())
@@ -68,10 +71,13 @@ public class Input
         
         mouseInWindow = true;
         cursorStale = false;
+        scrollPosition = 0;
         setMouseType(MouseType.DISABLED);
         EventBus.getDefault().register(this);
         resetMouse();
     }
+    
+
     public boolean isMouseLocked()
     {
         return mouseType == MouseType.DISABLED;
@@ -93,6 +99,11 @@ public class Input
     public Vector2 getMousePosition()
     {
         return currentMousePosition;
+    }
+    
+    public int getScrollPosition()
+    {
+        return scrollPosition;
     }
     
     public KeyAction getState(Key key)
@@ -129,6 +140,7 @@ public class Input
     public void resetFrame()
     {
         cursorStale = true;
+        scrollPosition = 0;
     }
     
     private void keyCallback(long handle, int key, int scancode, int action, int mods)
@@ -228,4 +240,15 @@ public class Input
     {
         mouseInWindow = entered;
     }
+    
+    /*
+     * xOffset doesn't appear to do anything, it might be pushing the mouse wheel left or right as a button, idk.
+     */
+    private void scrollCallback(long handle, double xOffset, double yOffset)
+    {
+        scrollPosition += (int) yOffset;
+        //System.out.println("xOffset: " + xOffset);
+        //System.out.println("yOffset: " + yOffset);
+    }
+    
 }

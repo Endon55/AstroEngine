@@ -24,4 +24,15 @@ public class EngineMath
         return Math.log(number) / Math.log(2);
     }
     
+    
+    public static int clamp(int value, int lowerBound, int upperBound)
+    {
+        return Math.max(Math.min(value, upperBound), lowerBound);
+    }
+    
+    public static float clamp(float value, float lowerBound, float upperBound)
+    {
+        return Math.max(Math.min(value, upperBound), lowerBound);
+    }
+    
 }
