@@ -123,7 +123,7 @@ public class Camera
                 //Essentially what we're doing here is
                 // <<--------------------------------------<<
                 // translation * rotationZ * rotationY * rotationX
-                .rotateX(rotation.x()).rotateY(rotation.y()).rotateZ(rotation.z())
+                .rotateX(rotation.x()).rotateY(rotation.y()).rotateZ(-rotation.z())
                 .translate(-position.x(), -position.y(), position.z())
                 //Then once ive calculated what the matrix should look like, I extract the vectors that point in the x, y, and z axis relative to the cameras current rotation,
                 // not relative to the global axis.

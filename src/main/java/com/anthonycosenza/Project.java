@@ -1,5 +1,6 @@
 package com.anthonycosenza;
 
+import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.entity.Entity;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
@@ -30,12 +31,17 @@ public class Project
     {
         scene = new Scene();
     
-        Mesh mesh = ShapeBuilder.plane(1000, 1000);
+        /*Mesh mesh = ShapeBuilder.plane(1000, 1000);
         Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
         Entity entity = square.createEntity();
         entity.setPosition(0, 0, -10f);
         scene.add(entity);
+        scene.getCamera().setPosition(0, 50, 0);*/
         
+        Model cube = ModelLoader.loadModel("resources/assets/cube/cube.obj", 0);
+        Entity cubeE = cube.createEntity();
+        //cubeE.setPosition(0, -50, -200);
+        scene.add(cubeE);
 
     }
     

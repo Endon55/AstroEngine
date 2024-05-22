@@ -1,6 +1,9 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.entity.Entity;
+import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.entity.texture.Material;
+import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
@@ -31,7 +34,9 @@ public class SceneRenderer
         uniforms.createUniform("projectionMatrix");
         uniforms.createUniform("cameraMatrix");
         uniforms.createUniform("entityMatrix");
+        uniforms.createUniform("hasTexture");
         uniforms.createUniform("textureSampler");
+        uniforms.createUniform("material.diffuse");
         
         //The color that the window frame gets cleared to right before a new frame is rendered.
         glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
@@ -52,13 +57,28 @@ public class SceneRenderer
         
         for(Entity entity : scene.getEntities())
         {
-            entity.getModel().getMesh().bind();
-            glActiveTexture(0);
-            entity.getModel().getTexture().bind();
-            uniforms.setUniform("entityMatrix", entity.getMatrix());
-            
-            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawElements(GL_TRIANGLES, entity.getModel().getMesh().getVertexCount(), GL_UNSIGNED_INT, 0);
+            for(Material material : entity.getModel().getMaterials())
+            {
+                uniforms.setUniform("material.diffuse", material.getDiffuseColor());
+                Texture texture = material.getTexture();
+                if(texture != null)
+                {
+                    uniforms.setUniform("hasTexture", 1);
+                    texture.bind();
+                    glActiveTexture(0);
+                }
+                else uniforms.setUniform("hasTexture", 0);
+                
+                for(Mesh mesh : material.getMeshes())
+                {
+                    mesh.bind();
+                    uniforms.setUniform("entityMatrix", entity.getMatrix());
+        
+                    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                    glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);
+                }
+            }
+
         }
     
     

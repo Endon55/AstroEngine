@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.space.entity;
 
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
@@ -29,8 +30,13 @@ public class Mesh
     
     int vertexCount;
     
-    public Mesh(float[] vertices, int[] indices, float[] textureVertices)
+    public Mesh(float[] vertices, int[] indices, float[] textureCoordinates)
     {
+        if(textureCoordinates.length == 0)
+        {
+            textureCoordinates = new float[(vertices.length / 3) * 2];
+        }
+        
         this.vertexCount = indices.length;
         vboIDs = new ArrayList<>();
         //Keeps track of all registered vbos to properly delete them.
@@ -63,8 +69,8 @@ public class Mesh
     
             vbo = glGenBuffers();
             vboIDs.add(vbo);
-            FloatBuffer textureBuffer = stack.callocFloat(textureVertices.length);
-            textureBuffer.put(0, textureVertices);
+            FloatBuffer textureBuffer = stack.callocFloat(textureCoordinates.length);
+            textureBuffer.put(0, textureCoordinates);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
             glEnableVertexAttribArray(1);
