@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.util.math.matrix;
 
+import com.anthonycosenza.engine.util.math.quaternion.Quaternion;
 import com.anthonycosenza.engine.util.math.vector.Vector3;
 import com.anthonycosenza.engine.util.math.vector.Vector4;
 import com.anthonycosenza.engine.util.math.vector.Vector2;
@@ -87,6 +88,65 @@ public class Matrix4 implements IMatrix
         m22(matrix.m22());
         
         return this;
+    }
+    
+    
+    public Matrix4 translateRotateScale(Vector3 translation, Quaternion rotation, Vector3 scale)
+    {
+        return translateRotateScale(
+                translation.x(), translation.y(), translation.z(),
+                rotation.x(), rotation.y(), rotation.z(), rotation.w(),
+                scale.x(), scale.y(), scale.z());
+    }
+    
+    public Matrix4 translateRotateScale(float tx, float ty, float tz, float qx, float qy, float qz, float qw, float sx, float sy, float sz)
+    {
+        float dqx = qx + qx;
+        float dqy = qy + qy;
+        float dqz = qz + qz;
+        float q00 = dqx * qx;
+        float q11 = dqy * qy;
+        float q22 = dqz * qz;
+        float q01 = dqx * qy;
+        float q02 = dqx * qz;
+        float q03 = dqx * qw;
+        float q12 = dqy * qz;
+        float q13 = dqy * qw;
+        float q23 = dqz * qw;
+/*        return this
+                .m00(sx - (q11 + q22) * qx)
+                .m01((q01 + q23) * sx)
+                .m02((q02 - q13) * sx)
+                .m03(0.0f)
+                .m10((q01 - q23) * sy)
+                .m11(sy - (q22 + q00) * sy)
+                .m12((q12 + q03) * sy)
+                .m13(0.0f)
+                .m20((q02 + q13) * sz)
+                .m21((q12 - q03) * sz)
+                .m22(sz - (q11 + q00) * sz)
+                .m23(0.0f)
+                .m30(tx)
+                .m13(ty)
+                .m23(tz)
+                .m33(1.0f);*/
+                 return this
+                .m00(sx - (q11 + q22) * qx)
+                .m10((q01 + q23) * sx)
+                .m20((q02 - q13) * sx)
+                .m30(0.0f)
+                .m01((q01 - q23) * sy)
+                .m11(sy - (q22 + q00) * sy)
+                .m21((q12 + q03) * sy)
+                .m31(0.0f)
+                .m02((q02 + q13) * sz)
+                .m12((q12 - q03) * sz)
+                .m22(sz - (q11 + q00) * sz)
+                .m32(0.0f)
+                .m03(tx)
+                .m13(ty)
+                .m23(tz)
+                .m33(1.0f);
     }
     
     public Matrix4 rotate(Vector2 angle)

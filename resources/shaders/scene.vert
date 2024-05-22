@@ -16,8 +16,7 @@ void main()
     //Then the camera vector is sent into a projection matrix which distorts the position of the points to give the illusion of distance.(further objects look smaller).
     //       pinhole camera <- camera position <- entity position <- model coordinates
 
-    //gl_Position = vec4(inPosition, 1.0) * entityMatrix * projectionMatrix;
     gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
-    //gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
+
     outTextureCoordinate = textureCoordinate;
 }

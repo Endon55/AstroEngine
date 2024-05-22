@@ -54,6 +54,29 @@ public class Vector4
         return w;
     }
     
+    public Vector4 x(float x)
+    {
+        this.x = x;
+        return this;
+    }
+    
+    public Vector4 y(float y)
+    {
+        this.y = y;
+        return this;
+    }
+    
+    public Vector4 z(float z)
+    {
+        this.z = z;
+        return this;
+    }
+    
+    public Vector4 w(float w)
+    {
+        this.w = w;
+        return this;
+    }
     
     @Override
     public String toString()

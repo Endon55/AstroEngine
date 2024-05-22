@@ -24,8 +24,8 @@ public class Project
     final float maxMoveSpeed = 1000f;
     final float moveSpeedIncrement = 2f;
     
-    float rotationSpeed = 1000;
-    float mouseSensitivity = 100;
+    float rotationSpeed = 100;
+    float mouseSensitivity = 20;
     final float minMouseSensitivity = 0;
     final float maxMouseSensitivity = 1000;
     final float mouseIncrement = 10;
@@ -43,7 +43,7 @@ public class Project
         
         Model cube = ModelLoader.loadModel("resources/assets/boat/BoatFBX.fbx", 0);
         Entity cubeE = cube.createEntity();
-        cubeE.setPosition(0, 0, -20);
+        cubeE.setPosition(0, 0, 00);
         scene.add(cubeE);
 
     }
@@ -69,11 +69,11 @@ public class Project
         }
         if(input.isPressed(Key.W))
         {
-            scene.getCamera().moveLocalZ(deltaSpeed);
+            scene.getCamera().moveLocalZ(-deltaSpeed);
         }
         if(input.isPressed(Key.S))
         {
-            scene.getCamera().moveLocalZ(-deltaSpeed);
+            scene.getCamera().moveLocalZ(deltaSpeed);
         }
         //Up
         if(input.isPressed(Key.SPACE))
@@ -102,7 +102,7 @@ public class Project
     public void physicsUpdate(float delta, Input input)
     {
         rotation += rotationSpeed * delta;
-        rotation = rotation % 360;
+        //rotation = rotation % 360;
         
         for(Entity entity : scene.getEntities())
         {
