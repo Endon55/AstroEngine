@@ -11,6 +11,9 @@ import com.anthonycosenza.engine.input.Key;
 import com.anthonycosenza.engine.input.KeyAction;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
 import com.anthonycosenza.engine.util.math.EngineMath;
+import org.lwjgl.assimp.AIPropertyStore;
+import org.lwjgl.assimp.AIScene;
+import org.lwjgl.assimp.Assimp;
 
 public class Project
 {
@@ -21,7 +24,7 @@ public class Project
     final float maxMoveSpeed = 1000f;
     final float moveSpeedIncrement = 2f;
     
-    float rotationSpeed = 100;
+    float rotationSpeed = 1000;
     float mouseSensitivity = 100;
     final float minMouseSensitivity = 0;
     final float maxMouseSensitivity = 1000;
@@ -38,9 +41,9 @@ public class Project
         scene.add(entity);
         scene.getCamera().setPosition(0, 50, 0);*/
         
-        Model cube = ModelLoader.loadModel("resources/assets/cube/cube.obj", 0);
+        Model cube = ModelLoader.loadModel("resources/assets/boat/BoatFBX.fbx", 0);
         Entity cubeE = cube.createEntity();
-        //cubeE.setPosition(0, -50, -200);
+        cubeE.setPosition(0, 0, -20);
         scene.add(cubeE);
 
     }
@@ -101,9 +104,9 @@ public class Project
         rotation += rotationSpeed * delta;
         rotation = rotation % 360;
         
-        for(Entity entity1 : scene.getEntities())
+        for(Entity entity : scene.getEntities())
         {
-            //entity1.rotate(1, 1, 1, rotation);
+            entity.rotate(1, 1, 1, rotation);
         }
 
     }

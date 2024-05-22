@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.space.entity;
 
 import com.anthonycosenza.engine.util.math.matrix.Matrix4;
+import com.anthonycosenza.engine.util.math.vector.Vector3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -8,7 +9,7 @@ public class Entity
 {
     private Model model;
     private Matrix4 entityMatrix;
-    private Vector3f position;
+    private Vector3 position;
     //We use a quaternion to store rotation as it prevents "Gimbal Lock" essentially if 2 axis have the same value they get locked into place and the math can't break them out.
     //Quaternions are like 4d imaginary numbers, for some reason that's well beyond my paygrade it makes it much easier to track rotation with quats.
     private Quaternionf rotation;
@@ -18,13 +19,13 @@ public class Entity
     {
         this.model = model;
         entityMatrix = new Matrix4();
-        position = new Vector3f();
+        position = new Vector3();
         rotation = new Quaternionf();
         scale = 1f;
         updateMatrix();
     }
     
-    public void setPosition(Vector3f position)
+    public void setPosition(Vector3 position)
     {
         this.position = position;
         updateMatrix();

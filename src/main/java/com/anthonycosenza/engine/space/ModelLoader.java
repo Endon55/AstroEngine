@@ -15,6 +15,7 @@ import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AIScene;
 import org.lwjgl.assimp.AIString;
 import org.lwjgl.assimp.AIVector3D;
+import org.lwjgl.assimp.Assimp;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.File;
@@ -32,8 +33,12 @@ import static org.lwjgl.assimp.Assimp.aiTextureType_NONE;
 
 public class ModelLoader
 {
+    /*
+     * Set triangulate flag which converts all faces into triangles.
+     */
     public static Model loadModel(String modelPath, int flags)
     {
+        flags |= Assimp.aiProcess_Triangulate;
         File file = new File(modelPath);
         if(!file.exists())
         {
@@ -52,7 +57,6 @@ public class ModelLoader
             AIMaterial aiMaterial = AIMaterial.create(aiScene.mMaterials().get(i));
             materials.add(processMaterial(aiMaterial, parentDirectory));
         }
-        
         PointerBuffer mMeshes = aiScene.mMeshes();
         Material defaultMaterial = new Material();
         for(int i = 0; i < aiScene.mNumMeshes(); i++)
@@ -152,25 +156,25 @@ public class ModelLoader
      * we only define a vertex once and reference it multiple times using its index.
      * Indices are 3 values that each correspond to an index in the vertex array.
      *
-     * A face can be a triangle or a quad, we can't know ahead of time to pre-size an array.
-     *
+     * A face can be any sized polygon, we force the triangulation flag so that it's a proper triangle.
      *
      */
     private static int[] extractIndices(AIMesh aiMesh)
     {
-        List<Integer> indices = new ArrayList<>();
         int numFaces = aiMesh.mNumFaces();
         AIFace.Buffer aiFaces = aiMesh.mFaces();
+        int[] indices = new int[numFaces * 3];
+        int pointer = 0;
         for(int i = 0; i < numFaces; i++)
         {
             AIFace aiFace = aiFaces.get(i);
             IntBuffer buffer = aiFace.mIndices();
             while(buffer.remaining() > 0)
             {
-                indices.add(buffer.get());
+                indices[pointer++] = buffer.get();
             }
         }
-        return indices.stream().mapToInt(Integer::intValue).toArray();
+        return indices;
     }
     
 }
