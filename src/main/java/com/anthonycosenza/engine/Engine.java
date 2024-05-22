@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine;
 
 import com.anthonycosenza.Project;
+import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
@@ -15,6 +16,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.system.Configuration;
 
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
@@ -25,7 +27,8 @@ import static org.lwjgl.opengl.GL11.glEnable;
 
 public class Engine
 {
-    private boolean vsync = false;
+    private final Project project;
+    private final ProjectSettings settings;
     private final Window window;
     private boolean running = true;
     private final Projection projection;
@@ -34,25 +37,37 @@ public class Engine
     private float fov = 60;
     private final Renderer renderer;
     private final Input input;
-    private Project project;
     private float physicsUpdatesSecond = 60;
     
-    public Engine()
+    public Engine(Project project)
     {
-        window = new Window("AstroEngine", 1920, 1080, vsync);
+        this.project = project;
+        this.settings = project.getSettings();
+        
+        /*
+         * LWJGL Config settings.
+         */
+        Configuration.STACK_SIZE.set(settings.lwjglStackSize);
+    
+    
+        
+        window = new Window(project.getProjectName(), settings);
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
-        projection = new Projection(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         
+        projection = new Projection(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         renderer = new Renderer(window);
         input = new Input(window.getWindowHandle());
+        
         EventBus.getDefault().register(this);
-        project = new Project(window.getWidth(), window.getHeight());
+        project.initialize(window.getWidth(), window.getHeight());
+        
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
+        
         //Vsync is enabled by default, so we only ever have to disable it.
-        if(!vsync)
+        if(!settings.vsync)
         {
             glfwSwapInterval(0);
         }
@@ -94,13 +109,13 @@ public class Engine
                 {
                     //Update physics with an entire timestep
                     //Delta is the number of seconds to advance the physics simulation.
-                    project.physicsUpdate(updateTime, input);
+                    project.updatePhysics(updateTime, input);
                     accumulator -= updateInterval;
                 }
                 else
                 {
                     //Update the physics with a fractional component. Accumulator should be a decimal value less than 1 and we want to get how many nanos that is
-                    project.physicsUpdate((float)(accumulator / Constants.NANOS_IN_SECOND), input);
+                    project.updatePhysics((float)(accumulator / Constants.NANOS_IN_SECOND), input);
                     accumulator = 0;
                 }
             }
@@ -156,8 +171,13 @@ public class Engine
     
     private void resize(long windowHandle, int width, int height)
     {
+        window.resize(width, height);
+        
         projection.resize(width, height);
         renderer.resize(width, height);
+        
+        settings.width = width;
+        settings.height = height;
     }
     
     public void cleanup()

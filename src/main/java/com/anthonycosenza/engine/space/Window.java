@@ -1,7 +1,9 @@
 package com.anthonycosenza.engine.space;
 
 import com.anthonycosenza.engine.util.Constants;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.system.MemoryUtil;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -13,9 +15,13 @@ import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
 import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
+import static org.lwjgl.glfw.GLFW.glfwGetMonitorPos;
+import static org.lwjgl.glfw.GLFW.glfwGetMonitors;
+import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
@@ -23,12 +29,15 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 public class Window
 {
-    private long windowHandle;
+    private final long windowHandle;
     private int width;
     private int height;
     
-    public Window(String windowTitle, int width, int height, boolean vSync)
+    public Window(String windowTitle, ProjectSettings settings)
     {
+        int[] arrWidth = new int[1];
+        int[] arrHeight = new int[1];
+        
         //Clears any previous instances of GLFW initializes
         if(!glfwInit())
         {
@@ -37,6 +46,13 @@ public class Window
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Constants.OPENGL_MAJOR_VERSION);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Constants.OPENGL_MINOR_VERSION);
     
+        //Get the x,y coordiantes for the specific monitor chosen
+        PointerBuffer monitors = glfwGetMonitors();
+        GLFWVidMode videoMode = glfwGetVideoMode(monitors.get(settings.monitor));
+        glfwGetMonitorPos(monitors.get(settings.monitor), arrWidth, arrHeight);
+        int monitorX = arrWidth[0];
+        int monitorY = arrHeight[0];
+        
         //Initializes all window hints to their default values.
         glfwDefaultWindowHints();
         //For all window options - https://javadoc.lwjgl.org/org/lwjgl/glfw/GLFW.html#enum-values--heading17
@@ -44,28 +60,32 @@ public class Window
         //Sets window resizable mode
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         
-        windowHandle = glfwCreateWindow(width, height, windowTitle, MemoryUtil.NULL, MemoryUtil.NULL);
+        windowHandle = glfwCreateWindow(settings.width, settings.height, windowTitle, MemoryUtil.NULL, MemoryUtil.NULL);
     
         glfwMakeContextCurrent(windowHandle);
-    
+        
         if(windowHandle == MemoryUtil.NULL)
         {
             throw new RuntimeException("Failed to create window handle.");
         }
         //Add an error callback that prints to the system error stream.
         GLFWErrorCallback.createPrint(System.err).set();
-        
+    
         glfwShowWindow(windowHandle);
         
+        
+        
         //We set our preferred width and height when we initialized the window, now we're getting the "actual" width and height that GLFW was able to set
-        int[] arrWidth = new int[1];
-        int[] arrHeight = new int[1];
         glfwGetFramebufferSize(windowHandle, arrWidth, arrHeight);
         this.width = arrWidth[0];
         this.height = arrHeight[0];
+        
+        settings.width = width;
+        settings.height = height;
+    
+        //Once everything is initialized properly, we center the window.
+        glfwSetWindowPos(windowHandle, monitorX + (videoMode.width() - this.width) / 2, monitorY + (videoMode.height() - this.height) / 2);
     }
-    
-    
     
     public long getWindowHandle()
     {
@@ -87,9 +107,10 @@ public class Window
         return height;
     }
     
-    public void update()
+    public void resize(int width, int height)
     {
-    
+        this.width = width;
+        this.height = height;
     }
     
     public void cleanup()
