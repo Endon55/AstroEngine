@@ -55,7 +55,8 @@ public abstract class Project
     }
     abstract public void settings(ProjectSettings settings);
     abstract public void initialize(int width, int height);
-    abstract public void uiUpdate(double delta, Input input);
-    abstract public void update(float delta, Input input);
-    abstract public void updatePhysics(float delta, Input input);
+    
+    abstract public void uiUpdate(float delta, Scene scene, Input input);
+    abstract public void update(float delta, Scene scene, Input input);
+    abstract public void updatePhysics(float delta, Scene scene, Input input);
 }

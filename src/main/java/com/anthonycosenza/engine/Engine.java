@@ -6,6 +6,7 @@ import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.space.rendering.Renderer;
+import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.util.Constants;
 import imgui.ImGui;
@@ -62,7 +63,7 @@ public class Engine
         input = new Input(window.getWindowHandle());
         
         EventBus.getDefault().register(this);
-        project.initialize(window.getWidth(), window.getHeight());
+        this.project.initialize(window.getWidth(), window.getHeight());
         
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
         
@@ -98,6 +99,8 @@ public class Engine
             //Enables the window to be interacted with by checking for and processing events and summoning the relevant callbacks.
             glfwPollEvents();
             
+            Scene scene = project.getScene();
+            
             //Don't wake up the physics simulation for less this much of a frame
             //We do this so that the physics simulation smooths out compared to the rendering
             while(accumulator >= updateInterval * 1)
@@ -109,13 +112,13 @@ public class Engine
                 {
                     //Update physics with an entire timestep
                     //Delta is the number of seconds to advance the physics simulation.
-                    project.updatePhysics(updateTime, input);
+                    project.updatePhysics(updateTime, scene, input);
                     accumulator -= updateInterval;
                 }
                 else
                 {
                     //Update the physics with a fractional component. Accumulator should be a decimal value less than 1 and we want to get how many nanos that is
-                    project.updatePhysics((float)(accumulator / Constants.NANOS_IN_SECOND), input);
+                    project.updatePhysics((float)(accumulator / Constants.NANOS_IN_SECOND), scene, input);
                     accumulator = 0;
                 }
             }
@@ -124,9 +127,9 @@ public class Engine
             handleGuiInput();
             ImGui.newFrame();
             systemDiagnostics(Constants.NANOS_IN_SECOND / (double)frameTime);
-            project.uiUpdate(delta, input);
+            project.uiUpdate(delta, scene, input);
             ImGui.render();
-            project.update(delta, input);
+            project.update(delta, scene, input);
             //Renders the current scene giving it the delta since the last render call.
             
             renderer.render(delta, project.getScene(), projection);

@@ -41,8 +41,8 @@ public class Main extends Project
     
     public void initialize(int width, int height)
     {
-        
-        scene = new Scene();
+        Scene scene = new Scene();
+        addScene(scene);
     
         /*Mesh mesh = ShapeBuilder.plane(1000, 1000);
         Model square = new Model(mesh, new Texture("resources/images/Ai Sasha.png"));
@@ -57,12 +57,12 @@ public class Main extends Project
         scene.add(cubeE);
     }
     
-    public void uiUpdate(double delta, Input input)
+    public void uiUpdate(float delta, Scene scene, Input input)
     {
         //ImGui.showDemoWindow();
     }
     
-    public void update(float delta, Input input)
+    public void update(float delta, Scene scene, Input input)
     {
         boolean sprint = input.getState(Key.LEFT_SHIFT) == KeyAction.PRESSED || input.getState(Key.RIGHT_SHIFT) == KeyAction.PRESSED;
         float deltaSpeed = (moveSpeed * delta);
@@ -110,7 +110,7 @@ public class Main extends Project
         }
     }
     
-    public void updatePhysics(float delta, Input input)
+    public void updatePhysics(float delta, Scene scene, Input input)
     {
         rotation += rotationSpeed * delta;
         //rotation = rotation % 360;
