@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.space.rendering;
 
-import com.anthonycosenza.engine.space.entity.Entity;
+import com.anthonycosenza.engine.space.entity.EntityInstance;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.texture.Material;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
@@ -55,9 +55,9 @@ public class SceneRenderer
         uniforms.setUniform("cameraMatrix", scene.getCamera().getMatrix());
         uniforms.setUniform("textureSampler", 0);
         
-        for(Entity entity : scene.getEntities())
+        for(EntityInstance entityInstance : scene.getInstances())
         {
-            for(Material material : entity.getModel().getMaterials())
+            for(Material material : entityInstance.getModel().getMaterials())
             {
                 uniforms.setUniform("material.diffuse", material.getDiffuseColor());
                 Texture texture = material.getTexture();
@@ -72,7 +72,7 @@ public class SceneRenderer
                 for(Mesh mesh : material.getMeshes())
                 {
                     mesh.bind();
-                    uniforms.setUniform("entityMatrix", entity.getMatrix());
+                    uniforms.setUniform("entityMatrix", entityInstance.getTransformation());
         
                     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                     glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);

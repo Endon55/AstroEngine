@@ -1,14 +1,14 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.Camera;
-import com.anthonycosenza.engine.space.entity.Entity;
+import com.anthonycosenza.engine.space.entity.EntityInstance;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Scene
 {
-    private final List<Entity> entities;
+    private final List<EntityInstance> entities;
     private final Camera camera;
     
     
@@ -23,14 +23,14 @@ public class Scene
         return camera;
     }
     
-    public List<Entity> getEntities()
+    public List<EntityInstance> getInstances()
     {
         return entities;
     }
     
-    public void add(Entity entity)
+    public void add(EntityInstance instance)
     {
-        entities.add(entity);
+        entities.add(instance);
     }
     
     

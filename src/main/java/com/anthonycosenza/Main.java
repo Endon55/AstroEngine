@@ -53,8 +53,12 @@ public class Main extends Project
         
         Model cube = ModelLoader.loadModel("AstroEngine/resources/assets/boat/BoatFBX.fbx", 0);
         Entity cubeE = cube.createEntity();
-        cubeE.setPosition(0, 0, 0);
-        scene.add(cubeE);
+        
+        scene.add(cubeE.spawnInstance());
+        scene.add(cubeE.spawnInstance(20, 50, 100));
+        scene.add(cubeE.spawnInstance(-20, 50, 100));
+        scene.add(cubeE.spawnInstance(20, -50, 100));
+        scene.add(cubeE.spawnInstance(-20, -50, 100));
     }
     
     public void uiUpdate(float delta, Scene scene, Input input)
@@ -115,10 +119,10 @@ public class Main extends Project
         rotation += rotationSpeed * delta;
         //rotation = rotation % 360;
         
-        for(Entity entity : scene.getEntities())
+        /*for(Entity entity : scene.getEntities())
         {
             entity.rotate(1, 1, 1, rotation);
-        }
+        }*/
         
     }
     

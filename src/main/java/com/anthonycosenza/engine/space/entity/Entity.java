@@ -1,65 +1,55 @@
 package com.anthonycosenza.engine.space.entity;
 
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
-import com.anthonycosenza.engine.util.math.quaternion.Quaternion;
-import com.anthonycosenza.engine.util.math.vector.Vector3;
-import org.joml.Matrix4f;
+import com.anthonycosenza.engine.space.rendering.shader.Shader;
+import com.anthonycosenza.engine.space.rendering.shader.Shaders;
+import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 public class Entity
 {
     private Model model;
-    private Matrix4f entityMatrix;
     private Vector3f position;
     //We use a quaternion to store rotation as it prevents "Gimbal Lock" essentially if 2 axis have the same value they get locked into place and the math can't break them out.
     //Quaternions are like 4d imaginary numbers, for some reason that's well beyond my paygrade it makes it much easier to track rotation with quats.
     private Quaternionf rotation;
     private Vector3f scale;
+    private ShaderPipeline shaderPipeline;
     
     public Entity(Model model)
     {
         this.model = model;
-        entityMatrix = new Matrix4f();
         position = new Vector3f(0, 0, 0);
         rotation = new Quaternionf();
         scale = new Vector3f(1, 1, 1);
-        updateMatrix();
+        shaderPipeline = Shaders.DEFAULT_SHADER_PIPELINE;
     }
     
-    public void setPosition(Vector3f position)
+    public void setShader(List<Shader> shaders)
     {
-        this.position = position;
-        updateMatrix();
+        shaderPipeline = Shaders.BUILD_SHADER_PIPELINE(shaders);
     }
-    
-    public void setPosition(float x, float y, float z)
-    {
-        this.position.x = x;
-        this.position.y = y;
-        this.position.z = z;
-        updateMatrix();
-    }
-    public void rotate(float x, float y, float z, float angleDeg)
-    {
-        rotation.fromAxisAngleDeg(x, y, z, angleDeg);
-        updateMatrix();
-    }
-    
+
     public Model getModel()
     {
         return model;
     }
     
-    public Matrix4f getMatrix()
+    public EntityInstance spawnInstance()
     {
-        return entityMatrix;
+        return new EntityInstance(model, position, rotation, scale, shaderPipeline);
     }
     
-    
-    public void updateMatrix()
+    public EntityInstance spawnInstance(float xPos, float yPos, float zPos)
     {
-        entityMatrix.translationRotateScale(position, rotation, scale);
-        //entityMatrix.m03(position.x).m13(position.y).m23(position.z);
+        return new EntityInstance(model, position.x() + xPos, position.y() + yPos, position.z() + zPos, rotation.x(), rotation.y(), rotation.z(), rotation.w(), scale.x(), scale.y(), scale.z(), shaderPipeline);
     }
+    
+    public EntityInstance spawnInstance(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation)
+    {
+        return new EntityInstance(model, position.x() + xPos, position.y() + yPos, position.z() + zPos, rotation.x() + xRotation, rotation.y() + yRotation, rotation.z() + zRotation, rotation.w(), scale.x(), scale.y(), scale.z(), shaderPipeline);
+    }
+
 }

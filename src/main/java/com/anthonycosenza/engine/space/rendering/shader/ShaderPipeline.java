@@ -25,6 +25,7 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 public class ShaderPipeline
 {
     private final int programID;
+    private final UniformMap uniforms;
     
     public ShaderPipeline(ShaderData... shaders)
     {
@@ -48,9 +49,8 @@ public class ShaderPipeline
             glDetachShader(programID, shaderID);
             glDeleteShader(shaderID);
         });
+        uniforms = new UniformMap(programID);
     }
-    
-
     
     public void bind()
     {
