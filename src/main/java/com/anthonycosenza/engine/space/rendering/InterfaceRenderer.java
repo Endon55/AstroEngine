@@ -65,8 +65,8 @@ public class InterfaceRenderer
     public InterfaceRenderer(Window window)
     {
         scale = new Vector2();
-        shaderPipeline = new ShaderPipeline(new ShaderData("resources/shaders/interface.vert", GL_VERTEX_SHADER),
-                new ShaderData("resources/shaders/interface.frag", GL_FRAGMENT_SHADER));
+        shaderPipeline = new ShaderPipeline(new ShaderData("AstroEngine/resources/shaders/interface.vert", GL_VERTEX_SHADER),
+                new ShaderData("AstroEngine/resources/shaders/interface.frag", GL_FRAGMENT_SHADER));
         
         uniforms = new UniformMap(shaderPipeline.getProgramID());
         uniforms.createUniform("projectionMatrix");

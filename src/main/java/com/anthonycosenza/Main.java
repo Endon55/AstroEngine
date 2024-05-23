@@ -51,7 +51,7 @@ public class Main extends Project
         scene.add(entity);
         scene.getCamera().setPosition(0, 50, 0);*/
         
-        Model cube = ModelLoader.loadModel("resources/assets/boat/BoatFBX.fbx", 0);
+        Model cube = ModelLoader.loadModel("AstroEngine/resources/assets/boat/BoatFBX.fbx", 0);
         Entity cubeE = cube.createEntity();
         cubeE.setPosition(0, 0, 0);
         scene.add(cubeE);

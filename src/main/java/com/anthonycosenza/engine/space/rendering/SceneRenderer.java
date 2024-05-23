@@ -27,8 +27,8 @@ public class SceneRenderer
     
     public SceneRenderer()
     {
-        shaderPipeline = new ShaderPipeline(new ShaderData("resources/shaders/scene.vert", GL_VERTEX_SHADER),
-                new ShaderData("resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
+        shaderPipeline = new ShaderPipeline(new ShaderData("AstroEngine/resources/shaders/scene.vert", GL_VERTEX_SHADER),
+                new ShaderData("AstroEngine/resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
         
         uniforms = new UniformMap(shaderPipeline.getProgramID());
         uniforms.createUniform("projectionMatrix");
