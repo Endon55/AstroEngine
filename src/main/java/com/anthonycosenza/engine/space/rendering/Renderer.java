@@ -35,6 +35,7 @@ public class Renderer
         interfaceRenderer.render(scene);
     }
     
+    
     public void resize(int width, int height)
     {
         interfaceRenderer.resize(width, height);

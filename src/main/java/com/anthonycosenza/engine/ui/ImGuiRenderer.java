@@ -1,14 +1,5 @@
-package com.anthonycosenza.engine.space.rendering;
+package com.anthonycosenza.engine.ui;
 
-import com.anthonycosenza.engine.space.Window;
-import com.anthonycosenza.engine.space.entity.UIMesh;
-import com.anthonycosenza.engine.space.entity.texture.Texture;
-import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
-import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
-import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
-import com.anthonycosenza.engine.ui.ImGuiRenderer;
-import com.anthonycosenza.engine.ui.ImGuiViewportData;
-import com.anthonycosenza.engine.util.math.vector.Vector2;
 import imgui.ImDrawData;
 import imgui.ImFontAtlas;
 import imgui.ImGui;
@@ -17,241 +8,31 @@ import imgui.ImGuiViewport;
 import imgui.ImVec2;
 import imgui.ImVec4;
 import imgui.callback.ImPlatformFuncViewport;
-import imgui.flag.ImGuiBackendFlags;
 import imgui.flag.ImGuiConfigFlags;
-import imgui.flag.ImGuiKey;
-import imgui.flag.ImGuiMouseCursor;
 import imgui.flag.ImGuiViewportFlags;
-import imgui.lwjgl3.glfw.ImGuiImplGlfwNative;
 import imgui.type.ImInt;
-import org.lwjgl.glfw.Callbacks;
+import imgui.flag.ImGuiBackendFlags;
 
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_END;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_HOME;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_INSERT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
-import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorContentScale;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorPos;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorWorkarea;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_ONE;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_BOX;
-import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_STENCIL_TEST;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
-import static org.lwjgl.opengl.GL11.GL_VIEWPORT;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glDrawElements;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glGetIntegerv;
-import static org.lwjgl.opengl.GL11.glIsEnabled;
-import static org.lwjgl.opengl.GL11.glScissor;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengl.GL13.GL_ACTIVE_TEXTURE;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL14.GL_BLEND_DST_ALPHA;
-import static org.lwjgl.opengl.GL14.GL_BLEND_DST_RGB;
-import static org.lwjgl.opengl.GL14.GL_BLEND_SRC_ALPHA;
-import static org.lwjgl.opengl.GL14.GL_BLEND_SRC_RGB;
-import static org.lwjgl.opengl.GL14.GL_FUNC_ADD;
-import static org.lwjgl.opengl.GL14.glBlendEquation;
-import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING;
-import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glDeleteBuffers;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.GL_BLEND_EQUATION_ALPHA;
-import static org.lwjgl.opengl.GL20.GL_BLEND_EQUATION_RGB;
-import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
-import static org.lwjgl.opengl.GL20.GL_CURRENT_PROGRAM;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glBlendEquationSeparate;
-import static org.lwjgl.opengl.GL20.glCompileShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL20.glDeleteProgram;
-import static org.lwjgl.opengl.GL20.glDetachShader;
-import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glGetAttribLocation;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20.glGetShaderi;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glShaderSource;
-import static org.lwjgl.opengl.GL20.glUniform1i;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glUseProgram;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
-import static org.lwjgl.opengl.GL30.GL_MAJOR_VERSION;
-import static org.lwjgl.opengl.GL30.GL_MINOR_VERSION;
-import static org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-import static org.lwjgl.opengl.GL32.glDrawElementsBaseVertex;
+import static org.lwjgl.opengl.GL32.*;
 
-public class InterfaceRenderer
+/**
+ * This class is a straightforward port of the
+ * <a href="https://raw.githubusercontent.com/ocornut/imgui/256594575d95d56dda616c544c509740e74906b4/backends/imgui_impl_opengl3.cpp">imgui_impl_opengl3.cpp</a>.
+ * <p>
+ * It do support a backup and restoring of the GL state in the same way the original Dear ImGui code does.
+ * Some of the very specific OpenGL variables may be ignored here,
+ * yet you can copy-paste this class in your codebase and modify the rendering routine in the way you'd like.
+ * <p>
+ * This implementation has an ability to use a GLSL version provided during the initialization.
+ * Please read the documentation for the {@link #init(String)}.
+ */
+@SuppressWarnings("MagicNumber")
+public final class ImGuiRenderer
 {
-    private final ShaderPipeline shaderPipeline;
-    private final UniformMap uniforms;
-    private Texture texture;
-    private UIMesh uiMesh;
-    private final Vector2 scale;
-    private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
-    private final long[] keyOwnerWindows = new long[512];
-    
-    public InterfaceRenderer(Window window)
-    {
-        scale = new Vector2();
-        shaderPipeline = new ShaderPipeline(new ShaderData("AstroEngine/resources/shaders/interface.vert", GL_VERTEX_SHADER),
-                new ShaderData("AstroEngine/resources/shaders/interface.frag", GL_FRAGMENT_SHADER));
-        
-        uniforms = new UniformMap(shaderPipeline.getProgramID());
-        uniforms.createUniform("projectionMatrix");
-        createInterface(window);
-    }
-
-    private void setKeyCallback()
-    {
-        ImGuiIO io = ImGui.getIO();
-        io.setKeyMap(ImGuiKey.Tab, GLFW_KEY_TAB);
-        io.setKeyMap(ImGuiKey.LeftArrow, GLFW_KEY_LEFT);
-        io.setKeyMap(ImGuiKey.RightArrow, GLFW_KEY_RIGHT);
-        io.setKeyMap(ImGuiKey.UpArrow, GLFW_KEY_UP);
-        io.setKeyMap(ImGuiKey.DownArrow, GLFW_KEY_DOWN);
-        io.setKeyMap(ImGuiKey.PageUp, GLFW_KEY_PAGE_UP);
-        io.setKeyMap(ImGuiKey.PageDown, GLFW_KEY_PAGE_DOWN);
-        io.setKeyMap(ImGuiKey.Home, GLFW_KEY_HOME);
-        io.setKeyMap(ImGuiKey.End, GLFW_KEY_END);
-    
-        io.setKeyMap(ImGuiKey.Insert, GLFW_KEY_INSERT);
-        io.setKeyMap(ImGuiKey.Delete, GLFW_KEY_DELETE);
-        io.setKeyMap(ImGuiKey.Backspace, GLFW_KEY_BACKSPACE);
-        io.setKeyMap(ImGuiKey.Space, GLFW_KEY_SPACE);
-        io.setKeyMap(ImGuiKey.Enter, GLFW_KEY_ENTER);
-        io.setKeyMap(ImGuiKey.Escape, GLFW_KEY_ESCAPE);
-        io.setKeyMap(ImGuiKey.KeyPadEnter, GLFW_KEY_KP_ENTER);
-    }
-    
-    private void createInterface(Window window)
-    {
-        uiMesh = new UIMesh();
-
-        ImFontAtlas fontAtlas = ImGui.getIO().getFonts();
-        ImInt width = new ImInt();
-        ImInt height = new ImInt();
-        ByteBuffer buffer = fontAtlas.getTexDataAsRGBA32(width, height);
-        texture = new Texture(width.get(), height.get(), buffer);
-        setKeyCallback();
-        
-        uniforms.createUniform("scale");
-    }
-    
-    
-    
-    public void resize(int width, int height)
-    {
-        ImGui.getIO().setDisplaySize(width, height);
-    }
-    
-    public void render(Scene scene)
-    {
-        shaderPipeline.bind();
-        
-        //Seting up the rendering context
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-    
-        
-        uiMesh.bind();
-        
-        ImGuiIO io = ImGui.getIO();
-        scale.set(2.0f / io.getDisplaySizeX(), -2.0f / io.getDisplaySizeY());
-        uniforms.setUniform("scale", scale);
-        
-        ImDrawData drawData = ImGui.getDrawData();
-        int numLists = drawData.getCmdListsCount();
-        for(int i = 0; i < numLists; i++)
-        {
-            //We keep replacing the data in the mesh buffers.
-            glBufferData(GL_ARRAY_BUFFER, drawData.getCmdListVtxBufferData(i), GL_STREAM_DRAW);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(i), GL_STREAM_DRAW);
-            
-            int numCmds = drawData.getCmdListCmdBufferSize(i);
-            for(int j = 0; j < numCmds; j++)
-            {
-                final int elements = drawData.getCmdListCmdBufferElemCount(i, j);
-                final int indexOffset = drawData.getCmdListCmdBufferIdxOffset(i, j);
-                final int indices = indexOffset * ImDrawData.SIZEOF_IM_DRAW_IDX;
-                
-                texture.bind();
-                glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_SHORT, indices);
-            }
-        }
-        
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
-        
-        
-    }
-    
     // OpenGL Data
     private int glVersion = 0;
     private String glslVersion = "";
@@ -349,6 +130,7 @@ public class InterfaceRenderer
             this.glslVersion = glslVersion;
         }
         
+        createDeviceObjects();
         
         if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
         {
@@ -499,6 +281,94 @@ public class InterfaceRenderer
         io.addBackendFlags(ImGuiBackendFlags.RendererHasViewports);
     }
     
+    private void createDeviceObjects()
+    {
+        // Backup GL state
+        final int[] lastTexture = new int[1];
+        final int[] lastArrayBuffer = new int[1];
+        final int[] lastVertexArray = new int[1];
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, lastTexture);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, lastArrayBuffer);
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, lastVertexArray);
+        
+        createShaders();
+        
+        gAttribLocationTex = glGetUniformLocation(gShaderHandle, "Texture");
+        gAttribLocationProjMtx = glGetUniformLocation(gShaderHandle, "ProjMtx");
+        gAttribLocationVtxPos = glGetAttribLocation(gShaderHandle, "Position");
+        gAttribLocationVtxUV = glGetAttribLocation(gShaderHandle, "UV");
+        gAttribLocationVtxColor = glGetAttribLocation(gShaderHandle, "Color");
+        
+        // Create buffers
+        gVboHandle = glGenBuffers();
+        gElementsHandle = glGenBuffers();
+        
+        updateFontsTexture();
+        
+        // Restore modified GL state
+        glBindTexture(GL_TEXTURE_2D, lastTexture[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer[0]);
+        glBindVertexArray(lastVertexArray[0]);
+    }
+    
+    private void createShaders()
+    {
+        final int glslVersionValue = parseGlslVersionString();
+        
+        // Select shaders matching our GLSL versions
+        final CharSequence vertShaderSource;
+        final CharSequence fragShaderSource;
+        
+        if(glslVersionValue < 130)
+        {
+            vertShaderSource = getVertexShaderGlsl120();
+            fragShaderSource = getFragmentShaderGlsl120();
+        }
+        else if(glslVersionValue == 300)
+        {
+            vertShaderSource = getVertexShaderGlsl300es();
+            fragShaderSource = getFragmentShaderGlsl300es();
+        }
+        else if(glslVersionValue >= 410)
+        {
+            vertShaderSource = getVertexShaderGlsl410Core();
+            fragShaderSource = getFragmentShaderGlsl410Core();
+        }
+        else
+        {
+            vertShaderSource = getVertexShaderGlsl130();
+            fragShaderSource = getFragmentShaderGlsl130();
+        }
+        
+        gVertHandle = createAndCompileShader(GL_VERTEX_SHADER, vertShaderSource);
+        gFragHandle = createAndCompileShader(GL_FRAGMENT_SHADER, fragShaderSource);
+        
+        gShaderHandle = glCreateProgram();
+        glAttachShader(gShaderHandle, gVertHandle);
+        glAttachShader(gShaderHandle, gFragHandle);
+        glLinkProgram(gShaderHandle);
+        
+        if(glGetProgrami(gShaderHandle, GL_LINK_STATUS) == GL_FALSE)
+        {
+            throw new IllegalStateException("Failed to link shader program:\n" + glGetProgramInfoLog(gShaderHandle));
+        }
+    }
+    
+    private int parseGlslVersionString()
+    {
+        final Pattern p = Pattern.compile("\\d+");
+        final Matcher m = p.matcher(glslVersion);
+        
+        if(m.find())
+        {
+            return Integer.parseInt(m.group());
+        }
+        else
+        {
+            throw new IllegalArgumentException("Invalid GLSL version string: " + glslVersion);
+        }
+    }
+    
     private void backupGlState()
     {
         glGetIntegerv(GL_ACTIVE_TEXTURE, lastActiveTexture);
@@ -632,11 +502,142 @@ public class InterfaceRenderer
         ImGui.destroyPlatformWindows();
     }
     
-
-
-    public void cleanup()
+    private int createAndCompileShader(final int type, final CharSequence source)
     {
-        shaderPipeline.cleanup();
-        uiMesh.cleanup();
+        final int id = glCreateShader(type);
+        
+        glShaderSource(id, source);
+        glCompileShader(id);
+        
+        if(glGetShaderi(id, GL_COMPILE_STATUS) == GL_FALSE)
+        {
+            throw new IllegalStateException("Failed to compile shader:\n" + glGetShaderInfoLog(id));
+        }
+        
+        return id;
+    }
+    
+    private String getVertexShaderGlsl120()
+    {
+        return glslVersion + "\n"
+                + "uniform mat4 ProjMtx;\n"
+                + "attribute vec2 Position;\n"
+                + "attribute vec2 UV;\n"
+                + "attribute vec4 Color;\n"
+                + "varying vec2 Frag_UV;\n"
+                + "varying vec4 Frag_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Frag_UV = UV;\n"
+                + "    Frag_Color = Color;\n"
+                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                + "}\n";
+    }
+    
+    private String getVertexShaderGlsl130()
+    {
+        return glslVersion + "\n"
+                + "uniform mat4 ProjMtx;\n"
+                + "in vec2 Position;\n"
+                + "in vec2 UV;\n"
+                + "in vec4 Color;\n"
+                + "out vec2 Frag_UV;\n"
+                + "out vec4 Frag_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Frag_UV = UV;\n"
+                + "    Frag_Color = Color;\n"
+                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                + "}\n";
+    }
+    
+    private String getVertexShaderGlsl300es()
+    {
+        return glslVersion + "\n"
+                + "precision highp float;\n"
+                + "layout (location = 0) in vec2 Position;\n"
+                + "layout (location = 1) in vec2 UV;\n"
+                + "layout (location = 2) in vec4 Color;\n"
+                + "uniform mat4 ProjMtx;\n"
+                + "out vec2 Frag_UV;\n"
+                + "out vec4 Frag_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Frag_UV = UV;\n"
+                + "    Frag_Color = Color;\n"
+                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                + "}\n";
+    }
+    
+    private String getVertexShaderGlsl410Core()
+    {
+        return glslVersion + "\n"
+                + "layout (location = 0) in vec2 Position;\n"
+                + "layout (location = 1) in vec2 UV;\n"
+                + "layout (location = 2) in vec4 Color;\n"
+                + "uniform mat4 ProjMtx;\n"
+                + "out vec2 Frag_UV;\n"
+                + "out vec4 Frag_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Frag_UV = UV;\n"
+                + "    Frag_Color = Color;\n"
+                + "    gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+                + "}\n";
+    }
+    
+    private String getFragmentShaderGlsl120()
+    {
+        return glslVersion + "\n"
+                + "#ifdef GL_ES\n"
+                + "    precision mediump float;\n"
+                + "#endif\n"
+                + "uniform sampler2D Texture;\n"
+                + "varying vec2 Frag_UV;\n"
+                + "varying vec4 Frag_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);\n"
+                + "}\n";
+    }
+    
+    private String getFragmentShaderGlsl130()
+    {
+        return glslVersion + "\n"
+                + "uniform sampler2D Texture;\n"
+                + "in vec2 Frag_UV;\n"
+                + "in vec4 Frag_Color;\n"
+                + "out vec4 Out_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+                + "}\n";
+    }
+    
+    private String getFragmentShaderGlsl300es()
+    {
+        return glslVersion + "\n"
+                + "precision mediump float;\n"
+                + "uniform sampler2D Texture;\n"
+                + "in vec2 Frag_UV;\n"
+                + "in vec4 Frag_Color;\n"
+                + "layout (location = 0) out vec4 Out_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+                + "}\n";
+    }
+    
+    private String getFragmentShaderGlsl410Core()
+    {
+        return glslVersion + "\n"
+                + "in vec2 Frag_UV;\n"
+                + "in vec4 Frag_Color;\n"
+                + "uniform sampler2D Texture;\n"
+                + "layout (location = 0) out vec4 Out_Color;\n"
+                + "void main()\n"
+                + "{\n"
+                + "    Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
+                + "}\n";
     }
 }

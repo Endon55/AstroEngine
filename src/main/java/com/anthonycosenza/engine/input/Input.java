@@ -1,13 +1,20 @@
 package com.anthonycosenza.engine.input;
 
 import com.anthonycosenza.engine.events.KeyEvent;
+import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.space.Window;
+import com.anthonycosenza.engine.space.entity.UIMesh;
+import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.util.math.vector.Vector2;
+import imgui.ImFontAtlas;
 import imgui.ImGui;
 import imgui.ImGuiIO;
+import imgui.type.ImInt;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,11 +55,13 @@ public class Input
     private long windowID;
     private MouseType mouseType;
     private int scrollPosition;
+    private final ProjectSettings settings;
     
     
-    public Input(long windowID)
+    public Input(long windowID, ProjectSettings settings)
     {
         this.windowID = windowID;
+        this.settings = settings;
         glfwSetKeyCallback(windowID, this::keyCallback);
         glfwSetMouseButtonCallback(windowID, this::mouseButtonCallback);
         glfwSetCursorPosCallback(windowID, this::mouseCursorCallback);
@@ -72,12 +81,16 @@ public class Input
         mouseInWindow = true;
         cursorStale = false;
         scrollPosition = 0;
-        setMouseType(MouseType.DISABLED);
+        if(settings.lockMouse)
+        {
+            setMouseType(MouseType.DISABLED);
+        }
         EventBus.getDefault().register(this);
         resetMouse();
     }
-    
 
+    
+    
     public boolean isMouseLocked()
     {
         return mouseType == MouseType.DISABLED;
@@ -150,8 +163,7 @@ public class Input
             glfwSetWindowShouldClose(windowID, true);
             return;
         }
-        
-        ImGuiIO io = ImGui.getIO();
+/*        ImGuiIO io = ImGui.getIO();
         //Im gui wants to consume an input
         if(io.getWantCaptureKeyboard())
         {
@@ -169,8 +181,7 @@ public class Input
             io.setKeyAlt(io.getKeysDown(GLFW_KEY_LEFT_ALT) || io.getKeysDown(GLFW_KEY_RIGHT_ALT));
             io.setKeySuper(io.getKeysDown(GLFW_KEY_LEFT_SUPER) || io.getKeysDown(GLFW_KEY_RIGHT_SUPER));
     
-        }
-        
+        }*/
 
         for(Map.Entry<Key, KeyAction> keyEntry : keys.entrySet())
         {
@@ -185,12 +196,12 @@ public class Input
     
     private void characterCallback(long handle, int key)
     {
-        ImGuiIO io = ImGui.getIO();
+/*        ImGuiIO io = ImGui.getIO();
         
         if(io.getWantCaptureKeyboard())
         {
             io.addInputCharacter(key);
-        }
+        }*/
     }
     
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -8,17 +8,22 @@ import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.space.rendering.Renderer;
 import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
+import com.anthonycosenza.engine.ui.ImGuiImpl;
 import com.anthonycosenza.engine.util.Constants;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.Configuration;
 
+import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -39,6 +44,14 @@ public class Engine
     private final Renderer renderer;
     private final Input input;
     private float physicsUpdatesSecond = 60;
+    private ImGuiImpl imGuiImpl;
+    
+    
+    /*public Engine(Project project, Window window)
+    {
+    
+    }*/
+    
     
     public Engine(Project project)
     {
@@ -56,24 +69,33 @@ public class Engine
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
-        glEnable(GL_DEPTH_TEST);
+        input = new Input(window.getWindowHandle(), this.settings);
+    
+        //Initialize ImGui
+        imGuiImpl = new ImGuiImpl(window, settings);
+        
         
         projection = new Projection(fov, window.getWidth(), window.getHeight(), zNear, zFar);
         renderer = new Renderer(window);
-        input = new Input(window.getWindowHandle());
         
         EventBus.getDefault().register(this);
         this.project.initialize(window.getWidth(), window.getHeight());
         
+        //Window Resize callback
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
+        
+    
+        //Keeps errors from being saved as long files.
+        GLFWErrorCallback.createPrint(System.err).set();
         
         //Vsync is enabled by default, so we only ever have to disable it.
         if(!settings.vsync)
         {
             glfwSwapInterval(0);
         }
+        
+        glEnable(GL_DEPTH_TEST);
     }
-    
 
     public void run()
     {
@@ -89,6 +111,7 @@ public class Engine
         double accumulator = 0.0f;
         while(!window.shouldClose() && running)
         {
+            imGuiImpl.newFrame();
             input.resetFrame();
             int physicsUpdates = 0;
             long newTime = System.nanoTime();
@@ -125,22 +148,36 @@ public class Engine
             float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
             
             handleGuiInput();
-            ImGui.newFrame();
-            systemDiagnostics(Constants.NANOS_IN_SECOND / (double)frameTime);
+            
+            if(settings.enableSystemDiagnostics)
+            {
+                systemDiagnostics(Constants.NANOS_IN_SECOND / (double) frameTime);
+            }
+            
             project.uiUpdate(delta, scene, input);
-            ImGui.render();
+            
+
             project.update(delta, scene, input);
             //Renders the current scene giving it the delta since the last render call.
+    
+            ImGui.endFrame();
+            ImGui.render();
             
             renderer.render(delta, project.getScene(), projection);
-            
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
+            if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
+            {
+                final long backupWindowPtr = glfwGetCurrentContext();
+                ImGui.updatePlatformWindows();
+                ImGui.renderPlatformWindowsDefault();
+                glfwMakeContextCurrent(backupWindowPtr);
+            }
+            //imGuiImpl.endFrame();
             glfwSwapBuffers(window.getWindowHandle());
         }
     
         cleanup();
     }
-    
     
     private boolean handleGuiInput()
     {
@@ -158,11 +195,13 @@ public class Engine
         int windowFlags = 0;
         windowFlags |= ImGuiWindowFlags.NoTitleBar;
         windowFlags |= ImGuiWindowFlags.NoResize;
-        ImGui.setNextWindowPos(ImGui.getIO().getDisplaySizeX() - 40, 0, ImGuiCond.FirstUseEver);
+        //ImGui.setNextWindowPos(window.getRightEdge() - 70, window.getTopEdge(), ImGuiCond.FirstUseEver);
+    
+       // ImGui.setNextWindowPos(ImGui.getMainViewport().getPosX() + 70, ImGui.getMainViewport().getPosY() + 15, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowPos(0, 0, ImGuiCond.FirstUseEver);
         ImGui.begin("Window", windowFlags);
         ImGui.text("" + (((int) (fps * 1000)) / 1000));
         ImGui.end();
-        //ImGui.endFrame();
     }
     
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -187,6 +226,7 @@ public class Engine
     {
         renderer.cleanup();
         window.cleanup();
+        imGuiImpl.clean();;
     }
     
     public void stop()

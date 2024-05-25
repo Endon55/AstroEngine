@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.space;
 
 import com.anthonycosenza.engine.util.Constants;
+import com.anthonycosenza.engine.util.math.vector.Vector2i;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -22,6 +23,7 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
+import static org.lwjgl.glfw.GLFW.glfwSetWindowPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
@@ -32,9 +34,11 @@ public class Window
     private final long windowHandle;
     private int width;
     private int height;
+    private Vector2i windowPosition;
     
     public Window(String windowTitle, ProjectSettings settings)
     {
+        windowPosition = new Vector2i(0, 0);
         int[] arrWidth = new int[1];
         int[] arrHeight = new int[1];
         
@@ -82,9 +86,15 @@ public class Window
         
         settings.width = width;
         settings.height = height;
-    
+        windowPosition.set(monitorX + (videoMode.width() - this.width) / 2, monitorY + (videoMode.height() - this.height) / 2);
         //Once everything is initialized properly, we center the window.
-        glfwSetWindowPos(windowHandle, monitorX + (videoMode.width() - this.width) / 2, monitorY + (videoMode.height() - this.height) / 2);
+        glfwSetWindowPos(windowHandle, windowPosition.x(), windowPosition.y());
+        glfwSetWindowPosCallback(windowHandle, this::windowPosCallback);
+    }
+    
+    private void windowPosCallback(long handle, int posX, int posY)
+    {
+        windowPosition.set(posX, posY);
     }
     
     public long getWindowHandle()
@@ -106,6 +116,37 @@ public class Window
     {
         return height;
     }
+    
+    public int getPosX()
+    {
+        return windowPosition.x();
+    }
+    
+    public int getPosY()
+    {
+        return windowPosition.y();
+    }
+    
+    public int getLeftEdge()
+    {
+        return getPosX();
+    }
+    
+    public int getRightEdge()
+    {
+        return getPosX() + getWidth();
+    }
+    
+    public int getTopEdge()
+    {
+        return getPosY();
+    }
+    
+    public int getBottomEdge()
+    {
+        return getPosY() + getHeight();
+    }
+    
     
     public void resize(int width, int height)
     {

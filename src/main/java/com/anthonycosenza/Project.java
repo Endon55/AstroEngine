@@ -24,6 +24,15 @@ public abstract class Project
         currentScene = 0;
     }
     
+    public Project(String projectName, ProjectSettings projectSettings)
+    {
+        this.projectName = projectName;
+        this.projectSettings = projectSettings;
+        settings(projectSettings);
+        scenes = new ArrayList<>();
+        currentScene = 0;
+    }
+    
     public ProjectSettings getSettings()
     {
         return projectSettings;
@@ -39,19 +48,33 @@ public abstract class Project
         this.scenes.add(scene);
     }
     
-    protected void setCurrentScene(Scene scene)
+    public void setCurrentScene(Scene scene)
     {
         currentScene = scenes.indexOf(scene);
     }
     
-    protected void setCurrentScene(int sceneIndex)
+    public void setCurrentScene(int sceneIndex)
     {
         if(sceneIndex < 0 || sceneIndex >= scenes.size()) throw new ArrayIndexOutOfBoundsException("Scene index is out of bounds: " + sceneIndex);
         currentScene = sceneIndex;
     }
+    public List<Scene> getScenes()
+    {
+        return scenes;
+    }
+    
+    public int getCurrentScene()
+    {
+        return currentScene;
+    }
+    
     public Scene getScene()
     {
-        return scenes.get(currentScene);
+        if(scenes.isEmpty())
+        {
+            return new Scene();
+        }
+        else return scenes.get(currentScene);
     }
     abstract public void settings(ProjectSettings settings);
     abstract public void initialize(int width, int height);
