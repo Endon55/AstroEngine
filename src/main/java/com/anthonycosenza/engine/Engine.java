@@ -111,8 +111,6 @@ public class Engine
         double accumulator = 0.0f;
         while(!window.shouldClose() && running)
         {
-            imGuiImpl.newFrame();
-            input.resetFrame();
             int physicsUpdates = 0;
             long newTime = System.nanoTime();
             long frameTime = newTime - currentTime;
@@ -121,6 +119,10 @@ public class Engine
             
             //Enables the window to be interacted with by checking for and processing events and summoning the relevant callbacks.
             glfwPollEvents();
+    
+    
+            imGuiImpl.newFrame();
+            input.resetFrame();
             
             Scene scene = project.getScene();
             
@@ -220,6 +222,7 @@ public class Engine
         
         settings.width = width;
         settings.height = height;
+        ImGui.getIO().setDisplaySize(width, height);
     }
     
     public void cleanup()

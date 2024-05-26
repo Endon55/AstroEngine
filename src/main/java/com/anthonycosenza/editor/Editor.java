@@ -72,4 +72,9 @@ public class Editor
             }
         };
     }
+    
+    public static String getEditorIniFile()
+    {
+        return "settings";
+    }
 }
