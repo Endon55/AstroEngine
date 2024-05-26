@@ -1,6 +1,5 @@
 package com.anthonycosenza.editor;
 
-import com.anthonycosenza.Main;
 import com.anthonycosenza.Project;
 import com.anthonycosenza.TestProject;
 import com.anthonycosenza.engine.Engine;
@@ -10,16 +9,20 @@ import com.anthonycosenza.engine.space.rendering.Scene;
 
 public class Editor
 {
+    
     private Engine engine;
     private EditorProject editorProject;
     private ProjectSettings editorSettings;
     private Project userProject;
     public Editor()
     {
+        /*
+         * Create a user directory to store persistent editor information.
+         */
         userProject = new TestProject();
         editorSettings = new ProjectSettings();
         loadEditorSettings(editorSettings);
-        editorProject = new EditorProject(userProject, editorSettings);
+        editorProject = new EditorProject(userProject, editorSettings, false);
         
         engine = new Engine(editorProject);
         engine.run();
@@ -56,7 +59,7 @@ public class Editor
             @Override
             public void uiUpdate(float delta, Scene scene, Input input)
             {
-        
+            
             }
     
             @Override

@@ -32,5 +32,20 @@
         </plugins>
     </build>
 
+    <dependencies>
+        <dependency> <!--https://github.com/TheElectronWill/Night-Config/wiki-->
+            <groupId>com.electronwill.night-config</groupId>
+            <artifactId>core</artifactId>
+            <version>3.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.electronwill.night-config</groupId>
+            <artifactId>toml</artifactId>
+            <version>3.7.1</version>
+        </dependency>
+
+
+    </dependencies>
+
 
 </project>

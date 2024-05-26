@@ -41,7 +41,7 @@ public class ImGuiImpl
         
         
         imGuiGlfw = new ImGuiViewportHandling();
-        imGuiGlfw.init(window.getWindowHandle(), false);
+        imGuiGlfw.init(window.getWindowHandle(), true);
         imGuiGl3 = new ImGuiRenderer();
         imGuiGl3.init(decideGlGlslVersions());
     }
