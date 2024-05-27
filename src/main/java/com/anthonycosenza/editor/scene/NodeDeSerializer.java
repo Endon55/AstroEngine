@@ -1,5 +1,6 @@
 package com.anthonycosenza.editor.scene;
 
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.node.Node;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
@@ -107,6 +108,10 @@ public class NodeDeSerializer
                     else if(split[0].equals("String"))
                     {
                         value = split[1];
+                    }
+                    else if(split[0].equals("Asset"))
+                    {
+                        value = AssetManager.getAsset(Long.parseLong(split[1]));
                     }
                 }
     

@@ -1,9 +1,11 @@
 package com.anthonycosenza.engine.util.math;
 
+import java.util.Random;
+
 public class EngineMath
 {
+    private static final Random random = new Random();
     private static final float RADS_IN_DEGREE = .01745329f;
-    
 
     public static float toRadians(float degrees, boolean clamp)
     {
@@ -35,4 +37,8 @@ public class EngineMath
         return Math.max(Math.min(value, upperBound), lowerBound);
     }
     
+    public static Random getRandom()
+    {
+        return random;
+    }
 }

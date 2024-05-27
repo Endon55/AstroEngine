@@ -1,11 +1,13 @@
 package com.anthonycosenza.editor.scene;
 
+import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.space.node.Ignore;
 import com.anthonycosenza.engine.space.node.Node;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlWriter;
 import org.joml.Vector2f;
+import org.lwjgl.PointerBuffer;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -39,7 +41,11 @@ public class NodeSerializer
         
         for(Field field : node.getClass().getDeclaredFields())
         {
-            if(field.isAnnotationPresent(Ignore.class));
+            if(field.isAnnotationPresent(Ignore.class))
+            {
+                continue;
+            }
+            
             String fieldName = field.getName();
             if(fieldName.equals("children") || fieldName.equals("name"))
             {
@@ -50,12 +56,15 @@ public class NodeSerializer
             try
             {
                 fieldValue = field.get(node);
-
-                if(field.getType() == Vector2f.class)
+                if(Asset.class.isAssignableFrom(fieldValue.getClass()))
+                {
+                    fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
+                }
+                else if(field.getType() == Vector2f.class)
                 {
                     fieldValue = "Vector2f(" + ((Vector2f)fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
                 }
-                if(field.getType() == String.class)
+                else if(field.getType() == String.class)
                 {
                     fieldValue = "String(" + fieldValue + ")";
                 }
