@@ -16,6 +16,8 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EditorProject extends Project
 {
@@ -26,6 +28,7 @@ public class EditorProject extends Project
     private ImString newProjectName = new ImString();
     private String newProjectDirectory = "";
     private String error = "";
+    private List<String> recentProjects;
     
     public EditorProject(Project userProject, ProjectSettings editorSettings, boolean isRealProject)
     {
@@ -38,8 +41,12 @@ public class EditorProject extends Project
     @Override
     public void initialize(int width, int height)
     {
+        recentProjects = EditorIO.getRecentProjects();
+        
+        
         if(isRealProject)
         {
+            
             ImGuiIO io = ImGui.getIO();
             userProject.initialize(width, height);
             io.setIniFilename(Editor.getEditorIniFile() + ".ini");
@@ -48,10 +55,14 @@ public class EditorProject extends Project
 
         //ImGui.saveIniSettingsToDisk(Editor.getEditorIniFile() + ".ini");
     }
+    
+    
+    
+    
     public void loadProject(String projectDirectory)
     {
         initialize(getSettings().width, getSettings().height);
-        ProjectFileUtil.loadProject(projectDirectory);
+        EditorIO.loadProject(projectDirectory);
         isRealProject = true;
         newProjectName = new ImString();
         newProjectDirectory = "";
@@ -61,7 +72,6 @@ public class EditorProject extends Project
     @Override
     public void uiUpdate(float delta, Scene scene, Input input)
     {
-
         //Checking if we need to load a new project.
         if(isRealProject)
         {
@@ -80,7 +90,6 @@ public class EditorProject extends Project
         }
 
     }
-
     private void createLoadProject()
     {
         int frameConfig = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse;
@@ -142,17 +151,33 @@ public class EditorProject extends Project
                 ImGui.text("Load Project");
                 //Insert a list of a project cache.
                 ImGui.separator();
-                //Returns the status of being pressed
+                for(String projectPath : recentProjects)
+                {
+                    //ImGui.text(projectPath);
+                    if(ImGui.selectable(projectPath, selectedProject.equals(projectPath)))
+                    {
+                        selectedProject = projectPath;
+                    }
+                }
+    
+                if(ImGui.button("Load Project", 0, 0))
+                {
+                    loadProject(selectedProject);
+                }
+                ImGui.sameLine();
                 if(ImGui.button("Create Project", 0, 0))
                 {
                     creatingProject = true;
                 }
+                
+                
+
             }
             ImGui.end();
         }
 
     }
-    
+    String selectedProject = "";
     private void createSceneManager()
     {
         int frameConfig = 0;

@@ -1,21 +1,16 @@
 package com.anthonycosenza;
 
 
-import com.anthonycosenza.editor.scene.NodeDeSerializer;
-import com.anthonycosenza.editor.scene.NodeSerializer;
-import com.anthonycosenza.engine.space.node.Node;
-
-import java.io.File;
+import com.anthonycosenza.editor.Editor;
 import java.io.IOException;
-import java.util.List;
 
 public class Main
 {
 
     public static void main(String[] args) throws InterruptedException, IOException
     {
-        //Editor editor = new Editor();
-        File file = new File("C:\\Users\\antho\\OneDrive\\Desktop\\Test\\project.astro");
+        Editor editor = new Editor();
+/*        File file = new File("C:\\Users\\antho\\OneDrive\\Desktop\\Test\\project.astro");
         if(!file.exists())
         {
             throw new RuntimeException("File doesn't exist");
@@ -27,6 +22,6 @@ public class Main
     
     
         NodeSerializer.serialize(file, node);
-        System.out.println(NodeDeSerializer.deSerialize(file));
+        System.out.println(NodeDeSerializer.deSerialize(file));*/
     }
 }
