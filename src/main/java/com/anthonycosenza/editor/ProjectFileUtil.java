@@ -57,6 +57,7 @@ public class ProjectFileUtil
         {
             throw new RuntimeException("Failed to create .astro file" + e);
         }
+        System.out.println(astro.getAbsolutePath());
     
         FileConfig config = FileConfig.of(astro, TomlFormat.instance());
         config.set("Config Version", engineVersion);
