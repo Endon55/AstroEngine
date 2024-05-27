@@ -1,6 +1,7 @@
 package com.anthonycosenza.editor;
 
 import com.anthonycosenza.Project;
+import com.anthonycosenza.TestProject;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.rendering.Scene;
@@ -16,13 +17,12 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class EditorProject extends Project
 {
     private Project userProject;
-    private boolean isRealProject;
+    private boolean projectSelected;
     
     private boolean creatingProject = false;
     private ImString newProjectName = new ImString();
@@ -30,27 +30,20 @@ public class EditorProject extends Project
     private String error = "";
     private List<String> recentProjects;
     
-    public EditorProject(Project userProject, ProjectSettings editorSettings, boolean isRealProject)
+    public EditorProject(ProjectSettings editorSettings)
     {
-        super(userProject.getProjectName(), editorSettings);
-        this.userProject = userProject;
-        this.isRealProject = isRealProject;
+        super("Editor", editorSettings);
+        this.userProject = new BlankProject();
+        this.projectSelected = false;
+        recentProjects = EditorIO.getRecentProjects();
     }
-    
     
     @Override
     public void initialize(int width, int height)
     {
-        recentProjects = EditorIO.getRecentProjects();
-        
-        
-        if(isRealProject)
+        if(projectSelected)
         {
-            
-            ImGuiIO io = ImGui.getIO();
             userProject.initialize(width, height);
-            io.setIniFilename(Editor.getEditorIniFile() + ".ini");
-            io.setWantSaveIniSettings(true);
         }
 
         //ImGui.saveIniSettingsToDisk(Editor.getEditorIniFile() + ".ini");
@@ -61,19 +54,24 @@ public class EditorProject extends Project
     
     public void loadProject(String projectDirectory)
     {
-        initialize(getSettings().width, getSettings().height);
         EditorIO.loadProject(projectDirectory);
-        isRealProject = true;
+        projectSelected = true;
         newProjectName = new ImString();
         newProjectDirectory = "";
         error = "";
+        
+        ImGuiIO io = ImGui.getIO();
+        io.setIniFilename(EditorIO.getGuiINI().getPath());
+        io.setWantSaveIniSettings(true);
+        
+        initialize(getSettings().width, getSettings().height);
     }
     
     @Override
     public void uiUpdate(float delta, Scene scene, Input input)
     {
         //Checking if we need to load a new project.
-        if(isRealProject)
+        if(projectSelected)
         {
             int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
             int mainDock = ImGui.dockSpaceOverViewport(ImGui.getMainViewport(), dockspaceConfig);
@@ -129,7 +127,7 @@ public class EditorProject extends Project
                     }
                     else
                     {
-                        ProjectFileUtil.createNewProject(projectDirectory);
+                        EditorIO.createNewProject(projectDirectory);
                         loadProject(projectPath);
                         //now I need to reload the engine with the new Project.
                         

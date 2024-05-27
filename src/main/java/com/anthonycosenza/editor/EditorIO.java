@@ -15,6 +15,7 @@ import java.util.Set;
 public class EditorIO
 {
     private static File projectDirectory = null;
+    private static File astroDirectory = null;
     private static File projectConfig = null;
     private static File userDirectory = null;
     private static File projectHistory = null;
@@ -28,6 +29,8 @@ public class EditorIO
     {
         return "project.astro";
     }
+    
+    
     
     public static void loadProject(String directory)
     {
@@ -68,7 +71,36 @@ public class EditorIO
         {
             throw new RuntimeException("Failed to create project directory.");
         }
+        
         generateConfigFile(projectFile);
+        astroDirectory = generateAstroDirectory(projectFile);
+    }
+    private static File getAstroDirectory()
+    {
+        if(astroDirectory == null)
+        {
+            astroDirectory = generateAstroDirectory(projectDirectory);
+        }
+        
+        return astroDirectory;
+    }
+    
+    public static File getGuiINI()
+    {
+        return new File(getAstroDirectory().getPath() + "\\editor.ini");
+    }
+    
+    
+    private static File generateAstroDirectory(File projectDirectory)
+    {
+        File astroDirectory = new File(projectDirectory.getPath() + "\\.astro");
+        
+        if(!astroDirectory.exists() && !astroDirectory.mkdirs())
+        {
+            throw new RuntimeException("Failed to create .astro folder within project.");
+        }
+        
+        return astroDirectory;
     }
     
     private static File generateConfigFile(File projectDirectory)
@@ -135,5 +167,7 @@ public class EditorIO
             throw new RuntimeException(e);
         }
     }
+    
+    
     
 }
