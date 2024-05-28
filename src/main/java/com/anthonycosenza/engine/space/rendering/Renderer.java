@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.Window;
+import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -29,7 +30,7 @@ public class Renderer
         glEnable(GL_BLEND);
     }
     
-    public void render(double delta, Scene scene, Projection projection3d)
+    public void render(Node scene, Projection projection3d)
     {
         sceneRenderer.render(scene, projection3d);
         interfaceRenderer.render(scene);

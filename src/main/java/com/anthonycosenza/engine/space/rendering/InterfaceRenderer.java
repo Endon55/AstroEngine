@@ -3,11 +3,11 @@ package com.anthonycosenza.engine.space.rendering;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.space.entity.UIMesh;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
+import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
 import com.anthonycosenza.engine.ui.ImGuiRenderer;
-import com.anthonycosenza.engine.ui.ImGuiViewportData;
 import com.anthonycosenza.engine.util.math.vector.Vector2;
 import imgui.ImDrawData;
 import imgui.ImFontAtlas;
@@ -22,13 +22,9 @@ import imgui.flag.ImGuiConfigFlags;
 import imgui.flag.ImGuiKey;
 import imgui.flag.ImGuiMouseCursor;
 import imgui.flag.ImGuiViewportFlags;
-import imgui.lwjgl3.glfw.ImGuiImplGlfwNative;
 import imgui.type.ImInt;
-import org.lwjgl.glfw.Callbacks;
 
 import java.nio.ByteBuffer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE;
@@ -46,19 +42,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
-import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorContentScale;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorPos;
-import static org.lwjgl.glfw.GLFW.glfwGetMonitorWorkarea;
-import static org.lwjgl.glfw.GLFW.glfwGetWindowSize;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_ONE;
@@ -107,30 +94,15 @@ import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.GL_BLEND_EQUATION_ALPHA;
 import static org.lwjgl.opengl.GL20.GL_BLEND_EQUATION_RGB;
-import static org.lwjgl.opengl.GL20.GL_COMPILE_STATUS;
 import static org.lwjgl.opengl.GL20.GL_CURRENT_PROGRAM;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
 import static org.lwjgl.opengl.GL20.glBlendEquationSeparate;
-import static org.lwjgl.opengl.GL20.glCompileShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glCreateShader;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
 import static org.lwjgl.opengl.GL20.glDetachShader;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glGetAttribLocation;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
-import static org.lwjgl.opengl.GL20.glGetShaderi;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glShaderSource;
 import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
@@ -207,7 +179,7 @@ public class InterfaceRenderer
         ImGui.getIO().setDisplaySize(width, height);
     }
     
-    public void render(Scene scene)
+    public void render(Node scene)
     {
         shaderPipeline.bind();
         

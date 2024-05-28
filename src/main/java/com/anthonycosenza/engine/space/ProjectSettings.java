@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.space;
 
 public class ProjectSettings
 {
+    public String name = "None";
     public int width = 1920;
     public int height = 1080;
     public boolean vsync = false;

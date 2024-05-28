@@ -1,12 +1,12 @@
 package com.anthonycosenza.engine;
 
-import com.anthonycosenza.Project;
 import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
+import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.rendering.Renderer;
-import com.anthonycosenza.engine.space.rendering.Scene;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.ui.ImGuiImpl;
 import com.anthonycosenza.engine.util.Constants;
@@ -28,12 +28,15 @@ import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glEnable;
 
 public class Engine
 {
-    private final Project project;
+    public static Input INPUT;
     private final ProjectSettings settings;
     private final Window window;
     private boolean running = true;
@@ -45,18 +48,10 @@ public class Engine
     private final Input input;
     private float physicsUpdatesSecond = 60;
     private ImGuiImpl imGuiImpl;
-    
-    
-    /*public Engine(Project project, Window window)
+
+    public Engine(ProjectSettings settings)
     {
-    
-    }*/
-    
-    
-    public Engine(Project project)
-    {
-        this.project = project;
-        this.settings = project.getSettings();
+        this.settings = settings;
         
         /*
          * LWJGL Config settings.
@@ -65,12 +60,12 @@ public class Engine
     
     
         
-        window = new Window(project.getProjectName(), settings);
+        window = new Window(settings.name, settings);
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
         GL.createCapabilities();
         input = new Input(window.getWindowHandle(), this.settings);
-    
+        INPUT = input;
         //Initialize ImGui
         imGuiImpl = new ImGuiImpl(window, settings);
         
@@ -79,7 +74,6 @@ public class Engine
         renderer = new Renderer(window);
         
         EventBus.getDefault().register(this);
-        this.project.initialize(window.getWidth(), window.getHeight());
         
         //Window Resize callback
         glfwSetWindowSizeCallback(window.getWindowHandle(), this::resize);
@@ -124,7 +118,7 @@ public class Engine
             imGuiImpl.newFrame();
             input.resetFrame();
             
-            Scene scene = project.getScene();
+            Node scene = SceneManager.getScene();
             
             //Don't wake up the physics simulation for less this much of a frame
             //We do this so that the physics simulation smooths out compared to the rendering
@@ -137,13 +131,13 @@ public class Engine
                 {
                     //Update physics with an entire timestep
                     //Delta is the number of seconds to advance the physics simulation.
-                    project.updatePhysics(updateTime, scene, input);
+                    SceneManager.updatePhysics(updateTime);
                     accumulator -= updateInterval;
                 }
                 else
                 {
                     //Update the physics with a fractional component. Accumulator should be a decimal value less than 1 and we want to get how many nanos that is
-                    project.updatePhysics((float)(accumulator / Constants.NANOS_IN_SECOND), scene, input);
+                    SceneManager.updatePhysics((float) (accumulator / Constants.NANOS_IN_SECOND));
                     accumulator = 0;
                 }
             }
@@ -156,16 +150,14 @@ public class Engine
                 systemDiagnostics(Constants.NANOS_IN_SECOND / (double) frameTime);
             }
             
-            project.uiUpdate(delta, scene, input);
+            SceneManager.updateUI(delta);
+            SceneManager.update(delta);
             
-
-            project.update(delta, scene, input);
-            //Renders the current scene giving it the delta since the last render call.
-    
             ImGui.endFrame();
             ImGui.render();
             
-            renderer.render(delta, project.getScene(), projection);
+            renderer.render(scene, projection);
+            
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
             if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
             {
@@ -176,6 +168,9 @@ public class Engine
             }
             //imGuiImpl.endFrame();
             glfwSwapBuffers(window.getWindowHandle());
+    
+            //https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClear.xhtml
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
     
         cleanup();

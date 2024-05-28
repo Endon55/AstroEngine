@@ -13,7 +13,7 @@ public abstract class Project
     private final String projectName;
     private final List<Scene> scenes;
     private int currentScene;
-
+    
     
     public Project(String projectName)
     {

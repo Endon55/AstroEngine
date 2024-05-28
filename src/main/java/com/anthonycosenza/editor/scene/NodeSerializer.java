@@ -1,13 +1,12 @@
 package com.anthonycosenza.editor.scene;
 
 import com.anthonycosenza.engine.assets.Asset;
-import com.anthonycosenza.engine.space.node.Ignore;
+import com.anthonycosenza.engine.annotations.Ignore;
 import com.anthonycosenza.engine.space.node.Node;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlWriter;
 import org.joml.Vector2f;
-import org.lwjgl.PointerBuffer;
 
 import java.io.File;
 import java.lang.reflect.Field;

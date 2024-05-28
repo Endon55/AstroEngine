@@ -1,14 +1,13 @@
 package com.anthonycosenza.engine.space.rendering.projection;
 
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
+import org.joml.Matrix4f;
 
 public class Projection
 {
     private float fov;
-    private float aspectRatio;
     private float zMin;
     private float zMax;
-    private final Matrix4 projectionMatrix;
+    private final Matrix4f projectionMatrix;
     
     /**
      *
@@ -17,41 +16,24 @@ public class Projection
     public Projection(float fovDegrees, int width, int height, float zMin, float zMax)
     {
         this.fov = (float) Math.toRadians(fovDegrees);
-        this.aspectRatio = (float) height / width;
         this.zMin = zMin;
         this.zMax = zMax;
-        projectionMatrix = new Matrix4();
+        projectionMatrix = new Matrix4f();
         
-        updateMatrix();
+        updateMatrix(width, height);
     }
     
     public void resize(int width, int height)
     {
-        aspectRatio = (float) height / (float) width;
-        updateMatrix();
+        updateMatrix(width, height);
     }
-    public void zDistance(float zNear, float zFar)
-    {
-        this.zMin = zNear;
-        this.zMax = zFar;
-        updateMatrix();
-    }
-    public float getFov()
-    {
-        return fov;
-    }
-    
-    public void setFov(float fovDegrees)
-    {
-        this.fov = (float) Math.toRadians(fovDegrees);
-    }
-    
-    public Matrix4 getMatrix()
+
+    public Matrix4f getMatrix()
     {
         return projectionMatrix;
     }
     
-    private void updateMatrix()
+    private void updateMatrix(int width, int height)
     {
     /*
     For a full breakdown visit:
@@ -104,7 +86,9 @@ public class Projection
     e5 is set to -1 because the w value of clip space is -z, and since that column gets multiplied by z we set it to -1 so it becomes -1 * z = -z
      */
 
-        float tangent = (float)Math.tan(fov / 2);
+       projectionMatrix.setPerspective(fov, (float) width / height, zMin, zMax);
+       
+/*        float tangent = (float)Math.tan(fov / 2);
         float right = zMin * tangent;
         float top = right * aspectRatio;
         float zDist = zMax - zMin;
@@ -112,7 +96,7 @@ public class Projection
         projectionMatrix
                 .m00(zMin / right).m11(zMin / top)
                 .m22(-(zMax + zMin) / zDist).m23(-2 * (zMax * zMin) / zDist)
-                .m32(-1).m33(0);
+                .m32(-1).m33(0);*/
     }
     
 }

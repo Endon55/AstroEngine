@@ -1,14 +1,19 @@
 package com.anthonycosenza.editor;
 
+import com.anthonycosenza.editor.scene.nodes.LoadWindowNode;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.space.SceneManager;
+
+import java.util.List;
 
 public class Editor
 {
     
     private Engine engine;
-    private EditorProject editorProject;
     private ProjectSettings editorSettings;
+    
+    private static List<String> recentProjects = EditorIO.getRecentProjects();
     public Editor()
     {
         /*
@@ -16,9 +21,8 @@ public class Editor
          */
         editorSettings = new ProjectSettings();
         loadEditorSettings(editorSettings);
-        editorProject = new EditorProject(editorSettings);
-        
-        engine = new Engine(editorProject);
+        engine = new Engine(editorSettings);
+        SceneManager.setScene(new LoadWindowNode());
         engine.run();
     }
     
@@ -36,5 +40,10 @@ public class Editor
     public static String getEditorIniFile()
     {
         return "settings";
+    }
+    
+    public static List<String> getRecentProjects()
+    {
+        return recentProjects;
     }
 }

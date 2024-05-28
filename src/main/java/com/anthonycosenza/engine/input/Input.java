@@ -2,32 +2,16 @@ package com.anthonycosenza.engine.input;
 
 import com.anthonycosenza.engine.events.KeyEvent;
 import com.anthonycosenza.engine.space.ProjectSettings;
-import com.anthonycosenza.engine.space.Window;
-import com.anthonycosenza.engine.space.entity.UIMesh;
-import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.util.math.vector.Vector2;
-import imgui.ImFontAtlas;
-import imgui.ImGui;
-import imgui.ImGuiIO;
-import imgui.type.ImInt;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_CONTROL;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SUPER;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_ALT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_CONTROL;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SUPER;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -44,6 +28,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 
 public class Input
 {
+    private static Input INSTANCE;
     private final Map<Key, KeyAction> keys;
     private Vector2 lastMousePosition;
     private Vector2 currentMousePosition;

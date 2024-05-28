@@ -1,93 +1,59 @@
-package com.anthonycosenza.editor;
+package com.anthonycosenza.editor.scene.nodes;
 
-import com.anthonycosenza.Project;
-import com.anthonycosenza.engine.input.Input;
-import com.anthonycosenza.engine.space.ProjectSettings;
-import com.anthonycosenza.engine.space.rendering.Scene;
+import com.anthonycosenza.editor.Editor;
+import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.engine.space.SceneManager;
+import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.util.NativeFileDialogue;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImString;
 
 import java.io.File;
-import java.util.List;
 
-public class EditorProject extends Project
+public class LoadWindowNode extends Node
 {
-    private Project userProject;
-    private boolean projectSelected;
     
     private boolean creatingProject = false;
     private ImString newProjectName = new ImString();
     private String newProjectDirectory = "";
     private String error = "";
-    private List<String> recentProjects;
-    
-    public EditorProject(ProjectSettings editorSettings)
-    {
-        super("Editor", editorSettings);
-        this.userProject = new BlankProject();
-        this.projectSelected = false;
-        recentProjects = EditorIO.getRecentProjects();
-    }
+    private String selectedProject = "";
+    private boolean shouldAutoLoad = true;
     
     @Override
-    public void initialize(int width, int height)
+    public void initialize()
     {
-        if(projectSelected)
+        if(shouldAutoLoad)
         {
-            userProject.initialize(width, height);
+            String mostRecent = Editor.getRecentProjects().get(0);
+            if(mostRecent != null)
+            {
+                loadProject(mostRecent);
+            }
         }
-
-        //ImGui.saveIniSettingsToDisk(Editor.getEditorIniFile() + ".ini");
     }
-    
-    
-    
     
     public void loadProject(String projectDirectory)
     {
         EditorIO.loadProject(projectDirectory);
-        projectSelected = true;
         newProjectName = new ImString();
         newProjectDirectory = "";
         error = "";
-        
+    
         ImGuiIO io = ImGui.getIO();
+        ImGui.loadIniSettingsFromDisk(EditorIO.getGuiINI().getPath());
         io.setIniFilename(EditorIO.getGuiINI().getPath());
         io.setWantSaveIniSettings(true);
-        
-        initialize(getSettings().width, getSettings().height);
+        SceneManager.setScene(new EditorNode());
     }
     
     @Override
-    public void uiUpdate(float delta, Scene scene, Input input)
-    {
-        //Checking if we need to load a new project.
-        if(projectSelected)
-        {
-            int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
-            int mainDock = ImGui.dockSpaceOverViewport(ImGui.getMainViewport(), dockspaceConfig);
-    
-            ImGui.setNextWindowDockID(mainDock, ImGuiCond.FirstUseEver);
-            createSceneManager();
-    
-            ImGui.setNextWindowDockID(mainDock, ImGuiCond.FirstUseEver);
-            createPropertyInspector();
-        }
-        else
-        {
-            createLoadProject();
-        }
-
-    }
-    private void createLoadProject()
+    public void updateUI(float delta)
     {
         int frameConfig = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse;
         ImVec2 viewPortSize = ImGui.getMainViewport().getSize();
@@ -129,7 +95,7 @@ public class EditorProject extends Project
                         EditorIO.createNewProject(projectDirectory);
                         loadProject(projectPath);
                         //now I need to reload the engine with the new Project.
-                        
+                    
                     }
                 }
                 if(!error.isEmpty())
@@ -148,7 +114,7 @@ public class EditorProject extends Project
                 ImGui.text("Load Project");
                 //Insert a list of a project cache.
                 ImGui.separator();
-                for(String projectPath : recentProjects)
+                for(String projectPath : Editor.getRecentProjects())
                 {
                     //ImGui.text(projectPath);
                     if(ImGui.selectable(projectPath, selectedProject.equals(projectPath)))
@@ -156,7 +122,7 @@ public class EditorProject extends Project
                         selectedProject = projectPath;
                     }
                 }
-    
+            
                 if(ImGui.button("Load Project", 0, 0))
                 {
                     loadProject(selectedProject);
@@ -166,94 +132,10 @@ public class EditorProject extends Project
                 {
                     creatingProject = true;
                 }
-                
-                
-
+    
+    
             }
             ImGui.end();
         }
-
     }
-    String selectedProject = "";
-    private void createSceneManager()
-    {
-        int frameConfig = 0;
-        if(ImGui.begin("Scene Hierarchy", frameConfig))
-        {
-            if(ImGui.collapsingHeader("Scene"))//set as scene name
-            {
-                ImGui.indent();
-                ImGui.bulletText("Child1");
-                ImGui.bulletText("Child2");
-                ImGui.bulletText("Child3");
-                ImGui.bulletText("Child4");
-                ImGui.bulletText("Child5");
-            }
-        }
-        ImGui.end();
-    }
-    
-    private void createPropertyInspector()
-    {
-        int frameConfig = 0;
-        if(ImGui.begin("Scene Hierarchy2", frameConfig))
-        {
-            if(ImGui.collapsingHeader("Scene2"))//set as scene name
-            {
-                ImGui.indent();
-                ImGui.bulletText("Child1");
-            }
-        }
-        ImGui.end();
-    }
-    
-    private void createAssetManager()
-    {
-    
-    }
-    
-    private void createLivePreview()
-    {
-    
-    }
-    
-    
-    
-    @Override
-    public void update(float delta, Scene scene, Input input)
-    {
-        //userProject.update(delta, scene, input);
-    }
-    
-    @Override
-    public void updatePhysics(float delta, Scene scene, Input input)
-    {
-        //userProject.update(delta, scene, input);
-    }
-    
-    
-    @Override
-    public void setCurrentScene(Scene scene)
-    {
-        userProject.setCurrentScene(scene);
-    }
-    
-    @Override
-    public void setCurrentScene(int sceneIndex)
-    {
-        userProject.setCurrentScene(sceneIndex);
-    }
-    
-    @Override
-    public Scene getScene()
-    {
-        return userProject.getScene();
-    }
-    
-    /*
-     * This isn't necessary since we passed the settings directly.
-     */
-    @Override
-    public void settings(ProjectSettings settings)
-    { }
 }

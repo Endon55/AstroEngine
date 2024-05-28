@@ -15,7 +15,7 @@ uniform int hasTexture;
 
 void main()
 {
-    //fragColor = vec4(1, 0, 0, 1);
+    fragColor = vec4(0, 0, 0, 1);
     if(hasTexture == 1)
     {
         fragColor = texture(textureSampler, outTextureCoordinate);

@@ -1,12 +1,13 @@
 package com.anthonycosenza.engine.space.entity.texture;
 
+import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.util.math.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Material
+public class Material extends Asset
 {
     public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
     

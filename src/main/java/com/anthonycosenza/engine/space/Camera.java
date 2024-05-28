@@ -1,13 +1,14 @@
 package com.anthonycosenza.engine.space;
 
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
-import com.anthonycosenza.engine.util.math.vector.Vector2;
-import com.anthonycosenza.engine.util.math.vector.Vector3;
+import com.anthonycosenza.engine.space.node.Node;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-public class Camera
+public class Camera extends Node
 {
+    public static Camera DEFAULT_CAMERA = new Camera();
+    
     //https://www.tomdalling.com/blog/modern-opengl/04-cameras-vectors-and-input/
     
     private Vector3f position;
@@ -23,6 +24,7 @@ public class Camera
     
     public Camera()
     {
+        name = "Camera";
         position = new Vector3f();
         rotation = new Vector3f();
         
@@ -34,12 +36,21 @@ public class Camera
         updateMatrix();
     }
     
+    
+    @Override
+    public void update(float delta)
+    {
+        super.update(delta);
+        
+        
+    }
+    
     public void addRotation(float x, float y)
     {
         rotation.add(x, y, 0);
     }
     
-    public void rotateDeg(Vector2 rotation)
+    public void rotateDeg(Vector2f rotation)
     {
         this.rotation.add(rotation.y(), rotation.x(), 0);
         updateMatrix();
@@ -50,7 +61,7 @@ public class Camera
         this.rotation.add(y, x, 0);
         updateMatrix();
     }
-    public void setRotationDeg(Vector2 rotation)
+    public void setRotationDeg(Vector2f rotation)
     {
         this.rotation.set(rotation.x(), rotation.y(), 0);
         updateMatrix();
@@ -128,62 +139,7 @@ public class Camera
                 .translate(-position.x(), -position.y(), -position.z());
                 
     }
-    /*
-    public void moveLocalX(float distance)
-    {
-        xAxisLocal.mult(distance);
-        position.add(xAxisLocal);
-        updateMatrix();
-    }
-    
-    public void moveLocalY(float distance)
-    {
-        yAxisLocal.mult(distance);
-        position.add(yAxisLocal);
-        updateMatrix();
-    }
 
-    public void moveLocalZ(float distance)
-    {
-        zAxisLocal.mult(distance);
-        position.add(zAxisLocal);
-        updateMatrix();
-    }
-    
-    public void moveGlobalX(float distance)
-    {
-        position.addX(distance);
-        updateMatrix();
-    }
-    
-    public void moveGlobalY(float distance)
-    {
-        position.addY(distance);
-        updateMatrix();
-    }
-    
-    public void moveGlobalZ(float distance)
-    {
-        position.addZ(distance);
-        updateMatrix();
-    }
-        public void updateMatrix()
-    {
-        cameraMatrix
-                //Sets the matrix to diagonal 1s
-                .identity()
-                //Essentially what we're doing here is
-                // <<--------------------------------------<<
-                // translation * rotationZ * rotationY * rotationX
-                .rotateX(rotation.x()).rotateY(rotation.y()).rotateZ(-rotation.z())
-                .translate(-position.x(), -position.y(), position.z())
-                //Then once ive calculated what the matrix should look like, I extract the vectors that point in the x, y, and z axis relative to the cameras current rotation,
-                // not relative to the global axis.
-                .positiveAxis(xAxisLocal, yAxisLocal, zAxisLocal);
-    }
-    */
-
-    
     
     
     public Matrix4f getMatrix()

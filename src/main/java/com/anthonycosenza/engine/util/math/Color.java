@@ -139,4 +139,10 @@ public class Color
         result = 31 * result + (a != +0.0f ? Float.floatToIntBits(a) : 0);
         return result;
     }
+    
+    @Override
+    public String toString()
+    {
+        return "Color{" + r + ", "  + g + ", " + b + ", " + a + "}";
+    }
 }

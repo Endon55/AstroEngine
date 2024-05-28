@@ -15,6 +15,9 @@ void main()
     //Then the world space vector gets converted from world space to camera space(remember the camera is stationary and the world moves around it).
     //Then the camera vector is sent into a projection matrix which distorts the position of the points to give the illusion of distance.(further objects look smaller).
     //       pinhole camera <- camera position <- entity position <- model coordinates
+/**    mat4 relativePositionMatrix = cameraMatrix * entityMatrix;
+    vec4 mvPosition = relativePositionMatrix * vec4(inPosition, 1);
+    gl_Position = projectionMatrix * mvPosition;*/
 
     gl_Position = projectionMatrix * cameraMatrix * entityMatrix * vec4(inPosition, 1.0);
 

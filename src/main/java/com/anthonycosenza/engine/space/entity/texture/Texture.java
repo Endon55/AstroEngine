@@ -20,7 +20,6 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.stb.STBImage.stbi_failure_reason;
@@ -47,7 +46,7 @@ public class Texture
     }
     public Texture(String filepath)
     {
-        this(filepath, false);
+        this(filepath, true);
     }
     public Texture(String filepath, boolean fast)
     {

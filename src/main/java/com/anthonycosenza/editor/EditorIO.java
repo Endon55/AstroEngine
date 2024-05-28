@@ -4,10 +4,8 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -167,7 +165,6 @@ public class EditorIO
             throw new RuntimeException(e);
         }
     }
-    
     
     
 }

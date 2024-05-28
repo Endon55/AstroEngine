@@ -1,12 +1,13 @@
 package com.anthonycosenza.engine.space.entity;
 
 
+import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.space.entity.texture.Material;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 
 import java.util.List;
 
-public class Model
+public class Model extends Asset
 {
     private List<Material> materials;
     private Texture texture;
