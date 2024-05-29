@@ -2,7 +2,6 @@ package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.space.entity.UIMesh;
-import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
@@ -119,7 +118,6 @@ public class InterfaceRenderer
 {
     private final ShaderPipeline shaderPipeline;
     private final UniformMap uniforms;
-    private Texture texture;
     private UIMesh uiMesh;
     private final Vector2 scale;
     private final long[] mouseCursors = new long[ImGuiMouseCursor.COUNT];
@@ -162,11 +160,6 @@ public class InterfaceRenderer
     {
         uiMesh = new UIMesh();
 
-        ImFontAtlas fontAtlas = ImGui.getIO().getFonts();
-        ImInt width = new ImInt();
-        ImInt height = new ImInt();
-        ByteBuffer buffer = fontAtlas.getTexDataAsRGBA32(width, height);
-        texture = new Texture(width.get(), height.get(), buffer);
         setKeyCallback();
         
         uniforms.createUniform("scale");
@@ -210,9 +203,12 @@ public class InterfaceRenderer
             {
                 final int elements = drawData.getCmdListCmdBufferElemCount(i, j);
                 final int indexOffset = drawData.getCmdListCmdBufferIdxOffset(i, j);
+                final int textureId = drawData.getCmdListCmdBufferTextureId(i, j);
+                //final int vertexOffset = drawData.getCmdListCmdBufferVtxOffset(i, j);
                 final int indices = indexOffset * ImDrawData.SIZEOF_IM_DRAW_IDX;
                 
-                texture.bind();
+                
+                glBindTexture(GL_TEXTURE_2D, textureId);
                 glDrawElements(GL_TRIANGLES, elements, GL_UNSIGNED_SHORT, indices);
             }
         }

@@ -80,6 +80,11 @@ public class Texture
 
     }
     
+    public int getTextureID()
+    {
+        return textureID;
+    }
+    
     private void generate(int width, int height, ByteBuffer pixelData)
     {
         textureID = glGenTextures();

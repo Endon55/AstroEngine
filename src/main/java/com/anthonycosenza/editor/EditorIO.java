@@ -28,7 +28,10 @@ public class EditorIO
         return "project.astro";
     }
     
-    
+    public static File getProjectDirectory()
+    {
+        return projectDirectory;
+    }
     
     public static void loadProject(String directory)
     {
