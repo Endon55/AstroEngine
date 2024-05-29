@@ -41,4 +41,9 @@ public class EngineMath
     {
         return random;
     }
+    
+    public static long generateMaxLengthLong()
+    {
+        return EngineMath.getRandom().nextLong(1000000000000000000L, Long.MAX_VALUE);
+    }
 }

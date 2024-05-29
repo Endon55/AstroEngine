@@ -1,11 +1,9 @@
 package com.anthonycosenza.engine.assets;
 
-import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.util.math.EngineMath;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class AssetManager
 {
@@ -57,7 +55,7 @@ public class AssetManager
     }*/
     public static long generateResourceID()
     {
-        return EngineMath.getRandom().nextLong(1000000000000000000L, Long.MAX_VALUE);
+        return EngineMath.generateMaxLengthLong();
     }
     public static Asset getAsset(long resourceID)
     {

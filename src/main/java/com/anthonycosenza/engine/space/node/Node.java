@@ -2,12 +2,15 @@ package com.anthonycosenza.engine.space.node;
 
 
 import com.anthonycosenza.engine.annotations.Ignore;
+import com.anthonycosenza.engine.util.math.EngineMath;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Node
 {
+    @Ignore
+    private final long id;
     public String name;
     @Ignore
     public Node parent;
@@ -16,7 +19,7 @@ public class Node
     {
         this.name = "";
         this.children = new ArrayList<>();
-        
+        id = EngineMath.generateMaxLengthLong();
     }
     public Node(String name, List<Node> children)
     {
@@ -26,6 +29,8 @@ public class Node
             this.children = new ArrayList<>(children);
         }
         else this.children = new ArrayList<>();
+        
+        id = EngineMath.generateMaxLengthLong();
     }
     public void addChild(Node child)
     {
@@ -78,7 +83,11 @@ public class Node
             child.updateChildrenUI(delta);
         }
     }
-
+    
+    public long getId()
+    {
+        return id;
+    }
     
     @Override
     public String toString()
@@ -87,5 +96,22 @@ public class Node
                 "name='" + name + '\'' +
                 ", children=" + children +
                 '}';
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        
+        Node node = (Node) o;
+    
+        return id == node.id;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        return (int) (id ^ (id >>> 32));
     }
 }
