@@ -1,6 +1,7 @@
 package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.entity.Model;
@@ -19,8 +20,16 @@ import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
+import imgui.type.ImDouble;
+import imgui.type.ImFloat;
+import imgui.type.ImInt;
+import imgui.type.ImString;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 
 public class EditorNode extends Node
@@ -213,10 +222,7 @@ public class EditorNode extends Node
                 (hasChildren ? 0 : ImGuiTreeNodeFlags.Leaf) |
                 (node.equals(sceneManagerSelected) ? ImGuiTreeNodeFlags.Selected : 0), name))
         {
-            if(ImGui.isItemClicked())
-            {
-                sceneManagerSelected = node;
-            }
+            
             
             if(hasChildren)
             {
@@ -226,6 +232,10 @@ public class EditorNode extends Node
                 }
             }
             ImGui.treePop();
+        }
+        if(ImGui.isItemClicked())
+        {
+            sceneManagerSelected = node;
         }
     }
     
@@ -257,10 +267,142 @@ public class EditorNode extends Node
         int frameConfig = 0;
         if(ImGui.begin("Property Inspector", frameConfig))
         {
-            if(ImGui.collapsingHeader("Scene2"))//set as scene name
+            Node selectedNode = sceneManagerSelected;
+            if(selectedNode != null)
             {
-                ImGui.indent();
-                ImGui.bulletText("Child1");
+                String className = selectedNode.getClass().getSimpleName();
+                ImGui.text(className + ".class");
+                ImGui.separator();
+                Class<? extends Node> nodeClass = selectedNode.getClass();
+                while(nodeClass != null && !Object.class.equals(nodeClass))
+                {
+                    if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties"))//set as scene name
+                    {
+                        for(Field field : nodeClass.getDeclaredFields())
+                        {
+                            if(Modifier.isPublic(field.getModifiers()) && field.canAccess(selectedNode) && field.isAnnotationPresent(Property.class))
+                            {
+                                ImGui.text(field.getName());
+                                ImGui.sameLine();
+                                try
+                                {
+                                    Object value = field.get(selectedNode);
+                                    
+                                    if(Integer.class.equals(field.getType()))
+                                    {
+                                        if(value == null)
+                                        {
+                                            value = 0;
+                                        }
+                                        ImInt imValue = new ImInt((Integer) value);
+                                        if(ImGui.inputInt("", imValue))
+                                        {
+                                            System.out.println("int changed");
+                                        }
+                                    }
+                                    else if(Long.class.equals(field.getType()))
+                                    {
+                                        //ImGui doesn't directly support longs, hopefully this doesn't cause problems lol.
+                                        if(value == null)
+                                        {
+                                            value = 0;
+                                        }
+                                        ImInt imValue = new ImInt((Integer) value);
+                                        if(ImGui.inputInt("", imValue))
+                                        {
+                                            System.out.println("int changed");
+                                        }
+                                    }
+                                    else if(Float.class.equals(field.getType()))
+                                    {
+                                        if(value == null)
+                                        {
+                                            value = 0f;
+                                        }
+                                        ImFloat imValue = new ImFloat((Float) value);
+                                        if(ImGui.inputFloat("", imValue))
+                                        {
+                                            System.out.println("int changed");
+                                        }
+                                    }
+                                    else if(Double.class.equals(field.getType()))
+                                    {
+                                        if(value == null)
+                                        {
+                                            value = 0d;
+                                        }
+                                        ImDouble imValue = new ImDouble((Double) value);
+                                        if(ImGui.inputDouble("", imValue))
+                                        {
+                                            System.out.println("int changed");
+                                        }
+                                    }
+                                    else if(Vector3f.class.equals(field.getType()))
+                                    {
+                                        float[] imValue = new float[3];
+                                        Vector3f vector;
+                                        if(value != null)
+                                        {
+                                            vector = ((Vector3f) value);
+                                            imValue[0] =  vector.x();
+                                            imValue[1] = vector.y();
+                                            imValue[2] = vector.z();
+                                        }
+                                        else vector = new Vector3f();
+                                        if(ImGui.inputFloat3(field.getName(), imValue))
+                                        {
+                                            vector.set(imValue[0], imValue[1], imValue[2]);
+                                        }
+                                    }
+                                    else if(Quaternionf.class.equals(field.getType()))
+                                    {
+                                        float[] imValue = new float[3];
+                                        Quaternionf quaternion;
+                                        if(value != null)
+                                        {
+                                            quaternion = ((Quaternionf) value);
+                                            imValue[0] = quaternion.x();
+                                            imValue[1] = quaternion.y();
+                                            imValue[2] = quaternion.z();
+                                        }
+                                        else quaternion = new Quaternionf();
+                                        if(ImGui.inputFloat3(field.getName(), imValue))
+                                        {
+                                            quaternion.set(imValue[0], imValue[1], imValue[2], 1);
+                                        }
+                                    }
+                                    else if(String.class.equals(field.getType()))
+                                    {
+                                        if(value == null)
+                                        {
+                                            value = "";
+                                        }
+                                        ImString imValue = new ImString((String)value);
+                                        if(ImGui.inputText(field.getName(), imValue))
+                                        {
+                                            System.out.println("String changed");
+                                        }
+                                    }
+                                    else {
+                                        if(value == null)
+                                        {
+                                            value = "";
+                                        }
+                                        ImGui.text(value.toString());
+                                    }
+                                } catch(IllegalAccessException e)
+                                {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
+                }
+                
+                
             }
         }
         ImGui.end();

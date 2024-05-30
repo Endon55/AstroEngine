@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.space.node;
 
 
 import com.anthonycosenza.engine.annotations.Ignore;
+import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.util.math.EngineMath;
 
 import java.util.ArrayList;
@@ -11,7 +12,9 @@ public class Node
 {
     @Ignore
     private final long id;
+    @Property
     public String name;
+    
     @Ignore
     public Node parent;
     public List<Node> children;
