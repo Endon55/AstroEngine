@@ -1,22 +1,26 @@
 package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
-import com.anthonycosenza.engine.space.node._3d.Mesh3D;
 import com.anthonycosenza.engine.space.node._3d.Model3D;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
+import com.anthonycosenza.engine.space.rendering.FrameBuffer;
+import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.ui.UITools;
 import com.anthonycosenza.engine.util.FileType;
 import imgui.ImColor;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDockNodeFlags;
+import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -33,17 +37,27 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_STENCIL_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glViewport;
+
 public class EditorNode extends Node
 {
     private static int MAX_STRING_FIELD_LENGTH = 20;
     
     private final long doubleClickInterval = 250;
     
+    private final Engine engine;
     private final Texture folderIcon;
     private final Texture settingsIcon;
     private final Texture textIcon;
     private final Texture codeIcon;
     private final Texture upArrow;
+    private final FrameBuffer viewportFrameBuffer;
+    private final SceneRenderer sceneRenderer;
     
     private float assetBrowserScale = 1f;
     private final float defaultAssetBrowserSize = 100f;
@@ -55,33 +69,42 @@ public class EditorNode extends Node
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
     
-    private Node sceneManagerNode = this;
-    private Node sceneManagerSelected = sceneManagerNode;
+    private Node sceneManagerNode;
+    private Node sceneManagerSelected;
+    private Node testScene;
+    Camera camera;
     
-    public EditorNode()
+    public EditorNode(Engine engine)
     {
         super();
+        sceneRenderer = new SceneRenderer(true);
+        this.engine = engine;
         name = "Editor";
+        testScene = new Node("Scene");
         Model model = ModelLoader.loadModel("AstroEngine/resources/assets/boat/BoatFBX.fbx", 0);
         Model3D model3d = new Model3D();
         model3d.model = model;
         model3d.name = "Boat1";
         model3d.setPosition(0, 0, 50);
-        addChild(model3d);
-        Camera camera = new MoveableCamera();
+        testScene.addChild(model3d);
+        camera = new MoveableCamera();
         //camera.moveGlobalZ(50);
-        addChild(camera);
+        testScene.addChild(camera);
         model3d = new Model3D();
         model3d.model = model;
         model3d.name = "Boat2";
         model3d.setPosition(0, 0, -50);
-        addChild(model3d);
-        addChild(new Mesh3D());
+        testScene.addChild(model3d);
+        //testScene.addChild(new Mesh3D());
         folderIcon = new Texture("AstroEngine/resources/icons/folder.png");
         settingsIcon = new Texture("AstroEngine/resources/icons/settingsPaper.png");
         textIcon = new Texture("AstroEngine/resources/icons/txtPaper.png");
         codeIcon = new Texture("AstroEngine/resources/icons/codePaper.png");
         upArrow = new Texture("AstroEngine/resources/icons/arrowhead-up.png");
+        viewportFrameBuffer = new FrameBuffer(1920, 1080);
+        
+        sceneManagerNode = testScene;
+        sceneManagerSelected = sceneManagerNode;
     }
     
     @Override
@@ -89,6 +112,7 @@ public class EditorNode extends Node
     {
     
     }
+    
     
     @Override
     public void updateUI(float delta)
@@ -104,117 +128,12 @@ public class EditorNode extends Node
     
         ImGui.setNextWindowDockID(mainDock, ImGuiCond.FirstUseEver);
         createAssetBrowser();
-    }
-
-    private void createAssetBrowser()
-    {
-        File projectDirectory = EditorIO.getProjectDirectory();
-        int frameConfig = ImGuiWindowFlags.AlwaysVerticalScrollbar;
         
-        if(ImGui.begin("Asset Browser", frameConfig))
-        {
-            String truncatedPath = assetBrowserPath.getAbsolutePath().replace(projectDirectory.getAbsolutePath(), "");
-            if(truncatedPath.isEmpty())
-            {
-                truncatedPath = "project:\\\\";
-            }
-            else truncatedPath = "project:\\" + truncatedPath;
-            if(ImGui.imageButton(upArrow.getTextureID(), 10, 10))
-            {
-                if(!assetBrowserPath.equals(EditorIO.getProjectDirectory()))
-                {
-                    assetBrowserPath = assetBrowserPath.getParentFile();
-                }
-            }
-            ImGui.sameLine();
-            ImGui.text(truncatedPath);
-            ImGui.separator();
-            
-            
-            float cellSize = (defaultAssetBrowserSize * assetBrowserScale) + assetBrowserPadding;
-            int columns = (int) (ImGui.getWindowWidth() / cellSize);
-            float columnWidth = (ImGui.getColumnWidth()) / columns;
-            
-            if(ImGui.beginTable("Asset Viewer", columns, ImGuiTableFlags.NoClip))
-            {
-                
-                ImGui.tableNextColumn();
-                ImGui.pushStyleColor(ImGuiCol.Button, 0);
-                ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0);
-                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, hoveredTableColor);
-                File[] files = Objects.requireNonNull(assetBrowserPath.listFiles());
-                for(int i = 0; i < files.length; i++)
-                {
-                    File child = files[i];
-                    String[] split = child.getAbsolutePath().split("\\\\");
-                    String fileNameWithExtension = split[split.length - 1];
-                    
-                    if(i == assetBrowserFileSelected)
-                    {
-                        ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, selectedTableColor);
-                    }
-                    else
-                    {
-                        ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, defaultTableColor);
-                    }
-                    
-                    FileType type = FileType.getFileType(child);
-                    int textureID = switch(type)
-                            {
-                                case SETTINGS -> settingsIcon.getTextureID();
-                                case CODE -> codeIcon.getTextureID();
-                                case DIRECTORY -> folderIcon.getTextureID();
-                                case TEXT -> textIcon.getTextureID();
-                            };
-                    
-                    //It gets confused thinking that all the buttons are the same so we push a specific ID for it.
-                    ImGui.pushID(i);
-                    
-                    if(ImGui.imageButton(textureID, cellSize, cellSize))
-                    {
-                        if(assetBrowserFileSelected == i)
-                        {
-                            long now = System.currentTimeMillis();
-                            long dif = now - assetBrowserLastClickTime;
-                            
-                            if(dif < doubleClickInterval)
-                            {
-                                if(type == FileType.DIRECTORY)
-                                {
-                                    assetBrowserPath = child;
-                                    assetBrowserFileSelected = -1;
-                                    assetBrowserLastClickTime = -1;
-                                }
-                                else System.out.println("Not a directory");
-                            }
-                            else
-                            {
-                                assetBrowserLastClickTime = now;
-                            }
-                        }
-                        else
-                        {
-                            assetBrowserLastClickTime = System.currentTimeMillis();
-                            assetBrowserFileSelected = i;
-                        }
-                        
-                    }
-                    ImGui.popID();
-                    
-                    fileNameWithExtension = UITools.centerAlignOffset(fileNameWithExtension, columnWidth);
-                    ImGui.text(fileNameWithExtension);
-                    
-                    ImGui.tableNextColumn();
-                }
-                ImGui.popStyleColor();
-                ImGui.popStyleColor();
-                ImGui.popStyleColor();
-                
-                ImGui.endTable();
-            }
-        }
-        ImGui.end();
+        ImGui.setNextWindowDockID(mainDock, ImGuiCond.FirstUseEver);
+        createSceneViewport();
+        
     }
+    
     
     private void drawTree(Node node, int flags)
     {
@@ -265,7 +184,7 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
-    
+
     private void createPropertyInspector()
     {
         int frameConfig = 0;
@@ -287,8 +206,10 @@ public class EditorNode extends Node
                     {
                         for(Field field : nodeClass.getDeclaredFields())
                         {
-                            if(Modifier.isPublic(field.getModifiers()) && field.canAccess(selectedNode) && field.isAnnotationPresent(Property.class))
+                            if(field.isAnnotationPresent(Property.class))//Modifier.isPublic(field.getModifiers()) && field.canAccess(selectedNode) &&
                             {
+                                field.setAccessible(true);
+                                
                                 ImGui.text(field.getName());
                                 ImGui.sameLine();
                                 try
@@ -302,7 +223,7 @@ public class EditorNode extends Node
                                             value = 0;
                                         }
                                         ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("", imValue))
+                                        if(ImGui.inputInt("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                         }
@@ -315,7 +236,7 @@ public class EditorNode extends Node
                                             value = 0;
                                         }
                                         ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("", imValue))
+                                        if(ImGui.inputInt("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                         }
@@ -327,7 +248,7 @@ public class EditorNode extends Node
                                             value = 0f;
                                         }
                                         ImFloat imValue = new ImFloat((Float) value);
-                                        if(ImGui.inputFloat("", imValue))
+                                        if(ImGui.inputFloat("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                         }
@@ -339,7 +260,7 @@ public class EditorNode extends Node
                                             value = 0d;
                                         }
                                         ImDouble imValue = new ImDouble((Double) value);
-                                        if(ImGui.inputDouble("", imValue))
+                                        if(ImGui.inputDouble("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                         }
@@ -360,7 +281,7 @@ public class EditorNode extends Node
                                             vector = new Vector3f();
                                             field.set(selectedNode, vector);
                                         }
-                                        if(ImGui.inputFloat3(field.getName(), imValue))
+                                        if(ImGui.inputFloat3("##", imValue))
                                         {
                                             vector.set(imValue[0], imValue[1], imValue[2]);
                                         }
@@ -381,7 +302,7 @@ public class EditorNode extends Node
                                             quaternion = new Quaternionf();
                                             field.set(selectedNode, quaternion);
                                         }
-                                        if(ImGui.inputFloat3(field.getName(), imValue))
+                                        if(ImGui.inputFloat3("##", imValue))
                                         {
                                             quaternion.set(imValue[0], imValue[1], imValue[2], 1);
                                         }
@@ -395,7 +316,7 @@ public class EditorNode extends Node
                                         //Pre-allocating the String buffer, otherwise the buffers size is limited to the length of whatever was first added to it.
                                         ImString imValue = new ImString(MAX_STRING_FIELD_LENGTH);
                                         imValue.set(value);
-                                        if(ImGui.inputText(field.getName(), imValue))
+                                        if(ImGui.inputText("##", imValue))
                                         {
                                             if(ImGui.isItemDeactivatedAfterEdit())
                                             {
@@ -415,7 +336,6 @@ public class EditorNode extends Node
                         }
                         
                     }
-                    
                     nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
                 }
                 
@@ -424,4 +344,155 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
+    
+    private void createAssetBrowser()
+    {
+        File projectDirectory = EditorIO.getProjectDirectory();
+        int frameConfig = ImGuiWindowFlags.NoScrollbar;//ImGuiWindowFlags.AlwaysVerticalScrollbar;
+        
+        if(ImGui.begin("Asset Browser", frameConfig))
+        {
+            String truncatedPath = assetBrowserPath.getAbsolutePath().replace(projectDirectory.getAbsolutePath(), "");
+            if(truncatedPath.isEmpty())
+            {
+                truncatedPath = "project:\\\\";
+            }
+            else truncatedPath = "project:\\" + truncatedPath;
+            if(ImGui.imageButton(upArrow.getTextureID(), 10, 10))
+            {
+                if(!assetBrowserPath.equals(EditorIO.getProjectDirectory()))
+                {
+                    assetBrowserPath = assetBrowserPath.getParentFile();
+                }
+            }
+            ImGui.sameLine();
+            ImGui.text(truncatedPath);
+            ImGui.separator();
+    
+            //ImGui.pushClipRect(ImGui.getWindowPosX(), ImGui.getWindowPosY(),  +ImGui.getWindowPosX() + ImGui.getContentRegionAvailX(), ImGui.getWindowPosY() + ImGui.getContentRegionAvailY(), true);
+            float cellSize = (defaultAssetBrowserSize * assetBrowserScale) + assetBrowserPadding;
+            int columns = (int) (ImGui.getWindowContentRegionMax().x / cellSize);
+            float columnWidth = (ImGui.getColumnWidth()) / columns;
+            
+            if(ImGui.beginTable("Asset Viewer", columns, ImGuiTableFlags.ScrollY))
+            {
+                ImGui.tableNextColumn();
+                ImGui.pushStyleColor(ImGuiCol.Button, 0);
+                ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, hoveredTableColor);
+                File[] files = Objects.requireNonNull(assetBrowserPath.listFiles());
+
+                
+                for(int i = 0; i < files.length; i++)
+                {
+                    File child = files[i];
+                    String[] split = child.getAbsolutePath().split("\\\\");
+                    String fileNameWithExtension = split[split.length - 1];
+                    
+                    if(i == assetBrowserFileSelected)
+                    {
+                        ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, selectedTableColor);
+                    }
+                    else
+                    {
+                        ImGui.tableSetBgColor(ImGuiTableBgTarget.CellBg, defaultTableColor);
+                    }
+                    
+                    FileType type = FileType.getFileType(child);
+                    int textureID = switch(type)
+                            {
+                                case SETTINGS -> settingsIcon.getTextureID();
+                                case CODE -> codeIcon.getTextureID();
+                                case DIRECTORY -> folderIcon.getTextureID();
+                                case TEXT -> textIcon.getTextureID();
+                            };
+                    //It gets confused thinking that all the buttons are the same so we push a specific ID for it.
+    
+                    //System.out.println("Scroll Y: " + ImGui.getScrollY() + "/" + ImGui.getScrollMaxY());
+                    ImGui.pushID(i);
+                    
+                    if(ImGui.imageButton(textureID, cellSize, cellSize, 0f, 0f, 1f, 1f))
+                    {
+                        if(assetBrowserFileSelected == i)
+                        {
+                            long now = System.currentTimeMillis();
+                            long dif = now - assetBrowserLastClickTime;
+        
+                            if(dif < doubleClickInterval)
+                            {
+                                if(type == FileType.DIRECTORY)
+                                {
+                                    assetBrowserPath = child;
+                                    assetBrowserFileSelected = -1;
+                                    assetBrowserLastClickTime = -1;
+                                }
+                                else System.out.println("Not a directory");
+                            }
+                            else
+                            {
+                                assetBrowserLastClickTime = now;
+                            }
+                        }
+                        else
+                        {
+                            assetBrowserLastClickTime = System.currentTimeMillis();
+                            assetBrowserFileSelected = i;
+                        }
+    
+                    }
+                    ImGui.popID();
+                    fileNameWithExtension = UITools.centerAlignOffset(fileNameWithExtension, columnWidth);
+                    ImGui.text(fileNameWithExtension);
+                    
+                    ImGui.tableNextColumn();
+                }
+                ImGui.popStyleColor();
+                ImGui.popStyleColor();
+                ImGui.popStyleColor();
+                
+                
+                ImGui.endTable();
+                
+                //ImGui.popClipRect();
+            }
+        }
+        ImGui.end();
+    }
+    
+    private void createSceneViewport()
+    {
+        int frameConfig = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+        
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f);
+        if(ImGui.begin("Scene Viewport", frameConfig))
+        {
+            int windowWidth = engine.getWindow().getWidth();
+            int windowHeight = engine.getWindow().getHeight();
+            
+            ImVec2 contentRegion = ImGui.getWindowContentRegionMax();
+            int width = (int) contentRegion.x;
+            int height = (int) (contentRegion.y - ImGui.getFrameHeight());
+            viewportFrameBuffer.resize(width, height);
+            
+            viewportFrameBuffer.bind();
+            
+    
+            glClearColor(0f, 1f, 0f, 0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            engine.getRenderer().getSceneRenderer().render(sceneManagerNode, camera, engine.getProjection());
+            
+            
+            ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
+            viewportFrameBuffer.unbind();
+    
+    
+            glViewport(0, 0, windowWidth, windowHeight);
+            
+            
+        }
+        ImGui.popStyleVar();
+        //ImGui.popStyleVar();
+        ImGui.end();
+    }
+    
 }

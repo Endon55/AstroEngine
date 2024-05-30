@@ -155,7 +155,8 @@ public class Engine
             
             ImGui.endFrame();
             ImGui.render();
-            
+            imGuiImpl.render();
+            //imGuiImpl.endFrame();
             renderer.render(scene, projection);
             
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
@@ -207,6 +208,20 @@ public class Engine
         //System.out.println(event.message);
     }
     
+    public Window getWindow()
+    {
+        return window;
+    }
+    
+    public Renderer getRenderer()
+    {
+        return renderer;
+    }
+    
+    public Projection getProjection()
+    {
+        return projection;
+    }
     
     private void resize(long windowHandle, int width, int height)
     {

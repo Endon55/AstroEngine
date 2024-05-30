@@ -112,7 +112,6 @@ import static org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
-import static org.lwjgl.opengl.GL32.glDrawElementsBaseVertex;
 
 public class InterfaceRenderer
 {
@@ -183,14 +182,34 @@ public class InterfaceRenderer
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
     
+        //renderDrawData(ImGui.getDrawData());
         
         uiMesh.bind();
         
         ImGuiIO io = ImGui.getIO();
         scale.set(2.0f / io.getDisplaySizeX(), -2.0f / io.getDisplaySizeY());
         uniforms.setUniform("scale", scale);
-        
+    
+    
         ImDrawData drawData = ImGui.getDrawData();
+        drawData.getDisplaySize(displaySize);           // (0,0) unless using multi-viewports
+        drawData.getDisplayPos(displayPos);
+        drawData.getFramebufferScale(framebufferScale); // (1,1) unless using retina display which are often (2,2)
+    
+        final float clipOffX = displayPos.x;
+        final float clipOffY = displayPos.y;
+        final float clipScaleX = framebufferScale.x;
+        final float clipScaleY = framebufferScale.y;
+    
+        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+        final int fbWidth = (int) (displaySize.x * framebufferScale.x);
+        final int fbHeight = (int) (displaySize.y * framebufferScale.y);
+    
+        if(fbWidth <= 0 || fbHeight <= 0)
+        {
+            return;
+        }
+        
         int numLists = drawData.getCmdListsCount();
         for(int i = 0; i < numLists; i++)
         {
@@ -198,9 +217,24 @@ public class InterfaceRenderer
             glBufferData(GL_ARRAY_BUFFER, drawData.getCmdListVtxBufferData(i), GL_STREAM_DRAW);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(i), GL_STREAM_DRAW);
             
+            
             int numCmds = drawData.getCmdListCmdBufferSize(i);
             for(int j = 0; j < numCmds; j++)
             {
+                final float clipMinX = (clipRect.x - clipOffX) * clipScaleX;
+                final float clipMinY = (clipRect.y - clipOffY) * clipScaleY;
+                final float clipMaxX = (clipRect.z - clipOffX) * clipScaleX;
+                final float clipMaxY = (clipRect.w - clipOffY) * clipScaleY;
+    
+                if(clipMaxX <= clipMinX || clipMaxY <= clipMinY)
+                {
+                    continue;
+                }
+    
+                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+                glScissor((int) clipMinX, (int) (fbHeight - clipMaxY), (int) (clipMaxX - clipMinX), (int) (clipMaxY - clipMinY));
+    
+    
                 final int elements = drawData.getCmdListCmdBufferElemCount(i, j);
                 final int indexOffset = drawData.getCmdListCmdBufferIdxOffset(i, j);
                 final int textureId = drawData.getCmdListCmdBufferTextureId(i, j);
@@ -217,7 +251,89 @@ public class InterfaceRenderer
         glEnable(GL_CULL_FACE);
         glDisable(GL_BLEND);
         
+    }
+    
+    /**
+     * Method to render {@link ImDrawData} into current OpenGL context.
+     *
+     * @param drawData draw data to render
+     */
+    public void renderDrawData(final ImDrawData drawData)
+    {
+        if(drawData.getCmdListsCount() <= 0)
+        {
+            return;
+        }
         
+        // Will project scissor/clipping rectangles into framebuffer space
+        drawData.getDisplaySize(displaySize);           // (0,0) unless using multi-viewports
+        drawData.getDisplayPos(displayPos);
+        drawData.getFramebufferScale(framebufferScale); // (1,1) unless using retina display which are often (2,2)
+        
+        final float clipOffX = displayPos.x;
+        final float clipOffY = displayPos.y;
+        final float clipScaleX = framebufferScale.x;
+        final float clipScaleY = framebufferScale.y;
+        
+        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+        final int fbWidth = (int) (displaySize.x * framebufferScale.x);
+        final int fbHeight = (int) (displaySize.y * framebufferScale.y);
+        
+        if(fbWidth <= 0 || fbHeight <= 0)
+        {
+            return;
+        }
+        
+        backupGlState();
+        bind(fbWidth, fbHeight);
+        
+        // Render command lists
+        for(int cmdListIdx = 0; cmdListIdx < drawData.getCmdListsCount(); cmdListIdx++)
+        {
+            // Upload vertex/index buffers
+            glBufferData(GL_ARRAY_BUFFER, drawData.getCmdListVtxBufferData(cmdListIdx), GL_STREAM_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(cmdListIdx), GL_STREAM_DRAW);
+            
+            for(int cmdBufferIdx = 0; cmdBufferIdx < drawData.getCmdListCmdBufferSize(cmdListIdx); cmdBufferIdx++)
+            {
+                drawData.getCmdListCmdBufferClipRect(cmdListIdx, cmdBufferIdx, clipRect);
+                
+                final float clipMinX = (clipRect.x - clipOffX) * clipScaleX;
+                final float clipMinY = (clipRect.y - clipOffY) * clipScaleY;
+                final float clipMaxX = (clipRect.z - clipOffX) * clipScaleX;
+                final float clipMaxY = (clipRect.w - clipOffY) * clipScaleY;
+                
+                if(clipMaxX <= clipMinX || clipMaxY <= clipMinY)
+                {
+                    continue;
+                }
+                
+                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
+                glScissor((int) clipMinX, (int) (fbHeight - clipMaxY), (int) (clipMaxX - clipMinX), (int) (clipMaxY - clipMinY));
+                
+                // Bind texture, Draw
+                final int textureId = drawData.getCmdListCmdBufferTextureId(cmdListIdx, cmdBufferIdx);
+                final int elemCount = drawData.getCmdListCmdBufferElemCount(cmdListIdx, cmdBufferIdx);
+                final int idxBufferOffset = drawData.getCmdListCmdBufferIdxOffset(cmdListIdx, cmdBufferIdx);
+                final int vtxBufferOffset = drawData.getCmdListCmdBufferVtxOffset(cmdListIdx, cmdBufferIdx);
+                final int indices = idxBufferOffset * ImDrawData.SIZEOF_IM_DRAW_IDX;
+                
+                glBindTexture(GL_TEXTURE_2D, textureId);
+                
+                /*if(glVersion >= 320)
+                {
+                    glDrawElementsBaseVertex(GL_TRIANGLES, elemCount, GL_UNSIGNED_SHORT, indices, vtxBufferOffset);
+                }
+                else
+                {
+                    glDrawElements(GL_TRIANGLES, elemCount, GL_UNSIGNED_SHORT, indices);
+                }*/
+                glDrawElements(GL_TRIANGLES, elemCount, GL_UNSIGNED_SHORT, indices);
+            }
+        }
+        
+        unbind();
+        restoreModifiedGlState();
     }
     
     // OpenGL Data
@@ -322,88 +438,6 @@ public class InterfaceRenderer
         {
             initPlatformInterface();
         }
-    }
-    
-    /**
-     * Method to render {@link ImDrawData} into current OpenGL context.
-     *
-     * @param drawData draw data to render
-     */
-    public void renderDrawData(final ImDrawData drawData)
-    {
-        if(drawData.getCmdListsCount() <= 0)
-        {
-            return;
-        }
-        
-        // Will project scissor/clipping rectangles into framebuffer space
-        drawData.getDisplaySize(displaySize);           // (0,0) unless using multi-viewports
-        drawData.getDisplayPos(displayPos);
-        drawData.getFramebufferScale(framebufferScale); // (1,1) unless using retina display which are often (2,2)
-        
-        final float clipOffX = displayPos.x;
-        final float clipOffY = displayPos.y;
-        final float clipScaleX = framebufferScale.x;
-        final float clipScaleY = framebufferScale.y;
-        
-        // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-        final int fbWidth = (int) (displaySize.x * framebufferScale.x);
-        final int fbHeight = (int) (displaySize.y * framebufferScale.y);
-        
-        if(fbWidth <= 0 || fbHeight <= 0)
-        {
-            return;
-        }
-        
-        backupGlState();
-        bind(fbWidth, fbHeight);
-        
-        // Render command lists
-        for(int cmdListIdx = 0; cmdListIdx < drawData.getCmdListsCount(); cmdListIdx++)
-        {
-            // Upload vertex/index buffers
-            glBufferData(GL_ARRAY_BUFFER, drawData.getCmdListVtxBufferData(cmdListIdx), GL_STREAM_DRAW);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, drawData.getCmdListIdxBufferData(cmdListIdx), GL_STREAM_DRAW);
-            
-            for(int cmdBufferIdx = 0; cmdBufferIdx < drawData.getCmdListCmdBufferSize(cmdListIdx); cmdBufferIdx++)
-            {
-                drawData.getCmdListCmdBufferClipRect(cmdListIdx, cmdBufferIdx, clipRect);
-                
-                final float clipMinX = (clipRect.x - clipOffX) * clipScaleX;
-                final float clipMinY = (clipRect.y - clipOffY) * clipScaleY;
-                final float clipMaxX = (clipRect.z - clipOffX) * clipScaleX;
-                final float clipMaxY = (clipRect.w - clipOffY) * clipScaleY;
-                
-                if(clipMaxX <= clipMinX || clipMaxY <= clipMinY)
-                {
-                    continue;
-                }
-                
-                // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
-                glScissor((int) clipMinX, (int) (fbHeight - clipMaxY), (int) (clipMaxX - clipMinX), (int) (clipMaxY - clipMinY));
-                
-                // Bind texture, Draw
-                final int textureId = drawData.getCmdListCmdBufferTextureId(cmdListIdx, cmdBufferIdx);
-                final int elemCount = drawData.getCmdListCmdBufferElemCount(cmdListIdx, cmdBufferIdx);
-                final int idxBufferOffset = drawData.getCmdListCmdBufferIdxOffset(cmdListIdx, cmdBufferIdx);
-                final int vtxBufferOffset = drawData.getCmdListCmdBufferVtxOffset(cmdListIdx, cmdBufferIdx);
-                final int indices = idxBufferOffset * ImDrawData.SIZEOF_IM_DRAW_IDX;
-                
-                glBindTexture(GL_TEXTURE_2D, textureId);
-                
-                if(glVersion >= 320)
-                {
-                    glDrawElementsBaseVertex(GL_TRIANGLES, elemCount, GL_UNSIGNED_SHORT, indices, vtxBufferOffset);
-                }
-                else
-                {
-                    glDrawElements(GL_TRIANGLES, elemCount, GL_UNSIGNED_SHORT, indices);
-                }
-            }
-        }
-        
-        unbind();
-        restoreModifiedGlState();
     }
     
     /**

@@ -2,6 +2,7 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.Editor;
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.util.NativeFileDialogue;
@@ -24,6 +25,12 @@ public class LoadWindowNode extends Node
     private String error = "";
     private String selectedProject = "";
     private boolean shouldAutoLoad = true;
+    private Engine engine;
+    
+    public LoadWindowNode(Engine engine)
+    {
+        this.engine = engine;
+    }
     
     @Override
     public void initialize()
@@ -49,7 +56,7 @@ public class LoadWindowNode extends Node
         ImGui.loadIniSettingsFromDisk(EditorIO.getGuiINI().getPath());
         io.setIniFilename(EditorIO.getGuiINI().getPath());
         io.setWantSaveIniSettings(true);
-        SceneManager.setScene(new EditorNode());
+        SceneManager.setScene(new EditorNode(engine));
     }
     
     @Override

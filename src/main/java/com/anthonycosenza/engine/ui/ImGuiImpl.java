@@ -65,7 +65,10 @@ public class ImGuiImpl
             glfwMakeContextCurrent(backupWindowPtr);
         }
     }
-    
+    public void render()
+    {
+        imGuiGl3.renderDrawData(ImGui.getDrawData());
+    }
     private String decideGlGlslVersions()
     {
         final boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");

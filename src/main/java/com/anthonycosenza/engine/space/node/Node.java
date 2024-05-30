@@ -18,11 +18,18 @@ public class Node
     @Ignore
     public Node parent;
     public List<Node> children;
+    
+    public Node(List<Node> children)
+    {
+        this("", children);
+    }
+    public Node(String name)
+    {
+        this(name, new ArrayList<>());
+    }
     public Node()
     {
-        this.name = "";
-        this.children = new ArrayList<>();
-        id = EngineMath.generateMaxLengthLong();
+        this("", new ArrayList<>());
     }
     public Node(String name, List<Node> children)
     {
