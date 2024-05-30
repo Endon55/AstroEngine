@@ -20,6 +20,7 @@ import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
+import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImDouble;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
@@ -34,6 +35,8 @@ import java.util.Objects;
 
 public class EditorNode extends Node
 {
+    private static int MAX_STRING_FIELD_LENGTH = 20;
+    
     private final long doubleClickInterval = 250;
     
     private final Texture folderIcon;
@@ -53,7 +56,7 @@ public class EditorNode extends Node
     private long assetBrowserLastClickTime = -1;
     
     private Node sceneManagerNode = this;
-    private Node sceneManagerSelected = null;
+    private Node sceneManagerSelected = sceneManagerNode;
     
     public EditorNode()
     {
@@ -106,7 +109,7 @@ public class EditorNode extends Node
     private void createAssetBrowser()
     {
         File projectDirectory = EditorIO.getProjectDirectory();
-        int frameConfig = 0;
+        int frameConfig = ImGuiWindowFlags.AlwaysVerticalScrollbar;
         
         if(ImGui.begin("Asset Browser", frameConfig))
         {
@@ -222,7 +225,10 @@ public class EditorNode extends Node
                 (hasChildren ? 0 : ImGuiTreeNodeFlags.Leaf) |
                 (node.equals(sceneManagerSelected) ? ImGuiTreeNodeFlags.Selected : 0), name))
         {
-            
+            if(ImGui.isItemClicked())
+            {
+                sceneManagerSelected = node;
+            }
             
             if(hasChildren)
             {
@@ -233,16 +239,14 @@ public class EditorNode extends Node
             }
             ImGui.treePop();
         }
-        if(ImGui.isItemClicked())
-        {
-            sceneManagerSelected = node;
-        }
+        
     }
     
     private void createSceneManager()
     {
-        int treeConfig = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth;
-        if(ImGui.begin("Scene Tree", 0))
+        int treeConfig = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen;
+        int frameConfig = ImGuiWindowFlags.AlwaysHorizontalScrollbar;
+        if(ImGui.begin("Scene Tree", frameConfig))
         {
             
             drawTree(sceneManagerNode, treeConfig);
@@ -270,9 +274,12 @@ public class EditorNode extends Node
             Node selectedNode = sceneManagerSelected;
             if(selectedNode != null)
             {
+                //Header
                 String className = selectedNode.getClass().getSimpleName();
                 ImGui.text(className + ".class");
                 ImGui.separator();
+                
+                //Creating a dropdown for each superclass
                 Class<? extends Node> nodeClass = selectedNode.getClass();
                 while(nodeClass != null && !Object.class.equals(nodeClass))
                 {
@@ -297,7 +304,7 @@ public class EditorNode extends Node
                                         ImInt imValue = new ImInt((Integer) value);
                                         if(ImGui.inputInt("", imValue))
                                         {
-                                            System.out.println("int changed");
+                                            field.set(selectedNode, imValue.get());
                                         }
                                     }
                                     else if(Long.class.equals(field.getType()))
@@ -310,7 +317,7 @@ public class EditorNode extends Node
                                         ImInt imValue = new ImInt((Integer) value);
                                         if(ImGui.inputInt("", imValue))
                                         {
-                                            System.out.println("int changed");
+                                            field.set(selectedNode, imValue.get());
                                         }
                                     }
                                     else if(Float.class.equals(field.getType()))
@@ -322,7 +329,7 @@ public class EditorNode extends Node
                                         ImFloat imValue = new ImFloat((Float) value);
                                         if(ImGui.inputFloat("", imValue))
                                         {
-                                            System.out.println("int changed");
+                                            field.set(selectedNode, imValue.get());
                                         }
                                     }
                                     else if(Double.class.equals(field.getType()))
@@ -334,7 +341,7 @@ public class EditorNode extends Node
                                         ImDouble imValue = new ImDouble((Double) value);
                                         if(ImGui.inputDouble("", imValue))
                                         {
-                                            System.out.println("int changed");
+                                            field.set(selectedNode, imValue.get());
                                         }
                                     }
                                     else if(Vector3f.class.equals(field.getType()))
@@ -348,7 +355,11 @@ public class EditorNode extends Node
                                             imValue[1] = vector.y();
                                             imValue[2] = vector.z();
                                         }
-                                        else vector = new Vector3f();
+                                        else
+                                        {
+                                            vector = new Vector3f();
+                                            field.set(selectedNode, vector);
+                                        }
                                         if(ImGui.inputFloat3(field.getName(), imValue))
                                         {
                                             vector.set(imValue[0], imValue[1], imValue[2]);
@@ -365,7 +376,11 @@ public class EditorNode extends Node
                                             imValue[1] = quaternion.y();
                                             imValue[2] = quaternion.z();
                                         }
-                                        else quaternion = new Quaternionf();
+                                        else
+                                        {
+                                            quaternion = new Quaternionf();
+                                            field.set(selectedNode, quaternion);
+                                        }
                                         if(ImGui.inputFloat3(field.getName(), imValue))
                                         {
                                             quaternion.set(imValue[0], imValue[1], imValue[2], 1);
@@ -377,18 +392,20 @@ public class EditorNode extends Node
                                         {
                                             value = "";
                                         }
-                                        ImString imValue = new ImString((String)value);
+                                        //Pre-allocating the String buffer, otherwise the buffers size is limited to the length of whatever was first added to it.
+                                        ImString imValue = new ImString(MAX_STRING_FIELD_LENGTH);
+                                        imValue.set(value);
                                         if(ImGui.inputText(field.getName(), imValue))
                                         {
-                                            System.out.println("String changed");
+                                            if(ImGui.isItemDeactivatedAfterEdit())
+                                            {
+                                                field.set(selectedNode, imValue.get());
+                                            }
                                         }
                                     }
-                                    else {
-                                        if(value == null)
-                                        {
-                                            value = "";
-                                        }
-                                        ImGui.text(value.toString());
+                                    else
+                                    {
+                                        ImGui.text("Implement - " + field.getType().getSimpleName());
                                     }
                                 } catch(IllegalAccessException e)
                                 {
