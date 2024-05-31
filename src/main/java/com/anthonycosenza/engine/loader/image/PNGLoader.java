@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.loader.image;
 
 
-import com.anthonycosenza.engine.util.FileIO;
+import com.anthonycosenza.engine.util.FileUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class PNGLoader
     
     public PNGLoader(String filepath)
     {
-        ByteBuf reader = Unpooled.wrappedBuffer(FileIO.getFileBytes(filepath));
+        ByteBuf reader = Unpooled.wrappedBuffer(FileUtils.getFileBytes(filepath));
     
         decode(reader);
         

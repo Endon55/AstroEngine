@@ -1,8 +1,15 @@
 package com.anthonycosenza.engine.assets;
 
-public class Asset
+import com.anthonycosenza.engine.annotations.Property;
+
+public interface Asset
 {
-    public long resourceID = -1;
+    @Property
+    long getResourceID();
+    
+    
+    /*
+    private long resourceID = -1;
     public Asset() {}
     
     
@@ -14,4 +21,5 @@ public class Asset
         }
         return resourceID;
     }
+    */
 }

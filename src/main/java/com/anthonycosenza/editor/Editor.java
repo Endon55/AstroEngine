@@ -9,7 +9,6 @@ import java.util.List;
 
 public class Editor
 {
-    
     private Engine engine;
     private ProjectSettings editorSettings;
     
@@ -19,9 +18,10 @@ public class Editor
         /*
          * Create a user directory to store persistent editor information.
          */
+    
         editorSettings = new ProjectSettings();
         loadEditorSettings(editorSettings);
-        engine = new Engine(editorSettings);
+        engine = new Engine(editorSettings, false);
         SceneManager.setScene(new LoadWindowNode(engine));
         engine.run();
     }

@@ -1,67 +1,147 @@
 package com.anthonycosenza.engine.assets;
 
+import com.anthonycosenza.engine.space.ModelLoader;
+import com.anthonycosenza.engine.space.node.Scene;
+import com.anthonycosenza.engine.util.FileUtils;
+import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.EngineMath;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AssetManager
 {
-    List<AssetType> assetTypes;
-    List<Long> assetHandles;
-    List<Asset> assets;
+    private static AssetManager INSTANCE;
+    private boolean runtime;
+    private File assetRoot;
+    private Map<Long, AssetInfo> assetInfoMap;
+    private Map<Long, Asset> assetMap;
     
-    public AssetManager()//Path to asset map
+    private AssetManager(boolean runtime, File assetRoot)//Path to asset map
     {
-        assetTypes = new ArrayList<>();
-        assetHandles = new ArrayList<>();
-        assets = new ArrayList<>();
+        this.runtime = runtime;
+        this.assetRoot = assetRoot;
+        assetInfoMap = new HashMap<>();
+        assetMap = new HashMap<>();
+        
+        updateAssets();
     }
-    
-    private <T> Asset loadAsset(long assetHandle)
+    private Asset loadAsset(long assetID)
     {
-        return loadAsset(getAssetIndex(assetHandle));
-    }
-    private Asset loadAsset(int index)
-    {
-       return null;
-    }
-    
-    private <T> int getAssetIndex(long assetHandle)
-    {
-        int index = assetHandles.indexOf(assetHandle);
-        if(index == -1)
+        AssetInfo info = assetInfoMap.get(assetID);
+        
+        if(info == null)
         {
-            throw new RuntimeException("Cant find asset.");
+            throw new RuntimeException("Where the fuck do I even find this thing?: " + assetID);
         }
-        return index;
+        Asset asset = switch(info.assetType())
+        {
+            case MODEL -> ModelLoader.loadModel(info.filePath());
+            case MESH, TEXTURE -> throw new RuntimeException("Implement: " + info.assetType());
+            case SCENE -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
+        };
+        return asset;
     }
-    
-/*    public Asset getAsset(long assetHandle)
+    public AssetInfo getAssetInfo(long assetID)
     {
-        int index = getAssetIndex(assetHandle);
-        Asset asset = assets.get(index);
+        return assetInfoMap.get(assetID);
+    }
+    public Asset getAsset(long assetID)
+    {
+        Asset asset = assetMap.get(assetID);
+        
         if(asset == null)
         {
-            //load asset
-            asset = loadAsset(index);
+            asset = loadAsset(assetID);
         }
-        
         return asset;
-    }*/
-    /*public Model getModel(long assetHandle)
+    }
+    
+    public void updateAssets()
     {
-        return (Model) getAsset(assetHandle);
-    }*/
-    public static long generateResourceID()
+        //Local build
+        if(runtime)
+        {
+            updateRuntimeAssets();
+        }
+        else updateLocalAssets(assetRoot);
+    }
+    
+    private void updateLocalAssets(File assetDirectory)
+    {
+        File[] files = assetDirectory.listFiles();
+        for(File file : files)
+        {
+            if(file.isDirectory())
+            {
+                updateLocalAssets(file);
+            }
+            else
+            {
+                String extension = FileUtils.getExtension(file);
+                
+                if(extension.equals("aasset") || extension.equals("scene"))
+                {
+                    AssetInfo info = Toml.getAssetHeader(file);
+                    long id = info.assetID();
+                    if(id == -1)
+                    {
+                        id = generateResourceID();
+                        Toml.updateAssetHeader(id, info.assetType(), info.filePath(), file);
+                    }
+                    
+                    
+                    assetInfoMap.put(id, info);
+                }
+            }
+        }
+    }
+    
+    
+    private void updateRuntimeAssets()
+    {
+    
+    }
+    
+    public Scene createSceneAsset(File directory, String filename)
+    {
+        Scene scene = new Scene();
+        scene.name = filename;
+        scene.getResourceID();
+        String filepath = directory.getPath() + "\\" + filename + ".scene";
+        assetInfoMap.put(scene.getResourceID(), new AssetInfo(scene.getResourceID(), AssetType.SCENE, filepath));
+        Toml.updateScene(scene);
+        return scene;
+    }
+    
+    public Scene instantiateScene(File sceneAsset)
+    {
+        return Toml.getScene(Toml.getAssetHeader(sceneAsset));
+    }
+    public Scene instantiateScene(long assetID)
+    {
+        AssetInfo info = getAssetInfo(assetID);
+        return Toml.getScene(info);
+    }
+
+    public long generateResourceID()
     {
         return EngineMath.generateMaxLengthLong();
     }
-    public static Asset getAsset(long resourceID)
+    
+
+    public static void setAssetPath(boolean runtime, File assetRoot)
     {
-        //reads asset directory, finds asset matching resourceID.
-        //calls asset.load();
-        //returns asset.
-        return null;
+        AssetManager.INSTANCE = new AssetManager(runtime, assetRoot);
+    }
+    
+    public static AssetManager getInstance()
+    {
+        if(INSTANCE == null)
+        {
+            throw new RuntimeException("Asset Manager wasn't instantiated.");
+        }
+        return INSTANCE;
     }
 }

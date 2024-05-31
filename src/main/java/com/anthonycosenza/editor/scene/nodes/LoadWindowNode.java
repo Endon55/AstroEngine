@@ -3,6 +3,7 @@ package com.anthonycosenza.editor.scene.nodes;
 import com.anthonycosenza.editor.Editor;
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.Engine;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.util.NativeFileDialogue;
@@ -57,6 +58,7 @@ public class LoadWindowNode extends Node
         io.setIniFilename(EditorIO.getGuiINI().getPath());
         io.setWantSaveIniSettings(true);
         SceneManager.setScene(new EditorNode(engine));
+        AssetManager.setAssetPath(false, EditorIO.getAssetDirectory());
     }
     
     @Override

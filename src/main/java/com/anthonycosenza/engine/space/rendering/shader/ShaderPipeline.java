@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.space.rendering.shader;
 
-import com.anthonycosenza.engine.util.FileIO;
+import com.anthonycosenza.engine.util.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +88,7 @@ public class ShaderPipeline
     
     private String readCodeFile(String shaderPath)
     {
-        return FileIO.getFileContents(shaderPath);
+        return FileUtils.getFileContents(shaderPath);
     }
     
     public void cleanup()

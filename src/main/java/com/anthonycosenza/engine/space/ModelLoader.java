@@ -3,15 +3,12 @@ package com.anthonycosenza.engine.space;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Material;
-import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.util.math.Color;
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.AIColor4D;
 import org.lwjgl.assimp.AIFace;
 import org.lwjgl.assimp.AIMaterial;
 import org.lwjgl.assimp.AIMesh;
-import org.lwjgl.assimp.AINode;
 import org.lwjgl.assimp.AIScene;
 import org.lwjgl.assimp.AIString;
 import org.lwjgl.assimp.AIVector3D;
@@ -36,6 +33,10 @@ public class ModelLoader
     /*
      * Set triangulate flag which converts all faces into triangles.
      */
+    public static Model loadModel(String modelPath)
+    {
+        return loadModel(modelPath, 0);
+    }
     public static Model loadModel(String modelPath, int flags)
     {
         flags |= Assimp.aiProcess_Triangulate;

@@ -1,10 +1,11 @@
 package com.anthonycosenza.engine.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class FileIO
+public class FileUtils
 {
     public static String getFileContents(String filepath)
     {
@@ -29,6 +30,10 @@ public class FileIO
             throw new RuntimeException("Error reading file[" + filepath + "] - " + e);
         }
     }
-    
+    public static String getExtension(File file)
+    {
+        String[] split = file.getAbsolutePath().split("\\.");
+        return split[split.length - 1];
+    }
     
 }

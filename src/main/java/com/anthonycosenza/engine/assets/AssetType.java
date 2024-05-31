@@ -4,4 +4,6 @@ public enum AssetType
 {
     TEXTURE,
     MESH,
+    SCENE,
+    MODEL,
 }

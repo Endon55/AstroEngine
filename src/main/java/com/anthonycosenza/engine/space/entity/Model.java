@@ -2,13 +2,16 @@ package com.anthonycosenza.engine.space.entity;
 
 
 import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.entity.texture.Material;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 
 import java.util.List;
 
-public class Model extends Asset
+public class Model implements Asset
 {
+    private long resourceID = -1;
+    
     private List<Material> materials;
     private Texture texture;
     
@@ -33,4 +36,12 @@ public class Model extends Asset
         return new Entity(this);
     }
     
+    public long getResourceID()
+    {
+        if(resourceID == -1)
+        {
+            resourceID = AssetManager.getInstance().generateResourceID();
+        }
+        return resourceID;
+    }
 }

@@ -16,7 +16,7 @@ import com.anthonycosenza.engine.loader.text.tables.Maxp;
 import com.anthonycosenza.engine.loader.text.tables.types.cffCharString;
 import com.anthonycosenza.engine.loader.text.tables.types.cffSubroutine;
 import com.anthonycosenza.engine.util.reader.ByteReader;
-import com.anthonycosenza.engine.util.FileIO;
+import com.anthonycosenza.engine.util.FileUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -139,7 +139,7 @@ public class FontData
     public static FontData decodeFont(String filePath)
     {
         FontData fontData = new FontData();
-        byte[] byteArr = FileIO.getFileBytes(filePath);
+        byte[] byteArr = FileUtils.getFileBytes(filePath);
         int bytesLength = byteArr.length;
         ByteBuffer buffer = ByteBuffer.wrap(byteArr);
         buffer.order(ByteOrder.BIG_ENDIAN);

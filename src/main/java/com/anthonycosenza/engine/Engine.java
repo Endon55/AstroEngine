@@ -49,11 +49,12 @@ public class Engine
     private float physicsUpdatesSecond = 60;
     private ImGuiImpl imGuiImpl;
     private SceneRenderer renderer;
+    private boolean runtime;
 
-    public Engine(ProjectSettings settings)
+    public Engine(ProjectSettings settings, boolean runtime)
     {
         this.settings = settings;
-        
+        this.runtime = runtime;
         /*
          * LWJGL Config settings.
          */

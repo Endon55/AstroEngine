@@ -1,14 +1,16 @@
 package com.anthonycosenza.engine.space.entity.texture;
 
 import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.util.math.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Material extends Asset
+public class Material implements Asset
 {
+    private long resourceID = -1;
     public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
     
     private Color diffuseColor;
@@ -47,4 +49,12 @@ public class Material extends Asset
         this.texture = new Texture(texturePath);
     }
     
+    public long getResourceID()
+    {
+        if(resourceID == -1)
+        {
+            resourceID = AssetManager.getInstance().generateResourceID();
+        }
+        return resourceID;
+    }
 }

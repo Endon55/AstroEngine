@@ -10,8 +10,8 @@ import java.util.List;
 
 public class Node
 {
-    @Ignore
-    private final long id;
+    @Property
+    public long resourceID;
     @Property
     public String name;
     
@@ -40,8 +40,14 @@ public class Node
         }
         else this.children = new ArrayList<>();
         
-        id = EngineMath.generateMaxLengthLong();
+        this.resourceID = createNodeID();
     }
+    
+    protected long createNodeID()
+    {
+        return EngineMath.generateMaxLengthLong();
+    }
+    
     public void addChild(Node child)
     {
         child.parent = this;
@@ -96,7 +102,7 @@ public class Node
     
     public long getId()
     {
-        return id;
+        return resourceID;
     }
     
     @Override
@@ -116,12 +122,12 @@ public class Node
         
         Node node = (Node) o;
     
-        return id == node.id;
+        return resourceID == node.resourceID;
     }
     
     @Override
     public int hashCode()
     {
-        return (int) (id ^ (id >>> 32));
+        return (int) (resourceID ^ (resourceID >>> 32));
     }
 }

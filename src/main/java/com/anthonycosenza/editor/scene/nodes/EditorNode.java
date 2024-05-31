@@ -6,6 +6,7 @@ import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
@@ -15,12 +16,14 @@ import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.ui.UITools;
 import com.anthonycosenza.engine.util.FileType;
+import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
+import imgui.flag.ImGuiDataType;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
@@ -30,6 +33,7 @@ import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImDouble;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
+import imgui.type.ImLong;
 import imgui.type.ImString;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -82,7 +86,7 @@ public class EditorNode extends Node
     private String error = "";
     
     
-    private Node sceneManagerNode;
+    private Scene sceneManagerNode;
     private Node sceneManagerSelected;
     private boolean modified = false;
     
@@ -109,7 +113,12 @@ public class EditorNode extends Node
     @Override
     public void updateUI(float delta)
     {
-        modified = false;
+        if(modified)
+        {
+            modified = false;
+            Toml.updateScene(sceneManagerNode);
+        }
+        
         int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
         int mainDock = ImGui.dockSpaceOverViewport(ImGui.getMainViewport(), dockspaceConfig);
     
@@ -136,6 +145,7 @@ public class EditorNode extends Node
                 if(popup instanceof NodeViewerPopup nodeViewerPopup)
                 {
                     sceneManagerNode.addChild(nodeViewerPopup.finish());
+                    modified = true;
                 }
                 
                 popup = null;
@@ -172,7 +182,7 @@ public class EditorNode extends Node
     }
     
     
-    
+    boolean firstRun = true;
     private void createSaveWindow()
     {
         int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse |
@@ -194,11 +204,12 @@ public class EditorNode extends Node
             {
                 UITools.error(error);
             }
+            ImGui.setKeyboardFocusHere();
             if(ImGui.inputText("##2", saveWindowString, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 SaveType saveType = saveWindowTypes[saveWindowTypeSelection];
                 String filename =
-                        EditorIO.getProjectDirectory().getPath() + "/" + saveWindowString.get() + saveType.getExtension();
+                        EditorIO.getProjectDirectory().getPath() + "\\" + saveWindowString.get() + saveType.getExtension();
                 File file = new File(filename);
                 if(file.exists())
                 {
@@ -210,9 +221,7 @@ public class EditorNode extends Node
                     {
                         case Scene ->
                         {
-                            Scene scene = new Scene();
-                            scene.name = saveWindowString.get();
-                            EditorIO.serialize(file, scene);
+                            Scene scene = AssetManager.getInstance().createSceneAsset(EditorIO.getAssetDirectory(), saveWindowString.get());
                             if(saveWindowShouldOpen)
                             {
                                 loadScene(scene);
@@ -344,15 +353,15 @@ public class EditorNode extends Node
                                             modified = true;
                                         }
                                     }
-                                    else if(Long.class.equals(field.getType()))
+                                    else if(long.class.equals(field.getType()))
                                     {
                                         //ImGui doesn't directly support longs, hopefully this doesn't cause problems lol.
                                         if(value == null)
                                         {
-                                            value = 0;
+                                            value = 0L;
                                         }
-                                        ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("##" + field.getName(), imValue))
+                                        ImLong imValue = new ImLong((long) value);
+                                        if(ImGui.inputScalar("##" + field.getName(), ImGuiDataType.S64, imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                             modified = true;
@@ -448,7 +457,7 @@ public class EditorNode extends Node
                                     }
                                     else
                                     {
-                                        ImGui.text("Implement - " + field.getType().getSimpleName());
+                                        ImGui.text("Implement - " + field.getType());
                                     }
                                 } catch(IllegalAccessException e)
                                 {
@@ -541,7 +550,7 @@ public class EditorNode extends Node
                                 }
                                 else if(type == FileType.SCENE)
                                 {
-                                    loadScene((Scene) EditorIO.deserialize(child));
+                                    loadScene(AssetManager.getInstance().instantiateScene(child));
                                 }
                                 else System.out.println("Not a directory");
                                 
