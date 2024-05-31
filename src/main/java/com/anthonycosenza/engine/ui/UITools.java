@@ -1,6 +1,8 @@
 package com.anthonycosenza.engine.ui;
 
+import imgui.ImColor;
 import imgui.ImGui;
+import imgui.flag.ImGuiCol;
 
 public class UITools
 {
@@ -29,4 +31,12 @@ public class UITools
         }
         return spaceWidth;
     }
+    
+    public static void error(String error)
+    {
+        ImGui.pushStyleColor(ImGuiCol.Text, ImColor.rgba(255, 0, 0, 255));
+        ImGui.text(error);
+        ImGui.popStyleColor();
+    }
+    
 }

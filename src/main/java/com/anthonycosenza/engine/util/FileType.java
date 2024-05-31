@@ -8,6 +8,7 @@ public enum FileType
     CODE,
     DIRECTORY,
     TEXT,
+    SCENE,
     
     ;
     public static FileType getFileType(File file)
@@ -21,9 +22,13 @@ public enum FileType
         {
             return SETTINGS;
         }
-        if(extension.endsWith(".java"))
+        else if(extension.endsWith(".java"))
         {
             return CODE;
+        }
+        else if(extension.endsWith(".scene"))
+        {
+            return SCENE;
         }
         
         return TEXT;

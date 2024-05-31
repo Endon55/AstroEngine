@@ -11,6 +11,7 @@ import org.joml.Vector2f;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class NodeDeSerializer
@@ -49,16 +50,20 @@ public class NodeDeSerializer
         Map<String, Object> map = config.valueMap();
         
         Node node = null;
-    
         String type = (String)map.get("type");
-        if(type.equals(Node.class.getSimpleName()))
+        Class<? extends Node> clazz;
+        try
         {
-            node = new Node();
-        }
-        if(node == null)
+            clazz = (Class<? extends Node>) Class.forName(type);
+            node = clazz.getConstructor().newInstance();
+        } catch(ClassNotFoundException e)
         {
-            throw new RuntimeException("Cannot identify node type: " + type);
+            throw new RuntimeException("Cannot get class: " + type + " - " + e);
+        } catch(InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e)
+        {
+            throw new RuntimeException("Cannot instantiate class: " + type + " - " + e);
         }
+    
         node.parent = parent;
         if(parent == null)
         {
@@ -67,7 +72,6 @@ public class NodeDeSerializer
         else {
             parent.children.add(node);
         }
-        
         
         node.name = name;
         

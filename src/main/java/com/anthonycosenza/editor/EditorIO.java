@@ -1,5 +1,8 @@
 package com.anthonycosenza.editor;
 
+import com.anthonycosenza.editor.scene.NodeSerializer;
+import com.anthonycosenza.editor.scene.SaveType;
+import com.anthonycosenza.engine.space.node.Scene;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
 
@@ -21,7 +24,38 @@ public class EditorIO
     
     
     
+    public static void serialize(File file, Scene sceneNode)
+    {
+        /*if(!file.exists())
+        {
+            try
+            {
+                file.createNewFile();
+            } catch(IOException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }*/
     
+    
+        NodeSerializer.serialize(file, sceneNode);
+        
+    }
+    
+    public static void saveNewFile(File file, SaveType saveType)
+    {
+        //File file = new File(getProjectDirectory().getPath() + "/" + fileName + saveType.getExtension());
+        try
+        {
+            if(file.createNewFile())
+            {
+            
+            }
+        } catch(IOException e)
+        {
+            throw new RuntimeException("Failed to create new file: " + e);
+        }
+    }
     
     private static String getProjectFileName()
     {

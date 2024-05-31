@@ -1,6 +1,8 @@
 package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.scene.NodeDeSerializer;
+import com.anthonycosenza.editor.scene.SaveType;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.Camera;
@@ -8,21 +10,23 @@ import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
+import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.Model3D;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.ui.UITools;
 import com.anthonycosenza.engine.util.FileType;
+import com.anthonycosenza.engine.util.math.vector.Vector2i;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDockNodeFlags;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
-import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImDouble;
@@ -34,7 +38,7 @@ import org.joml.Vector3f;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -72,12 +76,13 @@ public class EditorNode extends Node
     private Node sceneManagerNode;
     private Node sceneManagerSelected;
     private Node testScene;
+    private boolean modified = false;
     Camera camera;
     
     public EditorNode(Engine engine)
     {
         super();
-        sceneRenderer = new SceneRenderer(true);
+        sceneRenderer = new SceneRenderer();
         this.engine = engine;
         name = "Editor";
         testScene = new Node("Scene");
@@ -103,8 +108,6 @@ public class EditorNode extends Node
         upArrow = new Texture("AstroEngine/resources/icons/arrowhead-up.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
         
-        sceneManagerNode = testScene;
-        sceneManagerSelected = sceneManagerNode;
     }
     
     @Override
@@ -113,10 +116,10 @@ public class EditorNode extends Node
     
     }
     
-    
     @Override
     public void updateUI(float delta)
     {
+        modified = false;
         int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
         int mainDock = ImGui.dockSpaceOverViewport(ImGui.getMainViewport(), dockspaceConfig);
     
@@ -132,8 +135,12 @@ public class EditorNode extends Node
         ImGui.setNextWindowDockID(mainDock, ImGuiCond.FirstUseEver);
         createSceneViewport();
         
+        if(createSaveWindow)
+        {
+            createSaveWindow();
+        }
+        
     }
-    
     
     private void drawTree(Node node, int flags)
     {
@@ -161,26 +168,120 @@ public class EditorNode extends Node
         
     }
     
+    boolean createSaveWindow = false;
+    boolean saveWindowShouldOpen = false;
+    Vector2i saveWindowSize = new Vector2i(350, 150);
+    SaveType[] saveWindowTypes = SaveType.values();
+    String[] saveWindowTypesString = Arrays.stream(saveWindowTypes).map(Enum::name).toArray(String[]::new);
+    int saveWindowTypeSelection = 0;
+    ImString saveWindowString = new ImString(20);
+    String error = "";
+    
+    
+    private void createSaveWindow()
+    {
+        int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse |
+                        ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoTitleBar;
+        
+        ImGui.setNextWindowSize(saveWindowSize.x(), saveWindowSize.y());
+        ImGui.setNextWindowPos(ImGui.getMainViewport().getCenterX() - saveWindowSize.x() * .5f, ImGui.getMainViewport().getCenterY() - saveWindowSize.y() * .5f);
+        
+        if(ImGui.begin("Save As", frameConfig))
+        {
+            ImGui.text("Save As...");
+            ImGui.separator();
+            //ImGui.spacing();
+            
+            //float projSize = ImGui.calcTextSize("proj:\\\\").x + ImGui.getStyle().getCellPadding().x;
+            ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
+            ImGui.setNextItemWidth(ImGui.getWindowSizeX());
+            if(!error.isEmpty())
+            {
+                UITools.error(error);
+            }
+            if(ImGui.inputText("##2", saveWindowString, ImGuiInputTextFlags.EnterReturnsTrue))
+            {
+                SaveType saveType = saveWindowTypes[saveWindowTypeSelection];
+                String filename =
+                        EditorIO.getProjectDirectory().getPath() + "/" + saveWindowString.get() + saveType.getExtension();
+                File file = new File(filename);
+                if(file.exists())
+                {
+                    error = "File name already in use";
+                }
+                else
+                {
+                    switch(saveType)
+                    {
+                        case Scene ->
+                        {
+                            Scene scene = new Scene();
+                            scene.name = saveWindowString.get();
+                            EditorIO.serialize(file, scene);
+                            if(saveWindowShouldOpen)
+                            {
+                                loadScene(scene);
+                            }
+                        }
+                    }
+                    saveWindowString.set("");
+                    error = "";
+                    saveWindowTypeSelection = 0;
+                    createSaveWindow = false;
+                }
+            }
+            ImGui.popStyleVar();
+            ImGui.spacing();
+            ImGui.separator();
+            ImGui.spacing();
+            
+                for(int i = 0; i < saveWindowTypesString.length; i++)
+                {
+                    boolean isSelected = saveWindowTypeSelection == i;
+                    if(ImGui.selectable(saveWindowTypesString[i], isSelected))
+                    {
+                        saveWindowTypeSelection = i;
+                        System.out.println("Selection: " + i);
+                    }
+                    if(isSelected)
+                    {
+                        ImGui.setItemDefaultFocus();
+                    }
+                }
+        }
+        ImGui.end();
+    }
+    
+    private void loadScene(Scene scene)
+    {
+        sceneManagerNode = scene;
+        sceneManagerSelected = sceneManagerNode;
+    }
+    
     private void createSceneManager()
     {
         int treeConfig = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen;
         int frameConfig = ImGuiWindowFlags.AlwaysHorizontalScrollbar;
         if(ImGui.begin("Scene Tree", frameConfig))
         {
-            
-            drawTree(sceneManagerNode, treeConfig);
-            /*String name = (sceneManagerNode.name.isEmpty() ? "" + sceneManagerNode.getId() : sceneManagerNode.name);
-            if(ImGui.treeNodeEx(name, treeConfig))
+            if(sceneManagerNode == null)
             {
-                if(sceneManagerNode.children != null)
+                ImGui.text("Load scene or create new one");
+                if(ImGui.button("Create new Scene"))
                 {
-                    for(Node child : sceneManagerNode.children)
-                    {
-                        drawTree(child, treeConfig);
-                    }
+                    createSaveWindow = true;
                 }
-                ImGui.treePop();
-            }*/
+            }
+            else
+            {
+                //Always default to the top level node
+                if(sceneManagerSelected == null)
+                {
+                    sceneManagerSelected = sceneManagerNode;
+                }
+                
+                drawTree(sceneManagerNode, treeConfig);
+            }
         }
         ImGui.end();
     }
@@ -226,6 +327,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputInt("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
+                                            modified = true;
                                         }
                                     }
                                     else if(Long.class.equals(field.getType()))
@@ -239,6 +341,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputInt("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
+                                            modified = true;
                                         }
                                     }
                                     else if(Float.class.equals(field.getType()))
@@ -251,6 +354,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputFloat("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
+                                            modified = true;
                                         }
                                     }
                                     else if(Double.class.equals(field.getType()))
@@ -263,6 +367,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputDouble("##", imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
+                                            modified = true;
                                         }
                                     }
                                     else if(Vector3f.class.equals(field.getType()))
@@ -284,6 +389,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputFloat3("##", imValue))
                                         {
                                             vector.set(imValue[0], imValue[1], imValue[2]);
+                                            modified = true;
                                         }
                                     }
                                     else if(Quaternionf.class.equals(field.getType()))
@@ -305,6 +411,7 @@ public class EditorNode extends Node
                                         if(ImGui.inputFloat3("##", imValue))
                                         {
                                             quaternion.set(imValue[0], imValue[1], imValue[2], 1);
+                                            modified = true;
                                         }
                                     }
                                     else if(String.class.equals(field.getType()))
@@ -321,6 +428,7 @@ public class EditorNode extends Node
                                             if(ImGui.isItemDeactivatedAfterEdit())
                                             {
                                                 field.set(selectedNode, imValue.get());
+                                                modified = true;
                                             }
                                         }
                                     }
@@ -334,12 +442,9 @@ public class EditorNode extends Node
                                 }
                             }
                         }
-                        
                     }
                     nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
                 }
-                
-                
             }
         }
         ImGui.end();
@@ -348,7 +453,7 @@ public class EditorNode extends Node
     private void createAssetBrowser()
     {
         File projectDirectory = EditorIO.getProjectDirectory();
-        int frameConfig = ImGuiWindowFlags.NoScrollbar;//ImGuiWindowFlags.AlwaysVerticalScrollbar;
+        int frameConfig = ImGuiWindowFlags.AlwaysVerticalScrollbar;
         
         if(ImGui.begin("Asset Browser", frameConfig))
         {
@@ -365,16 +470,16 @@ public class EditorNode extends Node
                     assetBrowserPath = assetBrowserPath.getParentFile();
                 }
             }
+            
             ImGui.sameLine();
             ImGui.text(truncatedPath);
             ImGui.separator();
-    
-            //ImGui.pushClipRect(ImGui.getWindowPosX(), ImGui.getWindowPosY(),  +ImGui.getWindowPosX() + ImGui.getContentRegionAvailX(), ImGui.getWindowPosY() + ImGui.getContentRegionAvailY(), true);
+            
             float cellSize = (defaultAssetBrowserSize * assetBrowserScale) + assetBrowserPadding;
             int columns = (int) (ImGui.getWindowContentRegionMax().x / cellSize);
             float columnWidth = (ImGui.getColumnWidth()) / columns;
             
-            if(ImGui.beginTable("Asset Viewer", columns, ImGuiTableFlags.ScrollY))
+            if(ImGui.beginTable("Asset Viewer", columns, 0))
             {
                 ImGui.tableNextColumn();
                 ImGui.pushStyleColor(ImGuiCol.Button, 0);
@@ -382,7 +487,6 @@ public class EditorNode extends Node
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, hoveredTableColor);
                 File[] files = Objects.requireNonNull(assetBrowserPath.listFiles());
 
-                
                 for(int i = 0; i < files.length; i++)
                 {
                     File child = files[i];
@@ -404,13 +508,10 @@ public class EditorNode extends Node
                                 case SETTINGS -> settingsIcon.getTextureID();
                                 case CODE -> codeIcon.getTextureID();
                                 case DIRECTORY -> folderIcon.getTextureID();
-                                case TEXT -> textIcon.getTextureID();
+                                case TEXT, SCENE -> textIcon.getTextureID();
                             };
                     //It gets confused thinking that all the buttons are the same so we push a specific ID for it.
-    
-                    //System.out.println("Scroll Y: " + ImGui.getScrollY() + "/" + ImGui.getScrollMaxY());
                     ImGui.pushID(i);
-                    
                     if(ImGui.imageButton(textureID, cellSize, cellSize, 0f, 0f, 1f, 1f))
                     {
                         if(assetBrowserFileSelected == i)
@@ -425,6 +526,10 @@ public class EditorNode extends Node
                                     assetBrowserPath = child;
                                     assetBrowserFileSelected = -1;
                                     assetBrowserLastClickTime = -1;
+                                }
+                                else if(type == FileType.SCENE)
+                                {
+                                    loadScene((Scene) NodeDeSerializer.deSerialize(child));
                                 }
                                 else System.out.println("Not a directory");
                             }
@@ -452,8 +557,6 @@ public class EditorNode extends Node
                 
                 
                 ImGui.endTable();
-                
-                //ImGui.popClipRect();
             }
         }
         ImGui.end();
@@ -479,8 +582,11 @@ public class EditorNode extends Node
     
             glClearColor(0f, 1f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-            engine.getRenderer().getSceneRenderer().render(sceneManagerNode, camera, engine.getProjection());
             
+            if(sceneManagerNode != null)
+            {
+                sceneRenderer.render(sceneManagerNode, camera, engine.getProjection());
+            }
             
             ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
             viewportFrameBuffer.unbind();

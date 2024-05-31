@@ -31,7 +31,7 @@ public class NodeSerializer
         path.add(node.name);
         List<String> propertyPath = new ArrayList<>(path);
         propertyPath.add("type");
-        config.set(propertyPath, node.getClass().getSimpleName());
+        config.set(propertyPath, node.getClass().getName());
         propertyPath.remove(propertyPath.size() - 1);
         for(Node child : node.children)
         {

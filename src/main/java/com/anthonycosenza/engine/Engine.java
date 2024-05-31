@@ -6,7 +6,7 @@ import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.space.node.Node;
-import com.anthonycosenza.engine.space.rendering.Renderer;
+import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.ui.ImGuiImpl;
 import com.anthonycosenza.engine.util.Constants;
@@ -44,10 +44,11 @@ public class Engine
     private float zNear = .01f;
     private float zFar = 3000.0f;
     private float fov = 60;
-    private final Renderer renderer;
+    //private final Renderer renderer;
     private final Input input;
     private float physicsUpdatesSecond = 60;
     private ImGuiImpl imGuiImpl;
+    private SceneRenderer renderer;
 
     public Engine(ProjectSettings settings)
     {
@@ -59,7 +60,6 @@ public class Engine
         Configuration.STACK_SIZE.set(settings.lwjglStackSize);
     
     
-        
         window = new Window(settings.name, settings);
     
         //Essentially turns on OpenGL and allows the window to communicate with it.
@@ -71,7 +71,8 @@ public class Engine
         
         
         projection = new Projection(fov, window.getWidth(), window.getHeight(), zNear, zFar);
-        renderer = new Renderer(window);
+        //renderer = new Renderer(window);
+        renderer = new SceneRenderer();
         
         EventBus.getDefault().register(this);
         
@@ -213,10 +214,6 @@ public class Engine
         return window;
     }
     
-    public Renderer getRenderer()
-    {
-        return renderer;
-    }
     
     public Projection getProjection()
     {
@@ -228,7 +225,7 @@ public class Engine
         window.resize(width, height);
         
         projection.resize(width, height);
-        renderer.resize(width, height);
+        //renderer.resize(width, height);
         
         settings.width = width;
         settings.height = height;
@@ -237,7 +234,7 @@ public class Engine
     
     public void cleanup()
     {
-        renderer.cleanup();
+        //renderer.cleanup();
         window.cleanup();
         imGuiImpl.clean();;
     }

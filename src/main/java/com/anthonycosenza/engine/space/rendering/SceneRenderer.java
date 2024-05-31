@@ -34,10 +34,10 @@ public class SceneRenderer
     private final ShaderPipeline shaderPipeline;
     private final UniformMap uniforms;
     
-    public SceneRenderer(boolean editor)
+    public SceneRenderer()
     {
         shaderPipeline = new ShaderPipeline(new ShaderData("AstroEngine/resources/shaders/scene.vert", GL_VERTEX_SHADER),
-                new ShaderData("AstroEngine/resources/shaders/" + (editor ? "editor.frag" : "scene.frag"), GL_FRAGMENT_SHADER));
+                new ShaderData("AstroEngine/resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
         
         uniforms = new UniformMap(shaderPipeline.getProgramID());
         uniforms.createUniform("projectionMatrix");
