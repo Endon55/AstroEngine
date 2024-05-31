@@ -2,6 +2,8 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.editor.scene.SaveType;
+import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
+import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.Camera;
@@ -38,6 +40,7 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -76,6 +79,7 @@ public class EditorNode extends Node
     private Node sceneManagerSelected;
     private Node testScene;
     private boolean modified = false;
+    private Popup popup;
     Camera camera;
     
     public EditorNode(Engine engine)
@@ -115,6 +119,8 @@ public class EditorNode extends Node
     
     }
     
+    
+    
     @Override
     public void updateUI(float delta)
     {
@@ -137,6 +143,19 @@ public class EditorNode extends Node
         if(createSaveWindow)
         {
             createSaveWindow();
+        }
+        if(hasPopup())
+        {
+            if(popup.isFinished())
+            {
+                if(popup instanceof NodeViewerPopup nodeViewerPopup)
+                {
+                    sceneManagerNode.addChild(nodeViewerPopup.finish());
+                }
+                
+                popup = null;
+            }
+            else popup.create();
         }
         
     }
@@ -251,6 +270,11 @@ public class EditorNode extends Node
         ImGui.end();
     }
     
+    private boolean hasPopup()
+    {
+        return popup != null;
+    }
+
     private void loadScene(Scene scene)
     {
         sceneManagerNode = scene;
@@ -279,6 +303,16 @@ public class EditorNode extends Node
                     sceneManagerSelected = sceneManagerNode;
                 }
                 
+                
+                if(ImGui.button("+"))
+                {
+                    if(!hasPopup())
+                    {
+                        popup = new NodeViewerPopup();
+                    }
+                }
+                
+                
                 drawTree(sceneManagerNode, treeConfig);
             }
         }
@@ -302,20 +336,24 @@ public class EditorNode extends Node
                 Class<? extends Node> nodeClass = selectedNode.getClass();
                 while(nodeClass != null && !Object.class.equals(nodeClass))
                 {
-                    if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties"))//set as scene name
+                    List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
+                            .filter(field -> field.isAnnotationPresent(Property.class) &&
+                                    !field.getName().equals("parent") &&
+                                    !field.getName().equals("children")).toList();
+                    if(!fields.isEmpty())
                     {
-                        for(Field field : nodeClass.getDeclaredFields())
+                        if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties"))//set as scene name
                         {
-                            if(field.isAnnotationPresent(Property.class))//Modifier.isPublic(field.getModifiers()) && field.canAccess(selectedNode) &&
+                            for(Field field : fields)
                             {
                                 field.setAccessible(true);
-                                
+    
                                 ImGui.text(field.getName());
                                 ImGui.sameLine();
                                 try
                                 {
                                     Object value = field.get(selectedNode);
-                                    
+    
                                     if(Integer.class.equals(field.getType()))
                                     {
                                         if(value == null)
@@ -376,7 +414,7 @@ public class EditorNode extends Node
                                         if(value != null)
                                         {
                                             vector = ((Vector3f) value);
-                                            imValue[0] =  vector.x();
+                                            imValue[0] = vector.x();
                                             imValue[1] = vector.y();
                                             imValue[2] = vector.z();
                                         }
@@ -523,14 +561,16 @@ public class EditorNode extends Node
                                 if(type == FileType.DIRECTORY)
                                 {
                                     assetBrowserPath = child;
-                                    assetBrowserFileSelected = -1;
-                                    assetBrowserLastClickTime = -1;
                                 }
                                 else if(type == FileType.SCENE)
                                 {
                                     loadScene((Scene) EditorIO.deserialize(child));
                                 }
                                 else System.out.println("Not a directory");
+                                
+                                assetBrowserFileSelected = -1;
+                                assetBrowserLastClickTime = -1;
+                                
                             }
                             else
                             {

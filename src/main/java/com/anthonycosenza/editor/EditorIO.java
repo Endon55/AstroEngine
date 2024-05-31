@@ -204,7 +204,6 @@ public class EditorIO
         TomlParser reader = new TomlParser();
         
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
-        System.out.println(config.valueMap());
         
         return parse(config);
     }
