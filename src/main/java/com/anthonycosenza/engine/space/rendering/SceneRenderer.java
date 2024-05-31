@@ -3,6 +3,7 @@ package com.anthonycosenza.engine.space.rendering;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Material;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
@@ -79,7 +80,8 @@ public class SceneRenderer
             if(node instanceof Renderable renderable)
             {
                 uniforms.setUniform("entityMatrix", ((Positional) node).getTransformation());
-    
+                Model model = renderable.getModel();
+                if(model == null) continue;
                 for(Material material : renderable.getModel().getMaterials())
                 {
                     uniforms.setUniform("material.diffuse", material.getDiffuseColor());

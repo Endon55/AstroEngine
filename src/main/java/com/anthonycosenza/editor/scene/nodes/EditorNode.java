@@ -7,12 +7,9 @@ import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.Camera;
-import com.anthonycosenza.engine.space.ModelLoader;
-import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
-import com.anthonycosenza.engine.space.node._3d.Model3D;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
@@ -75,12 +72,23 @@ public class EditorNode extends Node
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
     
+    private boolean createSaveWindow = false;
+    private boolean saveWindowShouldOpen = false;
+    private Vector2i saveWindowSize = new Vector2i(350, 150);
+    private SaveType[] saveWindowTypes = SaveType.values();
+    private String[] saveWindowTypesString = Arrays.stream(saveWindowTypes).map(Enum::name).toArray(String[]::new);
+    private int saveWindowTypeSelection = 0;
+    private ImString saveWindowString = new ImString(20);
+    private String error = "";
+    
+    
     private Node sceneManagerNode;
     private Node sceneManagerSelected;
-    private Node testScene;
     private boolean modified = false;
+    
     private Popup popup;
-    Camera camera;
+    
+    private Camera camera;
     
     public EditorNode(Engine engine)
     {
@@ -88,39 +96,16 @@ public class EditorNode extends Node
         sceneRenderer = new SceneRenderer();
         this.engine = engine;
         name = "Editor";
-        testScene = new Node("Scene");
-        Model model = ModelLoader.loadModel("AstroEngine/resources/assets/boat/BoatFBX.fbx", 0);
-        Model3D model3d = new Model3D();
-        model3d.model = model;
-        model3d.name = "Boat1";
-        model3d.setPosition(0, 0, 50);
-        testScene.addChild(model3d);
+
         camera = new MoveableCamera();
-        //camera.moveGlobalZ(50);
-        testScene.addChild(camera);
-        model3d = new Model3D();
-        model3d.model = model;
-        model3d.name = "Boat2";
-        model3d.setPosition(0, 0, -50);
-        testScene.addChild(model3d);
-        //testScene.addChild(new Mesh3D());
         folderIcon = new Texture("AstroEngine/resources/icons/folder.png");
         settingsIcon = new Texture("AstroEngine/resources/icons/settingsPaper.png");
         textIcon = new Texture("AstroEngine/resources/icons/txtPaper.png");
         codeIcon = new Texture("AstroEngine/resources/icons/codePaper.png");
         upArrow = new Texture("AstroEngine/resources/icons/arrowhead-up.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
-        
     }
-    
-    @Override
-    public void initialize()
-    {
-    
-    }
-    
-    
-    
+   
     @Override
     public void updateUI(float delta)
     {
@@ -186,14 +171,6 @@ public class EditorNode extends Node
         
     }
     
-    boolean createSaveWindow = false;
-    boolean saveWindowShouldOpen = false;
-    Vector2i saveWindowSize = new Vector2i(350, 150);
-    SaveType[] saveWindowTypes = SaveType.values();
-    String[] saveWindowTypesString = Arrays.stream(saveWindowTypes).map(Enum::name).toArray(String[]::new);
-    int saveWindowTypeSelection = 0;
-    ImString saveWindowString = new ImString(20);
-    String error = "";
     
     
     private void createSaveWindow()
@@ -342,7 +319,7 @@ public class EditorNode extends Node
                                     !field.getName().equals("children")).toList();
                     if(!fields.isEmpty())
                     {
-                        if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties"))//set as scene name
+                        if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties", ImGuiTreeNodeFlags.DefaultOpen))//set as scene name
                         {
                             for(Field field : fields)
                             {
@@ -361,7 +338,7 @@ public class EditorNode extends Node
                                             value = 0;
                                         }
                                         ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("##", imValue))
+                                        if(ImGui.inputInt("##" + field.getName(), imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                             modified = true;
@@ -375,7 +352,7 @@ public class EditorNode extends Node
                                             value = 0;
                                         }
                                         ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("##", imValue))
+                                        if(ImGui.inputInt("##" + field.getName(), imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                             modified = true;
@@ -388,7 +365,7 @@ public class EditorNode extends Node
                                             value = 0f;
                                         }
                                         ImFloat imValue = new ImFloat((Float) value);
-                                        if(ImGui.inputFloat("##", imValue))
+                                        if(ImGui.inputFloat("##" + field.getName(), imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                             modified = true;
@@ -401,7 +378,7 @@ public class EditorNode extends Node
                                             value = 0d;
                                         }
                                         ImDouble imValue = new ImDouble((Double) value);
-                                        if(ImGui.inputDouble("##", imValue))
+                                        if(ImGui.inputDouble("##" + field.getName(), imValue))
                                         {
                                             field.set(selectedNode, imValue.get());
                                             modified = true;
@@ -423,7 +400,7 @@ public class EditorNode extends Node
                                             vector = new Vector3f();
                                             field.set(selectedNode, vector);
                                         }
-                                        if(ImGui.inputFloat3("##", imValue))
+                                        if(ImGui.inputFloat3("##" + field.getName(), imValue))
                                         {
                                             vector.set(imValue[0], imValue[1], imValue[2]);
                                             modified = true;
@@ -445,7 +422,7 @@ public class EditorNode extends Node
                                             quaternion = new Quaternionf();
                                             field.set(selectedNode, quaternion);
                                         }
-                                        if(ImGui.inputFloat3("##", imValue))
+                                        if(ImGui.inputFloat3("##" + field.getName(), imValue))
                                         {
                                             quaternion.set(imValue[0], imValue[1], imValue[2], 1);
                                             modified = true;
@@ -460,7 +437,7 @@ public class EditorNode extends Node
                                         //Pre-allocating the String buffer, otherwise the buffers size is limited to the length of whatever was first added to it.
                                         ImString imValue = new ImString(MAX_STRING_FIELD_LENGTH);
                                         imValue.set(value);
-                                        if(ImGui.inputText("##", imValue))
+                                        if(ImGui.inputText("##" + field.getName(), imValue))
                                         {
                                             if(ImGui.isItemDeactivatedAfterEdit())
                                             {
