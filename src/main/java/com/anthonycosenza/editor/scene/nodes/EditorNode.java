@@ -1,7 +1,6 @@
 package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
-import com.anthonycosenza.editor.scene.NodeDeSerializer;
 import com.anthonycosenza.editor.scene.SaveType;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
@@ -529,7 +528,7 @@ public class EditorNode extends Node
                                 }
                                 else if(type == FileType.SCENE)
                                 {
-                                    loadScene((Scene) NodeDeSerializer.deSerialize(child));
+                                    loadScene((Scene) EditorIO.deserialize(child));
                                 }
                                 else System.out.println("Not a directory");
                             }
