@@ -29,6 +29,7 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDataType;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiInputTextFlags;
+import imgui.flag.ImGuiSliderFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -74,12 +75,12 @@ public class EditorNode extends Node
     private final FrameBuffer viewportFrameBuffer;
     private final SceneRenderer sceneRenderer;
     
-    private float assetBrowserScale = .5f;
+    float[] assetBrowserScale = new float[]{.5f};
     private final float defaultAssetBrowserSize = 100f;
     private final float assetBrowserPadding = 50;
     private final int defaultTableColor = ImColor.rgba(0, 0, 0, 0);
-    private final int hoveredTableColor = ImColor.rgba(0, 0, 255, 255);
-    private final int selectedTableColor = ImColor.rgba(255, 0, 0, 255);
+    private final int hoveredTableColor = ImColor.rgba(22, 71, 62, 255);
+    private final int selectedTableColor = ImColor.rgba(22, 57, 71, 255);
     private int assetBrowserFileSelected = -1;
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
@@ -565,7 +566,7 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
-    
+    int scaleSliderWidth = 150;
     private void createAssetBrowser()
     {
         File projectDirectory = EditorIO.getProjectDirectory();
@@ -591,22 +592,31 @@ public class EditorNode extends Node
                 truncatedPath = "project:\\\\";
             }
             else truncatedPath = "project:\\" + truncatedPath;
-            if(ImGui.imageButton(upArrow.getTextureID(), 10, 10))
+            
+            
+            ImGui.sameLine();
+            ImGui.setNextItemWidth(scaleSliderWidth);
+            ImGui.sliderFloat("##-scale", assetBrowserScale, 0.1f, 1.0f, "%.1f", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoInput);
+    
+            ImGui.sameLine();
+            //Remove background
+            ImGui.pushStyleColor(ImGuiCol.Button, ImColor.rgba(0, 0, 0, 0));
+            if(ImGui.arrowButton("##-upButton", 2))
             {
                 if(!assetBrowserPath.equals(EditorIO.getProjectDirectory()))
                 {
                     assetBrowserPath = assetBrowserPath.getParentFile();
                 }
             }
+            ImGui.popStyleColor();
             
             ImGui.sameLine();
             ImGui.text(truncatedPath);
             
-            
             ImGui.separator();
             
             
-            float cellSize = (defaultAssetBrowserSize * assetBrowserScale) + assetBrowserPadding;
+            float cellSize = (defaultAssetBrowserSize * assetBrowserScale[0]) + assetBrowserPadding;
             int columns = (int) (ImGui.getWindowContentRegionMax().x / cellSize);
             float columnWidth = (ImGui.getColumnWidth()) / columns;
             
@@ -669,7 +679,6 @@ public class EditorNode extends Node
                                 
                                 assetBrowserFileSelected = -1;
                                 assetBrowserLastClickTime = -1;
-                                
                             }
                             else
                             {
@@ -681,22 +690,17 @@ public class EditorNode extends Node
                             assetBrowserLastClickTime = System.currentTimeMillis();
                             assetBrowserFileSelected = i;
                         }
-    
                     }
                     ImGuiUtils.createDragAndDropSource(child.getName(), child);
                     ImGui.popID();
                     fileNameWithExtension = ImGuiUtils.centerAlignOffset(fileNameWithExtension, columnWidth);
                     ImGui.text(fileNameWithExtension);
                     
-                    
-                    
-                    
                     ImGui.tableNextColumn();
                 }
                 ImGui.popStyleColor();
                 ImGui.popStyleColor();
                 ImGui.popStyleColor();
-                
                 
                 ImGui.endTable();
             }
