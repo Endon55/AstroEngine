@@ -291,27 +291,31 @@ public class Toml
                     try
                     {
                         fieldValue = field.get(node);
-                        if(Asset.class.isAssignableFrom(fieldValue.getClass()))
+                        if(fieldValue != null)
                         {
-                            fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
+                            if(Asset.class.isAssignableFrom(field.getType()))
+                            {
+                                fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
+                            }
+                            else if(field.getType() == Vector2f.class)
+                            {
+                                fieldValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
+                            }
+                            else if(field.getType() == Vector3f.class)
+                            {
+                                fieldValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
+                            }
+                            else if(field.getType() == Quaternionf.class)
+                            {
+                                fieldValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
+                            }
+                            else if(field.getType() == String.class)
+                            {
+                                fieldValue = "String(" + fieldValue + ")";
+                            }
+                            
+                            config.set(propertyPath, fieldValue);
                         }
-                        else if(field.getType() == Vector2f.class)
-                        {
-                            fieldValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
-                        }
-                        else if(field.getType() == Vector3f.class)
-                        {
-                            fieldValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
-                        }
-                        else if(field.getType() == Quaternionf.class)
-                        {
-                            fieldValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
-                        }
-                        else if(field.getType() == String.class)
-                        {
-                            fieldValue = "String(" + fieldValue + ")";
-                        }
-                        config.set(propertyPath, fieldValue);
                         propertyPath.remove(propertyPath.size() - 1);
             
                     } catch(IllegalAccessException e)

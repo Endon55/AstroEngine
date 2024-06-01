@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.assets;
 
+import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.util.FileUtils;
@@ -38,7 +39,7 @@ public class AssetManager
         Asset asset = switch(info.assetType())
         {
             case MODEL -> ModelLoader.loadModel(info.filePath());
-            case MESH, TEXTURE -> throw new RuntimeException("Implement: " + info.assetType());
+            case MESH, TEXTURE, MATERIAL -> throw new RuntimeException("Implement: " + info.assetType());
             case SCENE -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
         };
         return asset;
@@ -104,6 +105,17 @@ public class AssetManager
     
     }
     
+    public void importAsset(File assetPath)
+    {
+        if(!assetPath.exists()) throw new RuntimeException("Couldn't find asset: " + assetPath.getAbsolutePath());
+        
+        AssetInfo info = new AssetInfo(generateResourceID(), getAssetType(assetPath), assetPath.getPath());
+        String name = assetPath.getName().split("\\.")[0];
+        File projectPath = new File(EditorIO.getProjectDirectory().getPath() + "\\" + name + ".a" + info.assetType().toString().toLowerCase());
+        new Toml.builder().asset(info).build(projectPath);
+        assetInfoMap.put(info.assetID(), info);
+    }
+    
     public Scene createSceneAsset(File directory, String filename)
     {
         Scene scene = new Scene();
@@ -143,5 +155,22 @@ public class AssetManager
             throw new RuntimeException("Asset Manager wasn't instantiated.");
         }
         return INSTANCE;
+    }
+    public static AssetType getAssetType(File asset)
+    {
+        String extension = FileUtils.getExtension(asset).toLowerCase();
+        if(extension.equals("png"))
+        {
+            return AssetType.TEXTURE;
+        }
+        else if(extension.equals("fbx"))
+        {
+            return AssetType.MODEL;
+        }
+        else if(extension.equals("scene"))
+        {
+            return AssetType.SCENE;
+        }
+        else throw new RuntimeException("Don't know what kind of asset this is: " + asset.getName());
     }
 }

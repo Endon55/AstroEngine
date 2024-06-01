@@ -80,7 +80,7 @@ public class LoadWindowNode extends Node
                 ImGui.inputText("Project Name", newProjectName);
                 if(ImGui.button("Location"))
                 {
-                    newProjectDirectory = NativeFileDialogue.open();
+                    newProjectDirectory = NativeFileDialogue.openFolder();
                 }
                 ImGui.text((newProjectDirectory.isEmpty() ? "" : newProjectDirectory + "\\" + newProjectName.get()));
                 if(ImGui.button("Create Project", 0, 0))

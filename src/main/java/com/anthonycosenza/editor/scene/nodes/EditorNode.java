@@ -2,19 +2,22 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.editor.scene.SaveType;
+import com.anthonycosenza.editor.scene.popups.ImportPopup;
 import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.Camera;
+import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
-import com.anthonycosenza.engine.ui.UITools;
+import com.anthonycosenza.engine.util.DragAndDropTarget;
+import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.vector.Vector2i;
@@ -62,11 +65,16 @@ public class EditorNode extends Node
     private final Texture settingsIcon;
     private final Texture textIcon;
     private final Texture codeIcon;
+    private final Texture sceneIcon;
+    private final Texture modelIcon;
+    private final Texture materialIcon;
+    private final Texture projectIcon;
+    private final Texture textureIcon;
     private final Texture upArrow;
     private final FrameBuffer viewportFrameBuffer;
     private final SceneRenderer sceneRenderer;
     
-    private float assetBrowserScale = 1f;
+    private float assetBrowserScale = .5f;
     private final float defaultAssetBrowserSize = 100f;
     private final float assetBrowserPadding = 50;
     private final int defaultTableColor = ImColor.rgba(0, 0, 0, 0);
@@ -107,6 +115,11 @@ public class EditorNode extends Node
         textIcon = new Texture("AstroEngine/resources/icons/txtPaper.png");
         codeIcon = new Texture("AstroEngine/resources/icons/codePaper.png");
         upArrow = new Texture("AstroEngine/resources/icons/arrowhead-up.png");
+        sceneIcon = new Texture("AstroEngine/resources/icons/diagram.png");
+        textureIcon = new Texture("AstroEngine/resources/icons/picture.png");
+        modelIcon = new Texture("AstroEngine/resources/icons/modeling.png");
+        projectIcon = new Texture("AstroEngine/resources/icons/project.png");
+        materialIcon = new Texture("AstroEngine/resources/icons/paint-bucket.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
     }
    
@@ -147,7 +160,11 @@ public class EditorNode extends Node
                     sceneManagerNode.addChild(nodeViewerPopup.finish());
                     modified = true;
                 }
-                
+                else if(popup instanceof ImportPopup importPopup)
+                {
+                    AssetManager.getInstance().importAsset(new File(importPopup.finish()));
+                }
+    
                 popup = null;
             }
             else popup.create();
@@ -202,7 +219,7 @@ public class EditorNode extends Node
             ImGui.setNextItemWidth(ImGui.getWindowSizeX());
             if(!error.isEmpty())
             {
-                UITools.error(error);
+                ImGuiUtils.error(error);
             }
             ImGui.setKeyboardFocusHere();
             if(ImGui.inputText("##2", saveWindowString, ImGuiInputTextFlags.EnterReturnsTrue))
@@ -335,13 +352,13 @@ public class EditorNode extends Node
                                 field.setAccessible(true);
     
                                 ImGui.text(field.getName());
-                                ImGui.sameLine();
                                 try
                                 {
                                     Object value = field.get(selectedNode);
     
                                     if(Integer.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         if(value == null)
                                         {
                                             value = 0;
@@ -355,6 +372,7 @@ public class EditorNode extends Node
                                     }
                                     else if(long.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         //ImGui doesn't directly support longs, hopefully this doesn't cause problems lol.
                                         if(value == null)
                                         {
@@ -369,6 +387,7 @@ public class EditorNode extends Node
                                     }
                                     else if(Float.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         if(value == null)
                                         {
                                             value = 0f;
@@ -382,6 +401,7 @@ public class EditorNode extends Node
                                     }
                                     else if(Double.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         if(value == null)
                                         {
                                             value = 0d;
@@ -395,6 +415,7 @@ public class EditorNode extends Node
                                     }
                                     else if(Vector3f.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         float[] imValue = new float[3];
                                         Vector3f vector;
                                         if(value != null)
@@ -417,6 +438,7 @@ public class EditorNode extends Node
                                     }
                                     else if(Quaternionf.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         float[] imValue = new float[3];
                                         Quaternionf quaternion;
                                         if(value != null)
@@ -439,6 +461,7 @@ public class EditorNode extends Node
                                     }
                                     else if(String.class.equals(field.getType()))
                                     {
+                                        ImGui.sameLine();
                                         if(value == null)
                                         {
                                             value = "";
@@ -455,6 +478,76 @@ public class EditorNode extends Node
                                             }
                                         }
                                     }
+                                    else if(Model.class.equals(field.getType()))
+                                    {
+                                        ImGui.sameLine();
+                                        if(value == null)
+                                        {
+                                            if(ImGui.beginCombo("##" + field.getName(), "Pick Model"))
+                                            {
+                                                if(ImGui.selectable("new Model"))
+                                                {
+                                                
+                                                }
+                                                
+                                                
+                                                ImGui.endCombo();
+                                            }
+                                            ImGuiUtils.createDragAndDropTarget(File.class, new DragAndDropTarget()
+                                            {
+                                                @Override
+                                                public void peek(Object payload)
+                                                {
+    
+                                                    System.out.println("Peeking: " + payload);
+                                                }
+    
+                                                @Override
+                                                public void accept(Object payload)
+                                                {
+                                                    System.out.println("Accepting: " + payload);
+        
+                                                }
+                                            });
+                                            /*if(ImGui.beginDragDropTarget())
+                                            {
+                                                String payload = ImGui.acceptDragDropPayload(String.class, ImGuiDragDropFlags.AcceptBeforeDelivery);
+                                                if(ImGui.isMouseDragging(0)) //Peek at payload
+                                                {
+                                                }
+                                                else
+                                                {
+                                                }
+                                                ImGui.endDragDropTarget();
+                                            }*/
+                                        }
+                                        else
+                                        {
+                                            if(ImGui.beginMenuBar())
+                                            {
+                                                if(ImGui.beginMenu("Model"))
+                                                {
+                                                    ImGui.menuItem("Menu Item");
+                                                    
+                                                    ImGui.endMenu();
+                                                }
+                                                
+                                                
+                                                ImGui.endMenuBar();
+                                            }
+                                            if(ImGui.beginDragDropTarget())
+                                            {
+                                                Object payload = ImGui.acceptDragDropPayload("String");
+                                                System.out.println(payload);
+        
+                                                ImGui.endDragDropTarget();
+                                            }
+                                            
+                                        }
+                                        
+                                        
+                                    }
+                                    
                                     else
                                     {
                                         ImGui.text("Implement - " + field.getType());
@@ -480,6 +573,18 @@ public class EditorNode extends Node
         
         if(ImGui.begin("Asset Browser", frameConfig))
         {
+            //Import button.
+            ImGui.dummy(10, 0);
+            ImGui.sameLine();
+            if(ImGui.button("Import Asset"))
+            {
+                if(popup != null) System.out.println("Finish what you're doing first");
+                else popup = new ImportPopup();
+            }
+            ImGui.sameLine();
+            ImGui.dummy(10, 0);
+            
+            ImGui.sameLine();
             String truncatedPath = assetBrowserPath.getAbsolutePath().replace(projectDirectory.getAbsolutePath(), "");
             if(truncatedPath.isEmpty())
             {
@@ -496,7 +601,10 @@ public class EditorNode extends Node
             
             ImGui.sameLine();
             ImGui.text(truncatedPath);
+            
+            
             ImGui.separator();
+            
             
             float cellSize = (defaultAssetBrowserSize * assetBrowserScale) + assetBrowserPadding;
             int columns = (int) (ImGui.getWindowContentRegionMax().x / cellSize);
@@ -530,8 +638,13 @@ public class EditorNode extends Node
                             {
                                 case SETTINGS -> settingsIcon.getTextureID();
                                 case CODE -> codeIcon.getTextureID();
+                                case MODEL -> modelIcon.getTextureID();
+                                case PROJECT -> projectIcon.getTextureID();
+                                case MATERIAL -> materialIcon.getTextureID();
+                                case TEXTURE -> textureIcon.getTextureID();
                                 case DIRECTORY -> folderIcon.getTextureID();
-                                case TEXT, SCENE -> textIcon.getTextureID();
+                                case TEXT -> textIcon.getTextureID();
+                                case SCENE -> sceneIcon.getTextureID();
                             };
                     //It gets confused thinking that all the buttons are the same so we push a specific ID for it.
                     ImGui.pushID(i);
@@ -570,9 +683,13 @@ public class EditorNode extends Node
                         }
     
                     }
+                    ImGuiUtils.createDragAndDropSource(child.getName(), child);
                     ImGui.popID();
-                    fileNameWithExtension = UITools.centerAlignOffset(fileNameWithExtension, columnWidth);
+                    fileNameWithExtension = ImGuiUtils.centerAlignOffset(fileNameWithExtension, columnWidth);
                     ImGui.text(fileNameWithExtension);
+                    
+                    
+                    
                     
                     ImGui.tableNextColumn();
                 }

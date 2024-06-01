@@ -9,6 +9,10 @@ public enum FileType
     DIRECTORY,
     TEXT,
     SCENE,
+    MODEL,
+    MATERIAL,
+    TEXTURE,
+    PROJECT
     
     ;
     public static FileType getFileType(File file)
@@ -22,6 +26,10 @@ public enum FileType
         {
             return SETTINGS;
         }
+        else if(extension.endsWith(".astro"))
+        {
+            return PROJECT;
+        }
         else if(extension.endsWith(".java"))
         {
             return CODE;
@@ -29,6 +37,18 @@ public enum FileType
         else if(extension.endsWith(".scene"))
         {
             return SCENE;
+        }
+        else if(extension.endsWith(".amaterial"))
+        {
+            return MATERIAL;
+        }
+        else if(extension.endsWith(".amodel"))
+        {
+            return MODEL;
+        }
+        else if(extension.endsWith(".atexture"))
+        {
+            return TEXTURE;
         }
         
         return TEXT;

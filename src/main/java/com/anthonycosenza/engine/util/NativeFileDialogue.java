@@ -1,12 +1,8 @@
 package com.anthonycosenza.engine.util;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.nfd.NFDFilterItem;
-import org.lwjgl.util.nfd.NFDPathSetEnum;
 
 import java.nio.ByteBuffer;
 
@@ -18,6 +14,7 @@ import static org.lwjgl.util.nfd.NativeFileDialog.NFD_FreePath;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_GetError;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_Init;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_OKAY;
+import static org.lwjgl.util.nfd.NativeFileDialog.NFD_OpenDialog;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_PickFolder;
 import static org.lwjgl.util.nfd.NativeFileDialog.NFD_SaveDialog;
 
@@ -25,8 +22,21 @@ import static org.lwjgl.util.nfd.NativeFileDialog.NFD_SaveDialog;
 public class NativeFileDialogue
 {
     
+    public static String openFile()
+    {
+        NFD_Init();
     
-    public static String open()
+        PointerBuffer outPath = memAllocPointer(1);
+    
+        try
+        {
+            return getResult(NFD_OpenDialog(outPath, null,(ByteBuffer) null), outPath);
+        } finally
+        {
+            memFree(outPath);
+        }
+    }
+    public static String openFolder()
     {
         NFD_Init();
         

@@ -6,4 +6,7 @@ public enum AssetType
     MESH,
     SCENE,
     MODEL,
+    MATERIAL
+    
+    
 }
