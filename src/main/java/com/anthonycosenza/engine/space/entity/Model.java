@@ -44,4 +44,10 @@ public class Model implements Asset
         }
         return resourceID;
     }
+    
+    @Override
+    public void setResourceID(long resourceID)
+    {
+        this.resourceID = resourceID;
+    }
 }

@@ -16,4 +16,10 @@ public class Scene extends Node implements Asset
     {
         return resourceID;
     }
+    
+    @Override
+    public void setResourceID(long resourceID)
+    {
+        this.resourceID = resourceID;
+    }
 }

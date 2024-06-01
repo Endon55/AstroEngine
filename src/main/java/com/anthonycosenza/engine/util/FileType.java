@@ -34,7 +34,7 @@ public enum FileType
         {
             return CODE;
         }
-        else if(extension.endsWith(".scene"))
+        else if(extension.endsWith(".ascene"))
         {
             return SCENE;
         }

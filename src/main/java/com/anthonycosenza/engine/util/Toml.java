@@ -295,6 +295,7 @@ public class Toml
                         {
                             if(Asset.class.isAssignableFrom(field.getType()))
                             {
+                                System.out.println("asset");
                                 fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
                             }
                             else if(field.getType() == Vector2f.class)

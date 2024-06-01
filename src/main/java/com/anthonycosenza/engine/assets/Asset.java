@@ -6,7 +6,7 @@ public interface Asset
 {
     @Property
     long getResourceID();
-    
+    void setResourceID(long resourceID);
     
     /*
     private long resourceID = -1;

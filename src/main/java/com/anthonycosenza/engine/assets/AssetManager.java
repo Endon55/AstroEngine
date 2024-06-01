@@ -34,6 +34,7 @@ public class AssetManager
         
         if(info == null)
         {
+            System.out.println(assetInfoMap);
             throw new RuntimeException("Where the fuck do I even find this thing?: " + assetID);
         }
         Asset asset = switch(info.assetType())
@@ -42,6 +43,7 @@ public class AssetManager
             case MESH, TEXTURE, MATERIAL -> throw new RuntimeException("Implement: " + info.assetType());
             case SCENE -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
         };
+        asset.setResourceID(info.assetID());
         return asset;
     }
     public AssetInfo getAssetInfo(long assetID)
@@ -82,7 +84,7 @@ public class AssetManager
             {
                 String extension = FileUtils.getExtension(file);
                 
-                if(extension.equals("aasset") || extension.equals("scene"))
+                if(AssetType.FILE_EXTENSIONS.contains(extension))
                 {
                     AssetInfo info = Toml.getAssetHeader(file);
                     long id = info.assetID();
@@ -121,7 +123,7 @@ public class AssetManager
         Scene scene = new Scene();
         scene.name = filename;
         scene.getResourceID();
-        String filepath = directory.getPath() + "\\" + filename + ".scene";
+        String filepath = directory.getPath() + "\\" + filename + ".ascene";
         assetInfoMap.put(scene.getResourceID(), new AssetInfo(scene.getResourceID(), AssetType.SCENE, filepath));
         Toml.updateScene(scene);
         return scene;
@@ -167,7 +169,7 @@ public class AssetManager
         {
             return AssetType.MODEL;
         }
-        else if(extension.equals("scene"))
+        else if(extension.equals("ascene"))
         {
             return AssetType.SCENE;
         }

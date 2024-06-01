@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.util;
 
+import com.anthonycosenza.engine.assets.AssetType;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -7,6 +8,8 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDragDropFlags;
 import imgui.flag.ImGuiWindowFlags;
 import org.joml.Vector2i;
+
+import java.io.File;
 
 public class ImGuiUtils
 {
@@ -69,6 +72,35 @@ public class ImGuiUtils
             ImGui.endDragDropTarget();
         }
     }
+    private static boolean ddValidAsset = false;
+    private static int RED = -167711939;
+    private static int GREEN = -16711936;
+    public static void createDragAndDropAssetTarget(AssetType assetType, DragAndDropAssetTarget target)
+    {
+        //System.out.println("R" + ImColor.rgba(1f, 0, 0, 1f));
+        //System.out.println(ImColor.rgba(0, 1f, 0, 1f));
+        ImGui.pushStyleColor(ImGuiCol.DragDropTarget, (ddValidAsset ? GREEN : RED));
+        if(ImGui.beginDragDropTarget())
+        {
+            Object payload = ImGui.acceptDragDropPayload(File.class, ImGuiDragDropFlags.AcceptBeforeDelivery);
+            if(payload instanceof File file && file.getName().endsWith(".a" + assetType.name().toLowerCase()))
+            {
+                ddValidAsset = true;
+                if(!ImGui.isMouseDragging(0)) //Peek at payload
+                {
+                    target.accept(file);
+                }
+            }
+            else
+            {
+                ddValidAsset = false;
+            }
+            
+            ImGui.endDragDropTarget();
+        }
+        ImGui.popStyleColor();
+    }
+    
     public static boolean createPopupWindow(Vector2i windowSize)
     {
         int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse |

@@ -7,7 +7,10 @@ import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
+import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
+import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
@@ -16,7 +19,6 @@ import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
-import com.anthonycosenza.engine.util.DragAndDropTarget;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
@@ -129,8 +131,8 @@ public class EditorNode extends Node
     {
         if(modified)
         {
-            modified = false;
             Toml.updateScene(sceneManagerNode);
+            modified = false;
         }
         
         int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
@@ -322,7 +324,8 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
-
+    boolean ddModel = false;
+    boolean dragging = false;
     private void createPropertyInspector()
     {
         int frameConfig = 0;
@@ -479,6 +482,7 @@ public class EditorNode extends Node
                                             }
                                         }
                                     }
+/* ------------------------------------------Model------------------------------------------ */
                                     else if(Model.class.equals(field.getType()))
                                     {
                                         ImGui.sameLine();
@@ -494,33 +498,20 @@ public class EditorNode extends Node
                                                 
                                                 ImGui.endCombo();
                                             }
-                                            ImGuiUtils.createDragAndDropTarget(File.class, new DragAndDropTarget()
+                                            final Asset[] asset = {null};
+                                            ImGuiUtils.createDragAndDropAssetTarget(AssetType.MODEL,
+                                                    file ->
+                                                    {
+                                                        AssetInfo info = Toml.getAssetHeader(file);
+                                                        asset[0] = AssetManager.getInstance().getAsset(info.assetID());
+                                                        modified = true;
+                                                        
+                                                    });
+                                            if(asset[0] != null)
                                             {
-                                                @Override
-                                                public void peek(Object payload)
-                                                {
-    
-                                                    System.out.println("Peeking: " + payload);
-                                                }
-    
-                                                @Override
-                                                public void accept(Object payload)
-                                                {
-                                                    System.out.println("Accepting: " + payload);
-        
-                                                }
-                                            });
-                                            /*if(ImGui.beginDragDropTarget())
-                                            {
-                                                String payload = ImGui.acceptDragDropPayload(String.class, ImGuiDragDropFlags.AcceptBeforeDelivery);
-                                                if(ImGui.isMouseDragging(0)) //Peek at payload
-                                                {
-                                                }
-                                                else
-                                                {
-                                                }
-                                                ImGui.endDragDropTarget();
-                                            }*/
+                                                field.set(selectedNode, asset[0]);
+                                                asset[0] = null;
+                                            }
                                         }
                                         else
                                         {

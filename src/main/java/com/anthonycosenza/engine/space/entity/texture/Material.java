@@ -57,4 +57,10 @@ public class Material implements Asset
         }
         return resourceID;
     }
+    
+    @Override
+    public void setResourceID(long resourceID)
+    {
+        this.resourceID = resourceID;
+    }
 }
