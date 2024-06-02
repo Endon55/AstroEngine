@@ -22,6 +22,10 @@ public class Editor
         editorSettings = new ProjectSettings();
         loadEditorSettings(editorSettings);
         engine = new Engine(editorSettings, false);
+    
+    
+
+        
         SceneManager.setScene(new LoadWindowNode(engine));
         engine.run();
     }

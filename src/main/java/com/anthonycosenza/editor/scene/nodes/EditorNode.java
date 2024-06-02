@@ -19,6 +19,7 @@ import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
+import com.anthonycosenza.engine.ui.AstroFonts;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
@@ -100,11 +101,13 @@ public class EditorNode extends Node
     private boolean hadIni;
     private boolean firstDockBuild = true;
     
+    int headerFontSize = 24;
+    String defaultFont = AstroFonts.DEFAULT_FONT;
     
     private Scene sceneManagerNode;
     private Node sceneManagerSelected;
     private boolean modified = false;
-    
+    final int astroColor = ImColor.rgba(20, 13, 35, 255);
     private Popup popup;
     
     private Camera camera;
@@ -129,6 +132,8 @@ public class EditorNode extends Node
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
         
         this.hadIni = hadIni;
+    
+
     }
     
     @Override
@@ -142,9 +147,12 @@ public class EditorNode extends Node
     int right;
     int center;
     int bottom;
+    int top;
     @Override
     public void updateUI(float delta)
     {
+        ImGui.styleColorsDark();
+        
         if(modified)
         {
             Toml.updateScene(sceneManagerNode);
@@ -152,11 +160,13 @@ public class EditorNode extends Node
         }
 
         createMainDockspace();
-        
-        ImGui.pushStyleColor(ImGuiCol.Border, 0);
+    
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, astroColor);
+        ImGui.setNextWindowDockID(top, ImGuiCond.FirstUseEver);
+        createCommandBar();
         
         ImGui.setNextWindowDockID(left, ImGuiCond.FirstUseEver);
-        createSceneManager();
+        createSceneTree();
     
         ImGui.setNextWindowDockID(right, ImGuiCond.FirstUseEver);
         createPropertyInspector();
@@ -166,7 +176,6 @@ public class EditorNode extends Node
         
         ImGui.setNextWindowDockID(center, ImGuiCond.FirstUseEver);
         createSceneViewport();
-    
         ImGui.popStyleColor();
         
         if(createSaveWindow)
@@ -194,15 +203,15 @@ public class EditorNode extends Node
         
     }
     
-    
+    final float commandHeight = .08f;
     private void createMainDockspace()
     {
         ImGuiViewport viewport = ImGui.getMainViewport();
-        int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode;
+        int dockspaceConfig = ImGuiDockNodeFlags.PassthruCentralNode | imgui.internal.flag.ImGuiDockNodeFlags.NoCloseButton | imgui.internal.flag.ImGuiDockNodeFlags.NoTabBar;
         int mainWindowFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoBringToFrontOnFocus;
-        mainWindowFlags |= ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoDocking;
+        mainWindowFlags |= ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoDocking;
     
-        if((dockspaceConfig & ImGuiDockNodeFlags.NoCentralNode) == ImGuiDockNodeFlags.NoCentralNode)
+        if((dockspaceConfig & ImGuiDockNodeFlags.PassthruCentralNode) == ImGuiDockNodeFlags.PassthruCentralNode)
         {
             mainWindowFlags |= ImGuiWindowFlags.NoBackground;
         }
@@ -211,7 +220,7 @@ public class EditorNode extends Node
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0.0f, 0.0f);
         ImGui.setNextWindowSize(viewport.getSizeX(), viewport.getSizeY());
-        ImGui.setNextWindowPos(viewport.getPosX(), viewport.getPosY());
+        ImGui.setNextWindowPos(viewport.getPosX(), viewport.getPosY() + viewport.getSizeY() * commandHeight);
         ImGui.setNextWindowViewport(viewport.getID());
     
         ImGui.begin("Dockspace", mainWindowFlags);
@@ -232,14 +241,16 @@ public class EditorNode extends Node
             imgui.internal.ImGui.dockBuilderSetNodePos(dockspaceID, viewport.getPosX(), viewport.getPosY());
         
             ImInt id = new ImInt(dockspaceID);
-            left = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Left, .2f, null, id);
+            top = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Up, commandHeight, null, id);
+            left = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Left, .15f, null, id);
             right = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Right, .2f, null, id);
-            bottom = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Down, .2f, null, id);
+            bottom = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Down, .3f, null, id);
+    
             center = dockspaceID;
             
             imgui.internal.ImGui.dockBuilderFinish(id.get());
         }
-        createCommandBar();
+        //createCommandBar();
     
         ImGui.end();
     }
@@ -247,19 +258,29 @@ public class EditorNode extends Node
     private void createCommandBar()
     {
         int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize;
-        ImGuiViewport viewport = ImGui.getMainViewport();
         
-        ImGui.setNextWindowPos(viewport.getPosX(), viewport.getPosY());
-        ImGui.setNextWindowSize(viewport.getSizeX(), 50);
-        if(ImGui.beginMainMenuBar())
+        if(ImGui.begin("Command bar", frameConfig))
         {
-            if(ImGui.beginMenu("File"))
+            AstroFonts.push(defaultFont, headerFontSize);
+            ImGui.text("Text");
+            AstroFonts.pop();
+            if(ImGui.beginMenuBar())
             {
-        
-                ImGui.endMenu();
+                if(ImGui.beginMenu("File"))
+                {
+                    
+                    ImGui.endMenu();
+                }
+                ImGui.endMenuBar();
+            }
+            if(ImGui.arrowButton("Play", 1))
+            {
+                System.out.println("lets play");
             }
         }
-        ImGui.endMainMenuBar();
+        ImGui.end();
+        
+        
     }
     
     private void drawTree(Node node, int flags)
@@ -372,17 +393,20 @@ public class EditorNode extends Node
         sceneManagerNode = scene;
         sceneManagerSelected = sceneManagerNode;
     }
-    
-    private void createSceneManager()
+    private void createSceneTree()
     {
         int treeConfig = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen;
         int frameConfig = ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse;
         if(ImGui.begin("Scene Tree", frameConfig))
         {
+            AstroFonts.push(defaultFont, headerFontSize);
+            ImGui.text(ImGuiUtils.centerAlignOffset("Scene Tree", ImGui.getContentRegionAvailX()));
+            AstroFonts.pop();
+            ImGui.separator();
             ImGui.pushStyleColor(ImGuiCol.Border, ImColor.rgba(1, 0, 0, 1f));
             if(sceneManagerNode == null)
             {
-                ImGui.text("Load scene or create new one");
+                ImGui.text(ImGuiUtils.centerAlignOffset("Load scene or create new one", ImGui.getContentRegionAvailX()));
                 if(ImGui.button("Create new Scene"))
                 {
                     createSaveWindow = true;
@@ -404,6 +428,7 @@ public class EditorNode extends Node
                         popup = new NodeViewerPopup();
                     }
                 }
+                ImGui.separator();
                 
                 
                 drawTree(sceneManagerNode, treeConfig);
@@ -417,6 +442,12 @@ public class EditorNode extends Node
         int frameConfig = ImGuiWindowFlags.NoMove;
         if(ImGui.begin("Property Inspector", frameConfig))
         {
+    
+            AstroFonts.push(defaultFont, headerFontSize);
+            ImGui.text(ImGuiUtils.centerAlignOffset("Property Inspector", ImGui.getContentRegionAvailX()));
+            ImGui.separator();
+            AstroFonts.pop();
+            
             Node selectedNode = sceneManagerSelected;
             if(selectedNode != null)
             {
@@ -642,6 +673,7 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
+
     int scaleSliderWidth = 150;
     private void createAssetBrowser()
     {
@@ -650,6 +682,10 @@ public class EditorNode extends Node
         
         if(ImGui.begin("Asset Browser", frameConfig))
         {
+            AstroFonts.push(defaultFont, headerFontSize);
+            ImGui.text("Asset Browser");
+            ImGui.separator();
+            AstroFonts.pop();
             //Import button.
             ImGui.dummy(10, 0);
             ImGui.sameLine();

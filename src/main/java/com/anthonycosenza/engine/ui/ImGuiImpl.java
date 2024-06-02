@@ -7,6 +7,7 @@ import imgui.ImGuiIO;
 import imgui.flag.ImGuiConfigFlags;
 import org.lwjgl.glfw.GLFW;
 
+
 import static org.lwjgl.glfw.GLFW.glfwGetCurrentContext;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 
@@ -25,26 +26,31 @@ public class ImGuiImpl
     {
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
+    
+        AstroFonts.setupFonts();
+        
         io.setIniFilename(null);
         io.setDisplaySize(window.getWidth(), window.getHeight());
     
         if(settings.guiMultiViewport)
         {
-            ImGui.getIO().addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+            io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
         }
         if(settings.guiDocking)
         {
-            ImGui.getIO().addConfigFlags(ImGuiConfigFlags.DockingEnable);
+            io.addConfigFlags(ImGuiConfigFlags.DockingEnable);
         }
-        ImGui.getIO().setConfigViewportsNoTaskBarIcon(settings.guiHideViewportTaskbar);
-        //ImGui.getIO().setConfigDockingWithShift(true);
-        
-        
+        io.setConfigViewportsNoTaskBarIcon(settings.guiHideViewportTaskbar);
+    
         imGuiGlfw = new ImGuiViewportHandling();
         imGuiGlfw.init(window.getWindowHandle(), true);
         imGuiGl3 = new ImGuiRenderer();
         imGuiGl3.init(decideGlGlslVersions());
+
     }
+    
+
+    
     
     public void newFrame()
     {
