@@ -154,11 +154,10 @@ public class Engine
             
             SceneManager.updateUI(delta);
             SceneManager.update(delta);
-            
-            ImGui.endFrame();
-            ImGui.render();
+    
+    
+            imGuiImpl.endFrame();
             imGuiImpl.render();
-            //imGuiImpl.endFrame();
             renderer.render(scene, projection);
             
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.

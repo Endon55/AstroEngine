@@ -52,12 +52,12 @@ public class LoadWindowNode extends Node
         newProjectName = new ImString();
         newProjectDirectory = "";
         error = "";
-    
+        boolean hadIni = EditorIO.getGuiINI().exists();
         ImGuiIO io = ImGui.getIO();
         ImGui.loadIniSettingsFromDisk(EditorIO.getGuiINI().getPath());
         io.setIniFilename(EditorIO.getGuiINI().getPath());
         io.setWantSaveIniSettings(true);
-        SceneManager.setScene(new EditorNode(engine));
+        SceneManager.setScene(new EditorNode(engine, hadIni));
         AssetManager.setAssetPath(false, EditorIO.getAssetDirectory());
     }
     
