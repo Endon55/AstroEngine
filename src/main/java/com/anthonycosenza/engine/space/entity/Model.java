@@ -30,12 +30,7 @@ public class Model implements Asset
     {
         return texture;
     }
-    
-    public Entity createEntity()
-    {
-        return new Entity(this);
-    }
-    
+
     public long getResourceID()
     {
         if(resourceID == -1)

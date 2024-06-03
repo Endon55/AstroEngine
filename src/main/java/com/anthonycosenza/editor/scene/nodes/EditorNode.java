@@ -279,11 +279,10 @@ public class EditorNode extends Node
     {
         int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize;
         
+        ImGuiViewport viewport = ImGui.getMainViewport();
+        ImGui.setNextWindowSize(viewport.getSizeX(), viewport.getPosY() + viewport.getSizeY() * commandHeight);
         if(ImGui.begin("Command bar", frameConfig))
         {
-            AstroFonts.push(defaultFont, headerFontSize);
-            ImGui.text("Text");
-            AstroFonts.pop();
             if(ImGui.beginMenuBar())
             {
                 if(ImGui.beginMenu("File"))
@@ -300,19 +299,23 @@ public class EditorNode extends Node
                 }
                 ImGui.endMenuBar();
             }
+            
+            ImGui.text("Play");
+            ImGui.sameLine();
+            
             if(projectProcess != null)
             {
                 ImGui.pushStyleColor(ImGuiCol.Button, 0);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0);
                 ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0);
-                ImGui.arrowButton("Play", 1);
+                ImGui.arrowButton("PlayButton", 1);
                 ImGui.popStyleColor();
                 ImGui.popStyleColor();
                 ImGui.popStyleColor();
             }
             else
             {
-                if(ImGui.arrowButton("Play", 1))
+                if(ImGui.arrowButton("PlayButton", 1))
                 {
                     try
                     {
@@ -442,6 +445,7 @@ public class EditorNode extends Node
             if(selectedNode != null)
             {
                 //Header
+                ImGui.text("id: " + selectedNode.resourceID);
                 String className = selectedNode.getClass().getSimpleName();
                 ImGui.text(className + ".class");
                 ImGui.separator();
@@ -453,7 +457,8 @@ public class EditorNode extends Node
                     List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
                             .filter(field -> field.isAnnotationPresent(Property.class) &&
                                     !field.getName().equals("parent") &&
-                                    !field.getName().equals("children")).toList();
+                                    !field.getName().equals("children") &&
+                                    !field.getName().equals("resourceID")).toList();
                     if(!fields.isEmpty())
                     {
                         if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties", ImGuiTreeNodeFlags.DefaultOpen))//set as scene name
@@ -461,13 +466,18 @@ public class EditorNode extends Node
                             for(Field field : fields)
                             {
                                 field.setAccessible(true);
-    
+                                
                                 ImGui.text(field.getName());
+                                
                                 try
                                 {
                                     Object value = field.get(selectedNode);
-    
-                                    if(Integer.class.equals(field.getType()))
+                                    if(field.getName().equals("resourceID"))
+                                    {
+                                        ImGui.sameLine();
+                                        ImGui.text(String.valueOf(((long)value)));
+                                    }
+                                    else if(Integer.class.equals(field.getType()))
                                     {
                                         ImGui.sameLine();
                                         if(value == null)
