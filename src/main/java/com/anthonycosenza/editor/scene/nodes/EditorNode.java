@@ -2,7 +2,7 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.Main;
 import com.anthonycosenza.editor.EditorIO;
-import com.anthonycosenza.editor.scene.SaveType;
+import com.anthonycosenza.editor.scene.popups.AssetCreationPopup;
 import com.anthonycosenza.editor.scene.popups.ImportPopup;
 import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
@@ -27,7 +27,6 @@ import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.EngineMath;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.ImGuiViewport;
@@ -37,7 +36,6 @@ import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDataType;
 import imgui.flag.ImGuiDir;
 import imgui.flag.ImGuiDockNodeFlags;
-import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiSliderFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
@@ -94,15 +92,7 @@ public class EditorNode extends Node
     private int assetBrowserFileSelected = -1;
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
-    
-    private boolean createSaveWindow = false;
-    private boolean saveWindowShouldOpen = false;
-    private Vector2i saveWindowSize = new Vector2i(350, 150);
-    private SaveType[] saveWindowTypes = SaveType.values();
-    private String[] saveWindowTypesString = Arrays.stream(saveWindowTypes).map(Enum::name).toArray(String[]::new);
-    private int saveWindowTypeSelection = 0;
-    private ImString saveWindowString = new ImString(20);
-    private String error = "";
+
     private boolean hadIni;
     private boolean firstDockBuild = true;
     
@@ -192,32 +182,45 @@ public class EditorNode extends Node
         ImGui.setNextWindowDockID(center, ImGuiCond.FirstUseEver);
         createSceneViewport();
         ImGui.popStyleColor();
-        
-        if(createSaveWindow)
-        {
-            createSaveWindow();
-        }
+
         if(hasPopup())
         {
-            if(popup.isFinished())
-            {
-                if(popup instanceof NodeViewerPopup nodeViewerPopup)
-                {
-                    sceneManagerNode.addChild(nodeViewerPopup.finish());
-                    modified = true;
-                }
-                else if(popup instanceof ImportPopup importPopup)
-                {
-                    AssetManager.getInstance().importAsset(new File(importPopup.finish()));
-                }
-                else if(popup instanceof ProjectSettingsPopup settingsPopup)
-                {
-                    Toml.updateProjectSettings(settingsPopup.finish());
-                }
+            updatePopups();
+        }
+        
+    }
     
-                popup = null;
+    private void updatePopups()
+    {
+        if(popup.isFinished())
+        {
+            if(popup instanceof NodeViewerPopup nodeViewerPopup)
+            {
+                sceneManagerNode.addChild(nodeViewerPopup.finish());
+                modified = true;
             }
-            else popup.create();
+            else if(popup instanceof ImportPopup importPopup)
+            {
+                AssetManager.getInstance().importAsset(new File(importPopup.finish()));
+            }
+            else if(popup instanceof ProjectSettingsPopup settingsPopup)
+            {
+                Toml.updateProjectSettings(settingsPopup.finish());
+            }
+            else if(popup instanceof AssetCreationPopup assetPopup)
+            {
+                loadAsset(assetPopup.finish());
+            }
+        
+            popup = null;
+        }
+        else popup.create();
+    }
+    private void loadAsset(Asset asset)
+    {
+        if(asset instanceof Scene scene)
+        {
+            sceneManagerNode = scene;
         }
         
     }
@@ -360,80 +363,6 @@ public class EditorNode extends Node
         
     }
     
-    
-    boolean firstRun = true;
-    private void createSaveWindow()
-    {
-        int frameConfig = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse |
-                        ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoTitleBar;
-        
-        ImGui.setNextWindowSize(saveWindowSize.x(), saveWindowSize.y());
-        ImGui.setNextWindowPos(ImGui.getMainViewport().getCenterX() - saveWindowSize.x() * .5f, ImGui.getMainViewport().getCenterY() - saveWindowSize.y() * .5f);
-        
-        if(ImGui.begin("Save As", frameConfig))
-        {
-            ImGui.text("Save As...");
-            ImGui.separator();
-            //ImGui.spacing();
-            
-            //float projSize = ImGui.calcTextSize("proj:\\\\").x + ImGui.getStyle().getCellPadding().x;
-            ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-            ImGui.setNextItemWidth(ImGui.getWindowSizeX());
-            if(!error.isEmpty())
-            {
-                ImGuiUtils.error(error);
-            }
-            ImGui.setKeyboardFocusHere();
-            if(ImGui.inputText("##2", saveWindowString, ImGuiInputTextFlags.EnterReturnsTrue))
-            {
-                SaveType saveType = saveWindowTypes[saveWindowTypeSelection];
-                String filename =
-                        EditorIO.getProjectDirectory().getPath() + "\\" + saveWindowString.get() + saveType.getExtension();
-                File file = new File(filename);
-                if(file.exists())
-                {
-                    error = "File name already in use";
-                }
-                else
-                {
-                    switch(saveType)
-                    {
-                        case Scene ->
-                        {
-                            Scene scene = AssetManager.getInstance().createSceneAsset(EditorIO.getAssetDirectory(), saveWindowString.get());
-                            if(saveWindowShouldOpen)
-                            {
-                                loadScene(scene);
-                            }
-                        }
-                    }
-                    saveWindowString.set("");
-                    error = "";
-                    saveWindowTypeSelection = 0;
-                    createSaveWindow = false;
-                }
-            }
-            ImGui.popStyleVar();
-            ImGui.spacing();
-            ImGui.separator();
-            ImGui.spacing();
-            
-                for(int i = 0; i < saveWindowTypesString.length; i++)
-                {
-                    boolean isSelected = saveWindowTypeSelection == i;
-                    if(ImGui.selectable(saveWindowTypesString[i], isSelected))
-                    {
-                        saveWindowTypeSelection = i;
-                    }
-                    if(isSelected)
-                    {
-                        ImGui.setItemDefaultFocus();
-                    }
-                }
-        }
-        ImGui.end();
-    }
-    
     private boolean hasPopup()
     {
         return popup != null;
@@ -460,7 +389,7 @@ public class EditorNode extends Node
                 ImGui.text(ImGuiUtils.centerAlignOffset("Load scene or create new one", ImGui.getContentRegionAvailX()));
                 if(ImGui.button("Create new Scene"))
                 {
-                    createSaveWindow = true;
+                    popup = new AssetCreationPopup(AssetType.SCENE, getAssetBrowserPath());
                 }
             }
             else
@@ -734,7 +663,10 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
-
+    public File getAssetBrowserPath()
+    {
+        return assetBrowserPath;
+    }
     int scaleSliderWidth = 150;
     private void createAssetBrowser()
     {
@@ -755,6 +687,13 @@ public class EditorNode extends Node
                 if(popup != null) System.out.println("Finish what you're doing first");
                 else popup = new ImportPopup();
             }
+            ImGui.sameLine();
+            if(ImGui.button("Create New"))
+            {
+                if(popup != null) System.out.println("Finish what you're doing first");
+                else popup = new AssetCreationPopup(getAssetBrowserPath());
+            }
+            
             ImGui.sameLine();
             ImGui.dummy(10, 0);
             

@@ -27,17 +27,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 public class Toml
 {
     private static final String ASSET = "ASSET_HEADER";
     private static final String PROJECT_SETTINGS = "PROJECT_SETTINGS";
     
+    public static void updateAsset(AssetInfo info, Asset asset, String filename)
+    {
+        new builder().asset(info, asset).build(filename);
+    }
+    
     public static void updateScene(Scene scene, String filename)
     {
         new builder().scene(scene, filename).build(filename);
     }
-    
+
     public static void updateScene(Scene scene)
     {
         updateScene(scene, AssetManager.getInstance().getAssetInfo(scene.getResourceID()));
@@ -274,8 +280,25 @@ public class Toml
     public static class builder
     {
         private final CommentedConfig config = CommentedConfig.inMemory();
-        private AssetInfo info;
     
+    
+    
+        public Toml.builder asset(AssetInfo info, Asset asset)
+        {
+            if(asset instanceof Scene scene) return scene(scene, info);
+            
+            Stack<Asset> assets = new Stack<>();
+            assets.push(asset);
+            while(!assets.isEmpty())
+            {
+                Asset pop  = assets.pop();
+                System.out.println(pop.getClass());
+                
+                
+            }
+            return this;
+        }
+        
         public Toml.builder asset(AssetInfo info)
         {
             return asset(info.assetID(), info.assetType(), info.filePath());
@@ -285,7 +308,6 @@ public class Toml
             config.add(ASSET + ".handle", assetHandle);
             config.add(ASSET + ".type", assetType.name());
             config.add(ASSET + ".path", filePath);
-            info = new AssetInfo(assetHandle, assetType, filePath);
             return this;
         }
     
@@ -360,7 +382,6 @@ public class Toml
                         {
                             if(Asset.class.isAssignableFrom(field.getType()))
                             {
-                                System.out.println("asset");
                                 fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
                             }
                             else if(field.getType() == Vector2f.class)
@@ -416,10 +437,6 @@ public class Toml
             TomlWriter writer = new TomlWriter();
     
             writer.write(config, destination, WritingMode.REPLACE);
-            if(info != null)
-            {
-            
-            }
         }
     }
 }

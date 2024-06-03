@@ -17,10 +17,9 @@ public class Main
         if(args.length != 0)
         {
             String projectDirectory = args[0];
-            EditorIO.loadProject(projectDirectory);
-            ProjectSettings settings = new ProjectSettings();
+            ProjectSettings settings = EditorIO.loadProjectData(projectDirectory);
             Engine engine = new Engine(settings, false);
-            long mainSceneID = 4307197161325488864L;
+            long mainSceneID = settings.mainScene;
             AssetManager.setAssetPath(false, EditorIO.getAssetDirectory());
             SceneManager.setScene(AssetManager.getInstance().instantiateScene(mainSceneID));
             engine.run();

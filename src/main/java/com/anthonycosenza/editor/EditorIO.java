@@ -1,6 +1,5 @@
 package com.anthonycosenza.editor;
 
-import com.anthonycosenza.editor.scene.SaveType;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.util.Toml;
 import com.electronwill.nightconfig.core.file.FileConfig;
@@ -21,21 +20,9 @@ public class EditorIO
     private static File userDirectory = null;
     private static File projectHistory = null;
     private static String engineVersion = "0.1";
+    private static File shaderDirectory = null;
     
-    public static void saveNewFile(File file, SaveType saveType)
-    {
-        //File file = new File(getProjectDirectory().getPath() + "/" + fileName + saveType.getExtension());
-        try
-        {
-            if(file.createNewFile())
-            {
-            
-            }
-        } catch(IOException e)
-        {
-            throw new RuntimeException("Failed to create new file: " + e);
-        }
-    }
+    
     public static File getProjectConfig()
     {
         return projectConfig;

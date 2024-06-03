@@ -1,5 +1,7 @@
 package com.anthonycosenza.engine.space.rendering.shader;
 
+import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.util.FileUtils;
 
 import java.util.ArrayList;
@@ -22,10 +24,11 @@ import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
-public class ShaderPipeline
+public class ShaderPipeline implements Asset
 {
     private final int programID;
     private final UniformMap uniforms;
+    public long resourceID = -1;
     
     public ShaderPipeline(ShaderData... shaders)
     {
@@ -55,6 +58,11 @@ public class ShaderPipeline
     public void bind()
     {
         glUseProgram(programID);
+    }
+    
+    public UniformMap getUniforms()
+    {
+        return uniforms;
     }
     
     public void unbind()
@@ -94,5 +102,22 @@ public class ShaderPipeline
     public void cleanup()
     {
         glDeleteProgram(programID);
+    }
+    
+    
+    @Override
+    public long getResourceID()
+    {
+        if(resourceID == -1)
+        {
+            resourceID = AssetManager.getInstance().generateResourceID();
+        }
+        return resourceID;
+    }
+    
+    @Override
+    public void setResourceID(long resourceID)
+    {
+        this.resourceID = resourceID;
     }
 }
