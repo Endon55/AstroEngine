@@ -102,7 +102,7 @@ public class AssetManager
         AssetInfo info = new AssetInfo(generateResourceID(), getAssetType(assetPath), assetPath.getPath());
         String name = assetPath.getName().split("\\.")[0];
         File projectPath = new File(EditorIO.getProjectDirectory().getPath() + "\\" + name + ".a" + info.assetType().toString().toLowerCase());
-        new Toml.builder().asset(info).build(projectPath);
+        new Toml.builder().assetHeader(info).build(projectPath);
         assetInfoMap.put(info.assetID(), info);
     }
     

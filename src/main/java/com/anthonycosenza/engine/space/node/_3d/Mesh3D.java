@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.space.node._3d;
 
 import com.anthonycosenza.engine.space.entity.Model;
-import com.anthonycosenza.engine.space.entity.texture.Material;
+import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.space.node.Renderable;
 import com.anthonycosenza.engine.space.shape.ShapeBuilder;
 
@@ -13,7 +13,7 @@ public class Mesh3D extends Node3D implements Renderable
     public Mesh3D()
     {
         super();
-        Material material = new Material();
+        StandardMaterial material = new StandardMaterial();
         material.getMeshes().add(ShapeBuilder.plane(100, 100));
         model = new Model(List.of(material));
         setPosition(0f, -20f, 0f);

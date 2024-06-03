@@ -16,7 +16,7 @@ import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.entity.Model;
-import com.anthonycosenza.engine.space.entity.texture.Texture;
+import com.anthonycosenza.engine.space.rendering.materials.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;

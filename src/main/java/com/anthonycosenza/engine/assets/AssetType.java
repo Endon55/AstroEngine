@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.assets;
 
-import com.anthonycosenza.engine.space.entity.texture.Material;
+import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.space.node.Scene;
 
 import java.util.Arrays;
@@ -12,7 +12,7 @@ public enum AssetType
     MESH(null),
     SCENE(Scene::new),
     MODEL(null),
-    MATERIAL(Material::new),
+    MATERIAL(StandardMaterial::new),
     SHADER(null),
     
     ;

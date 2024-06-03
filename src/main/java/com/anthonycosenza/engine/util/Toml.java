@@ -9,6 +9,7 @@ import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
+import com.anthonycosenza.engine.util.math.Color;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 public class Toml
 {
@@ -236,39 +236,9 @@ public class Toml
                     throw new RuntimeException("Couldn't find the parent class the property(" + key + ") belongs to.");
                 }
                 
-                //TODO
-                if(value instanceof String)
-                {
-                    String[] split = ((String) value).split("\\s*[()]");
-                    if(split[0].equals("Vector2f"))
-                    {
-                        String[] values = split[1].split(",");
-                        value = new Vector2f(Float.parseFloat(values[0]), Float.parseFloat(values[1]));
-                    }
-                    else if(split[0].equals("Vector3f"))
-                    {
-                        String[] values = split[1].split(",");
-                        value = new Vector3f(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]));
-                    }
-                    else if(split[0].equals("Quaternionf"))
-                    {
-                        String[] values = split[1].split(",");
-                        value = new Quaternionf(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
-                    }
-                    else if(split[0].equals("String"))
-                    {
-                        value = split[1];
-                    }
-                    else if(split[0].equals("Asset"))
-                    {
-                        value = AssetManager.getInstance().getAsset(Long.parseLong(split[1]));
-                    }
-                }
-                
-                
                 try
                 {
-                    field.set(node, value);
+                    field.set(node, deserializeValue(value));
                 } catch(IllegalAccessException e)
                 {
                     throw new RuntimeException(e);
@@ -277,6 +247,78 @@ public class Toml
         }
         return parent;
     }
+    
+    private static Object serializeValue(Class<?> clazz, Object fieldValue)
+    {
+        Object serializedValue = fieldValue;
+        if(fieldValue != null)
+        {
+            if(Asset.class.isAssignableFrom(clazz))
+            {
+                serializedValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
+            }
+            else if(clazz == Vector2f.class)
+            {
+                serializedValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
+            }
+            else if(clazz == Vector3f.class)
+            {
+                serializedValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
+            }
+            else if(clazz == Quaternionf.class)
+            {
+                serializedValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
+            }
+            else if(clazz == Color.class)
+            {
+                serializedValue = "Color(" + ((Color) fieldValue).r() + "," + ((Color) fieldValue).g() + "," + ((Color) fieldValue).b() + "," + ((Color) fieldValue).a() + ")";
+            }
+            else if(clazz == String.class)
+            {
+                serializedValue = "String(" + fieldValue + ")";
+            }
+        }
+        return serializedValue;
+    }
+    
+    private static Object deserializeValue(Object value)
+    {
+        if(value instanceof String)
+        {
+            String[] split = ((String) value).split("\\s*[()]");
+            if(split[0].equals("Vector2f"))
+            {
+                String[] values = split[1].split(",");
+                value = new Vector2f(Float.parseFloat(values[0]), Float.parseFloat(values[1]));
+            }
+            else if(split[0].equals("Vector3f"))
+            {
+                String[] values = split[1].split(",");
+                value = new Vector3f(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]));
+            }
+            else if(split[0].equals("Quaternionf"))
+            {
+                String[] values = split[1].split(",");
+                value = new Quaternionf(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
+            }
+            else if(split[0].equals("Color"))
+            {
+                String[] values = split[1].split(",");
+                value = new Color(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
+            }
+            else if(split[0].equals("String"))
+            {
+                value = split[1];
+            }
+            else if(split[0].equals("Asset"))
+            {
+                value = AssetManager.getInstance().getAsset(Long.parseLong(split[1]));
+            }
+        }
+        return value;
+    }
+    
+    
     public static class builder
     {
         private final CommentedConfig config = CommentedConfig.inMemory();
@@ -286,24 +328,42 @@ public class Toml
         public Toml.builder asset(AssetInfo info, Asset asset)
         {
             if(asset instanceof Scene scene) return scene(scene, info);
+            assetHeader(info);
             
-            Stack<Asset> assets = new Stack<>();
-            assets.push(asset);
-            while(!assets.isEmpty())
+            List<String> path = new ArrayList<>(2);
+            path.add(asset.getClass().getSimpleName());
+            path.add("type");
+            config.add(path, asset.getClass().getName());
+            
+            Field[] fields = asset.getClass().getDeclaredFields();
+            for(Field field : fields)
             {
-                Asset pop  = assets.pop();
-                System.out.println(pop.getClass());
+                if(!field.isAnnotationPresent(Property.class)) continue;
+                field.setAccessible(true);
                 
-                
+                path.set(1, field.getName());
+                try
+                {
+                    Object value = serializeValue(field.getType(), field.get(asset));
+                    if(value != null)
+                    {
+                        config.set(path, value);
+                    }
+                } catch(IllegalAccessException e)
+                {
+                    throw new RuntimeException(e);
+                }
             }
             return this;
         }
         
-        public Toml.builder asset(AssetInfo info)
+
+        
+        public Toml.builder assetHeader(AssetInfo info)
         {
-            return asset(info.assetID(), info.assetType(), info.filePath());
+            return assetHeader(info.assetID(), info.assetType(), info.filePath());
         }
-        public Toml.builder asset(long assetHandle, AssetType assetType, String filePath)
+        public Toml.builder assetHeader(long assetHandle, AssetType assetType, String filePath)
         {
             config.add(ASSET + ".handle", assetHandle);
             config.add(ASSET + ".type", assetType.name());
@@ -313,13 +373,13 @@ public class Toml
     
         public Toml.builder scene(Scene scene, AssetInfo info)
         {
-            asset(info);
+            assetHeader(info);
             return node(scene);
         }
     
         public Toml.builder scene(Scene scene, String filePath)
         {
-            asset(scene.getResourceID(), AssetType.SCENE, filePath);
+            assetHeader(scene.getResourceID(), AssetType.SCENE, filePath);
             return node(scene);
         }
         public Toml.builder settings(ProjectSettings settings)
@@ -369,6 +429,7 @@ public class Toml
                                 !field.getName().equals("children") &&
                                 !field.getName().equals("name")
                         ).toList();
+                
                 for(Field field : fields)
                 {
                     field.setAccessible(true);
@@ -377,32 +438,12 @@ public class Toml
                     Object fieldValue = null;
                     try
                     {
-                        fieldValue = field.get(node);
+                        fieldValue = serializeValue(field.getType(), field.get(node));
                         if(fieldValue != null)
                         {
-                            if(Asset.class.isAssignableFrom(field.getType()))
-                            {
-                                fieldValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
-                            }
-                            else if(field.getType() == Vector2f.class)
-                            {
-                                fieldValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
-                            }
-                            else if(field.getType() == Vector3f.class)
-                            {
-                                fieldValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
-                            }
-                            else if(field.getType() == Quaternionf.class)
-                            {
-                                fieldValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
-                            }
-                            else if(field.getType() == String.class)
-                            {
-                                fieldValue = "String(" + fieldValue + ")";
-                            }
-                            
                             config.set(propertyPath, fieldValue);
                         }
+                        
                         propertyPath.remove(propertyPath.size() - 1);
             
                     } catch(IllegalAccessException e)

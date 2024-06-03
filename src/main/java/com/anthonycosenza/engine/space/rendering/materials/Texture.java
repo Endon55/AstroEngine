@@ -1,4 +1,4 @@
-package com.anthonycosenza.engine.space.entity.texture;
+package com.anthonycosenza.engine.space.rendering.materials;
 
 import com.anthonycosenza.engine.loader.image.ImageLoader;
 import org.lwjgl.system.MemoryStack;

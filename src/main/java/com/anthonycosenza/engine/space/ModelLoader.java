@@ -2,7 +2,7 @@ package com.anthonycosenza.engine.space;
 
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
-import com.anthonycosenza.engine.space.entity.texture.Material;
+import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.math.Color;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.AIColor4D;
@@ -51,7 +51,7 @@ public class ModelLoader
         {
             throw new RuntimeException("Assimp failed to load model.");
         }
-        List<Material> materials = new ArrayList<>();
+        List<StandardMaterial> materials = new ArrayList<>();
         int numMaterials = aiScene.mNumMaterials();
         for(int i = 0; i < numMaterials; i++)
         {
@@ -59,13 +59,13 @@ public class ModelLoader
             materials.add(processMaterial(aiMaterial, parentDirectory));
         }
         PointerBuffer mMeshes = aiScene.mMeshes();
-        Material defaultMaterial = new Material();
+        StandardMaterial defaultMaterial = new StandardMaterial();
         for(int i = 0; i < aiScene.mNumMeshes(); i++)
         {
             AIMesh aiMesh = AIMesh.create(mMeshes.get(i));
             Mesh mesh = createMesh(aiMesh);
             int materialIndex = aiMesh.mMaterialIndex();
-            Material material;
+            StandardMaterial material;
             if(materialIndex >= 0 && materialIndex < materials.size())
             {
                 material = materials.get(materialIndex);
@@ -80,9 +80,9 @@ public class ModelLoader
         return new Model(materials);
     }
     
-    private static Material processMaterial(AIMaterial aiMaterial, String parentDirectory)
+    private static StandardMaterial processMaterial(AIMaterial aiMaterial, String parentDirectory)
     {
-        Material material = new Material();
+        StandardMaterial material = new StandardMaterial();
         try(MemoryStack stack = MemoryStack.stackPush())
         {
             AIColor4D color = AIColor4D.create();
@@ -99,7 +99,7 @@ public class ModelLoader
             if(texturePath != null && texturePath.length() > 0)
             {
                 material.setTexture(parentDirectory + File.separator + new File(texturePath).getName());
-                material.setDiffuseColor(Material.DEFAULT_COLOR);
+                material.setDiffuseColor(StandardMaterial.DEFAULT_COLOR);
             }
         }
         return material;

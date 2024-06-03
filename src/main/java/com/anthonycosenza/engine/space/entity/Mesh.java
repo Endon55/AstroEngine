@@ -1,7 +1,6 @@
 package com.anthonycosenza.engine.space.entity;
 
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
