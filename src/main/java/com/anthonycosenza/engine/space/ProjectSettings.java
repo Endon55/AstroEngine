@@ -1,8 +1,11 @@
 package com.anthonycosenza.engine.space;
 
+import java.lang.reflect.Field;
+
 public class ProjectSettings
 {
     public String name = "None";
+    public long mainScene = -1;
     public int width = 1920;
     public int height = 1080;
     public boolean vsync = false;
@@ -17,4 +20,21 @@ public class ProjectSettings
     public boolean guiHideViewportTaskbar = true;
     
     public boolean lockMouse = false;
+    
+    
+    public static ProjectSettings duplicate(ProjectSettings toDuplicate)
+    {
+        ProjectSettings duplicate = new ProjectSettings();
+        for(Field field : ProjectSettings.class.getDeclaredFields())
+        {
+            try
+            {
+                field.set(duplicate, field.get(toDuplicate));
+            } catch(IllegalAccessException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+        return duplicate;
+    }
 }

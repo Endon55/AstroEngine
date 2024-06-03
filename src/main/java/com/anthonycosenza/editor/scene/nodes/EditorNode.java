@@ -1,10 +1,12 @@
 package com.anthonycosenza.editor.scene.nodes;
 
+import com.anthonycosenza.Main;
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.editor.scene.SaveType;
 import com.anthonycosenza.editor.scene.popups.ImportPopup;
 import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
+import com.anthonycosenza.editor.scene.popups.ProjectSettingsPopup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
@@ -12,6 +14,7 @@ import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.Camera;
+import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
@@ -49,7 +52,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -111,6 +116,7 @@ public class EditorNode extends Node
     private Popup popup;
     
     private Camera camera;
+    private Process projectProcess;
     
     public EditorNode(Engine engine, boolean hadIni)
     {
@@ -133,13 +139,18 @@ public class EditorNode extends Node
         
         this.hadIni = hadIni;
     
-
+        
     }
     
     @Override
     public void initialize()
     {
         super.initialize();
+        long mainScene = EditorIO.getProjectSettings().mainScene;
+        if(mainScene != -1)
+        {
+            loadScene(AssetManager.getInstance().instantiateScene(mainScene));
+        }
     }
     
     
@@ -151,7 +162,11 @@ public class EditorNode extends Node
     @Override
     public void updateUI(float delta)
     {
-        ImGui.styleColorsDark();
+        if(projectProcess != null && !projectProcess.isAlive())
+        {
+            projectProcess.destroy();
+            projectProcess = null;
+        }
         
         if(modified)
         {
@@ -195,6 +210,10 @@ public class EditorNode extends Node
                 {
                     AssetManager.getInstance().importAsset(new File(importPopup.finish()));
                 }
+                else if(popup instanceof ProjectSettingsPopup settingsPopup)
+                {
+                    Toml.updateProjectSettings(settingsPopup.finish());
+                }
     
                 popup = null;
             }
@@ -225,8 +244,7 @@ public class EditorNode extends Node
     
         ImGui.begin("Dockspace", mainWindowFlags);
     
-        ImGui.popStyleVar();
-        ImGui.popStyleVar(2);
+        ImGui.popStyleVar(3);
         int dockspaceID = ImGui.getID("MyDockspace");
     
         ImGui.dockSpace(dockspaceID, 0f, 0f, dockspaceConfig);
@@ -250,7 +268,6 @@ public class EditorNode extends Node
             
             imgui.internal.ImGui.dockBuilderFinish(id.get());
         }
-        //createCommandBar();
     
         ImGui.end();
     }
@@ -268,14 +285,48 @@ public class EditorNode extends Node
             {
                 if(ImGui.beginMenu("File"))
                 {
-                    
+                    if(ImGui.selectable("Project Settings"))
+                    {
+                        if(popup != null)
+                        {
+                            throw new RuntimeException("Can't open a popup when one is already open.");
+                        }
+                        else popup = new ProjectSettingsPopup(EditorIO.getProjectSettings());
+                    }
                     ImGui.endMenu();
                 }
                 ImGui.endMenuBar();
             }
-            if(ImGui.arrowButton("Play", 1))
+            if(projectProcess != null)
             {
-                System.out.println("lets play");
+                ImGui.pushStyleColor(ImGuiCol.Button, 0);
+                ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0);
+                ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0);
+                ImGui.arrowButton("Play", 1);
+                ImGui.popStyleColor();
+                ImGui.popStyleColor();
+                ImGui.popStyleColor();
+            }
+            else
+            {
+                if(ImGui.arrowButton("Play", 1))
+                {
+                    try
+                    {
+                        String mainFolder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation()
+                                .toURI()).getPath();
+            
+                        ProcessBuilder builder = new ProcessBuilder("java", "-jar", mainFolder, EditorIO
+                                .getProjectDirectory().getAbsolutePath());
+                        projectProcess = builder.start();
+                    } catch(IOException e)
+                    {
+                        throw new RuntimeException(e);
+                    } catch(URISyntaxException e)
+                    {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
         ImGui.end();
@@ -427,6 +478,16 @@ public class EditorNode extends Node
                     {
                         popup = new NodeViewerPopup();
                     }
+                }
+                ImGui.sameLine();
+                if(ImGui.button("Set Main"))
+                {
+                    ImGui.beginTooltip();
+                    ImGui.setTooltip("Set as the starting scene your game will load into");
+                    ProjectSettings settings = EditorIO.getProjectSettings();
+                    settings.mainScene = sceneManagerNode.resourceID;
+                    Toml.updateProjectSettings(settings);
+                    ImGui.endTooltip();
                 }
                 ImGui.separator();
                 

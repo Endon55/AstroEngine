@@ -1,10 +1,12 @@
 package com.anthonycosenza.engine.util;
 
+import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -29,13 +31,13 @@ import java.util.Map;
 public class Toml
 {
     private static final String ASSET = "ASSET_HEADER";
+    private static final String PROJECT_SETTINGS = "PROJECT_SETTINGS";
     
     public static void updateScene(Scene scene, String filename)
     {
         new builder().scene(scene, filename).build(filename);
     }
     
-
     public static void updateScene(Scene scene)
     {
         updateScene(scene, AssetManager.getInstance().getAssetInfo(scene.getResourceID()));
@@ -56,6 +58,10 @@ public class Toml
         return this;
         */
     }
+    public static void updateProjectSettings(ProjectSettings settings)
+    {
+        new builder().settings(settings).build(EditorIO.getProjectConfig());
+    }
     
     public static AssetInfo getAssetHeader(File file)
     {
@@ -66,6 +72,45 @@ public class Toml
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
         config = config.get(ASSET);
         return new AssetInfo(config.getLong("handle"), AssetType.valueOf(config.get("type")), config.get("path"));
+    }
+    
+    public static ProjectSettings getProjectSettings(File file)
+    {
+        CommentedConfig config = CommentedConfig.inMemory();
+    
+        TomlParser reader = new TomlParser();
+    
+        reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+        config = config.get(PROJECT_SETTINGS);
+        ProjectSettings settings;
+        if(config == null)
+        {
+            settings = new ProjectSettings();
+        }
+        else
+        {
+            settings = parseSettings(config);
+        }
+        
+        return settings;
+    }
+    
+    private static ProjectSettings parseSettings(CommentedConfig config)
+    {
+        Map<String, Object> map = config.valueMap();
+        ProjectSettings settings = new ProjectSettings();
+        for(Map.Entry<String, Object> entry : map.entrySet())
+        {
+            try
+            {
+                Field field = ProjectSettings.class.getField(entry.getKey());
+                field.set(settings, entry.getValue());
+            } catch(NoSuchFieldException | IllegalAccessException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+        return settings;
     }
     
     public static Scene getScene(AssetInfo info)
@@ -249,10 +294,30 @@ public class Toml
             asset(info);
             return node(scene);
         }
+    
         public Toml.builder scene(Scene scene, String filePath)
         {
             asset(scene.getResourceID(), AssetType.SCENE, filePath);
             return node(scene);
+        }
+        public Toml.builder settings(ProjectSettings settings)
+        {
+            List<String> path = new ArrayList<>(2);
+            path.add(PROJECT_SETTINGS);
+            for(Field field : ProjectSettings.class.getDeclaredFields())
+            {
+                path.add(field.getName());
+                try
+                {
+                    config.add(path, field.get(settings));
+                } catch(IllegalAccessException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                path.remove(1);
+            }
+            
+            return this;
         }
         
         public Toml.builder node(Node node)

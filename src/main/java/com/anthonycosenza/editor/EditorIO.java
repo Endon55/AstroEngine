@@ -1,6 +1,8 @@
 package com.anthonycosenza.editor;
 
 import com.anthonycosenza.editor.scene.SaveType;
+import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.util.Toml;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
 
@@ -34,6 +36,21 @@ public class EditorIO
             throw new RuntimeException("Failed to create new file: " + e);
         }
     }
+    public static File getProjectConfig()
+    {
+        return projectConfig;
+    }
+    public static ProjectSettings getProjectSettings()
+    {
+        if(projectConfig.exists())
+        {
+            return Toml.getProjectSettings(getProjectConfig());
+        }
+        else
+        {
+            throw new RuntimeException("Project settings should at least exist here...");
+        }
+    }
     
     private static String getProjectFileName()
     {
@@ -43,6 +60,18 @@ public class EditorIO
     public static File getProjectDirectory()
     {
         return projectDirectory;
+    }
+    
+    public static ProjectSettings loadProjectData(String directory)
+    {
+        File project = new File(directory);
+        File config = new File(directory + "\\" + getProjectFileName());
+        if(!project.exists() || !config.exists())
+        {
+            throw new RuntimeException("Invalid project");
+        }
+        
+        return Toml.getProjectSettings(config);
     }
     
     public static void loadProject(String directory)

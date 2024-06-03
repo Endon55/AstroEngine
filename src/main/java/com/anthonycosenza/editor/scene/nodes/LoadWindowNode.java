@@ -49,6 +49,7 @@ public class LoadWindowNode extends Node
     public void loadProject(String projectDirectory)
     {
         EditorIO.loadProject(projectDirectory);
+        AssetManager.setAssetPath(false, EditorIO.getAssetDirectory());
         newProjectName = new ImString();
         newProjectDirectory = "";
         error = "";
@@ -58,7 +59,6 @@ public class LoadWindowNode extends Node
         io.setIniFilename(EditorIO.getGuiINI().getPath());
         io.setWantSaveIniSettings(true);
         SceneManager.setScene(new EditorNode(engine, hadIni));
-        AssetManager.setAssetPath(false, EditorIO.getAssetDirectory());
     }
     
     @Override
