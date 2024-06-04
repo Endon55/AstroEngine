@@ -1,13 +1,38 @@
-package com.anthonycosenza.engine.space.shape;
+package com.anthonycosenza.engine.space.entity;
 
-import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.annotations.Property;
+import com.anthonycosenza.engine.space.shape.MeshShape;
 
-public class ShapeBuilder
+public class GeneratedMesh extends Mesh
 {
-    public static Mesh plane(float width, float depth)
+    @Property
+    public MeshShape shape;
+    @Property
+    public float width;
+    @Property
+    public float height;
+    @Property
+    public float depth;
+    @Property
+    public int subdivisions;
+    
+    public GeneratedMesh()
     {
-        width /= 2f;
-        depth /= 2f;
+    
+    }
+    public void generate()
+    {
+        switch(shape)
+        {
+            case PLANE -> generatePlane();
+        }
+        //generate all the values
+        //set(vertices, indices, textureCoordinates);
+    }
+    private void generatePlane()
+    {
+        float width = this.width /= 2f;
+        float depth = this.depth /= 2f;
         float[] vertices = new float[]
                 {       //X, Y, Z
                         -width, 0, -depth,
@@ -27,9 +52,10 @@ public class ShapeBuilder
                         1, 1,
                         1, 0
                 };
-        return new Mesh(vertices, indices, texture);
+        set(vertices, indices, texture);
     }
-    public static Mesh square(float width, float height)
+    
+    public void square(float width, float height)
     {
         width /= 2f;
         height /= 2f;
@@ -52,17 +78,17 @@ public class ShapeBuilder
                         1, 1,
                         1, 0
                 };
-        return new Mesh(vertices, indices, texture);
+        set(vertices, indices, texture);
     }
     
-    public static float[] pyramid3(float height, float baseEdgeLength)
+    /*public void pyramid3(float height, float baseEdgeLength)
     {
         float hHeight = height * .5f;
         float hBEL = baseEdgeLength * .5f;
-        float width = (float)Math.sqrt(baseEdgeLength * baseEdgeLength - hBEL * hBEL);
+        float width = (float) Math.sqrt(baseEdgeLength * baseEdgeLength - hBEL * hBEL);
         float hWidth = width * .5f;
         
-/*        return new float[]{
+*//*        return new float[]{
                 //Top Point
                 0, 0, hHeight,
                 //Bottom Left
@@ -71,7 +97,7 @@ public class ShapeBuilder
                 hBEL, -hWidth, -hHeight,
                 //Bottom Top
                 0, -hWidth, hHeight
-        };*/
+        };*//*
         return new float[]{
                 //Top Point
                 0, hHeight, 0,
@@ -82,5 +108,5 @@ public class ShapeBuilder
                 //Bottom Top
                 0, -hHeight, hWidth
         };
-    }
+    }*/
 }

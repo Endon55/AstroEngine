@@ -7,8 +7,8 @@ import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
 import com.anthonycosenza.engine.util.math.Color;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
@@ -16,6 +16,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 public class StandardMaterial implements Material
 {
     public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
+    public static final Texture DEFAULT_TEXTURE = new Texture("AstroEngine/resources/images/Default_Texture.png");
     
     @Property
     public long resourceID = -1;
@@ -26,16 +27,17 @@ public class StandardMaterial implements Material
     @Property
     public ShaderPipeline pipeline;
     
-    List<Mesh> meshes;
+    Set<Mesh> meshes;
     
     
     public StandardMaterial()
     {
         diffuseColor = DEFAULT_COLOR;
-        meshes = new ArrayList<>();
+        meshes = new HashSet<>();
+        texture = DEFAULT_TEXTURE;
     }
     
-    public List<Mesh> getMeshes()
+    public Set<Mesh> getMeshes()
     {
         return meshes;
     }
@@ -82,7 +84,7 @@ public class StandardMaterial implements Material
     }
     
     @Override
-    public void set()
+    public void set(ShaderPipeline pipeline)
     {
         UniformMap uniforms = pipeline.getUniforms();
         uniforms.setUniform("material.diffuse", diffuseColor);

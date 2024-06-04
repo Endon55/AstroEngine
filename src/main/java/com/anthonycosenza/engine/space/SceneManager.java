@@ -12,6 +12,7 @@ public class SceneManager
     private static Node currentScene = null;
     private static Camera camera = null;
     private static boolean initialized = false;
+    private static boolean isModified = false;
     
     private static Map<Long, Node> sceneMap = new HashMap<>();
     

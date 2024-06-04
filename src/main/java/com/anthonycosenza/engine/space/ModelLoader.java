@@ -1,7 +1,9 @@
 package com.anthonycosenza.engine.space;
 
+import com.anthonycosenza.engine.space.entity.AssetMesh;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
+import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.math.Color;
 import org.lwjgl.PointerBuffer;
@@ -51,7 +53,7 @@ public class ModelLoader
         {
             throw new RuntimeException("Assimp failed to load model.");
         }
-        List<StandardMaterial> materials = new ArrayList<>();
+        List<Material> materials = new ArrayList<>();
         int numMaterials = aiScene.mNumMaterials();
         for(int i = 0; i < numMaterials; i++)
         {
@@ -65,7 +67,7 @@ public class ModelLoader
             AIMesh aiMesh = AIMesh.create(mMeshes.get(i));
             Mesh mesh = createMesh(aiMesh);
             int materialIndex = aiMesh.mMaterialIndex();
-            StandardMaterial material;
+            Material material;
             if(materialIndex >= 0 && materialIndex < materials.size())
             {
                 material = materials.get(materialIndex);
@@ -113,7 +115,7 @@ public class ModelLoader
         float[] textureCoordinates = extractTextureCoordinates(aiMesh);
         int[] indices = extractIndices(aiMesh);
         
-        return new Mesh(vertices, indices, textureCoordinates);
+        return new AssetMesh(vertices, indices, textureCoordinates);
     }
     
     private static float[] extractVertices(AIMesh aiMesh)

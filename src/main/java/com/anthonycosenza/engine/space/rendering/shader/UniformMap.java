@@ -24,11 +24,20 @@ public class UniformMap
     {
         this.shaderPipelineID = shaderPipelineID;
         uniformsMap = new HashMap<>();
+        createUniform("entityMatrix", "projectionMatrix", "cameraMatrix", "textureSampler", "material.diffuse");
     }
     
     public void createUniform(String uniformName)
     {
         uniformsMap.put(uniformName, glGetUniformLocation(shaderPipelineID, uniformName));
+    }
+    
+    public void createUniform(String... uniformNames)
+    {
+        for(String uniformName : uniformNames)
+        {
+            uniformsMap.put(uniformName, glGetUniformLocation(shaderPipelineID, uniformName));
+        }
     }
     
     public int getUniformID(String uniformName)

@@ -14,7 +14,6 @@ import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -22,14 +21,25 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
-public class Mesh
+public abstract class Mesh
 {
     private int vaoID;
     private List<Integer> vboIDs;
     
-    int vertexCount;
+    private int vertexCount;
+    private boolean initialized = false;
     
+    public Mesh()
+    {
+    
+    }
     public Mesh(float[] vertices, int[] indices, float[] textureCoordinates)
+    {
+        set(vertices, indices, textureCoordinates);
+    }
+    
+    
+    public void set(float[] vertices, int[] indices, float[] textureCoordinates)
     {
         if(textureCoordinates.length == 0)
         {
@@ -87,7 +97,11 @@ public class Mesh
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
         }
+        initialized = true;
     }
+    
+    
+    
     
     public int getVertexCount()
     {
@@ -96,6 +110,7 @@ public class Mesh
     
     public void bind()
     {
+        if(!initialized) throw new RuntimeException("Mesh not initialized before attempting to bind it.");
         glBindVertexArray(vaoID);
     }
     

@@ -19,7 +19,7 @@ import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 public class AssetManager
 {
     private static AssetManager INSTANCE;
-    private static final long DEFAULT_SHADER = 10000000;
+    public static final long DEFAULT_SHADER = 10000000;
     private final boolean runtime;
     private final File assetRoot;
     private final Map<Long, AssetInfo> assetInfoMap;
