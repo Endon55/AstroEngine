@@ -44,8 +44,19 @@ public class Color
         this.b = b;
         this.a = a;
     }
+    public Color(float[] floats)
+    {
+         this(floats[0], floats[1], floats[2], floats[3]);
+    }
     
-    
+    public Color set(float r, float g, float b, float a)
+    {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+        return this;
+    }
     
     
     public float r()
@@ -116,6 +127,11 @@ public class Color
         return this;
     }
     
+    public float[] getAsArray()
+    {
+        return new float[]{r(), g(), b(), a()};
+    }
+    
     @Override
     public boolean equals(Object o)
     {
@@ -143,6 +159,6 @@ public class Color
     @Override
     public String toString()
     {
-        return "Color{" + r + ", "  + g + ", " + b + ", " + a + "}";
+        return "Color(" + r + ","  + g + "," + b + "," + a + ")";
     }
 }

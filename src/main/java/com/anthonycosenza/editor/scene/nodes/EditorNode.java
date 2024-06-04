@@ -4,18 +4,17 @@ import com.anthonycosenza.Main;
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.editor.scene.popups.AssetCreationPopup;
 import com.anthonycosenza.editor.scene.popups.ImportPopup;
+import com.anthonycosenza.editor.scene.popups.MaterialEditorPopup;
 import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.editor.scene.popups.ProjectSettingsPopup;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
-import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
-import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.rendering.materials.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
@@ -41,6 +40,7 @@ import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImBoolean;
 import imgui.type.ImDouble;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
@@ -66,7 +66,6 @@ import static org.lwjgl.opengl.GL11.glViewport;
 
 public class EditorNode extends Node
 {
-    private static int MAX_STRING_FIELD_LENGTH = 20;
     
     private final long doubleClickInterval = 250;
     
@@ -210,6 +209,10 @@ public class EditorNode extends Node
             else if(popup instanceof AssetCreationPopup assetPopup)
             {
                 loadAsset(assetPopup.finish());
+            }
+            else if(popup instanceof MaterialEditorPopup)
+            {
+                modified = true;
             }
         
             popup = null;
@@ -430,6 +433,9 @@ public class EditorNode extends Node
         ImGui.popStyleColor();
         ImGui.end();
     }
+    
+    
+    
     private void createPropertyInspector()
     {
         int frameConfig = ImGuiWindowFlags.NoMove;
@@ -463,208 +469,11 @@ public class EditorNode extends Node
                     {
                         if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties", ImGuiTreeNodeFlags.DefaultOpen))//set as scene name
                         {
-                            for(Field field : fields)
-                            {
-                                field.setAccessible(true);
-                                
-                                ImGui.text(field.getName());
-                                
-                                try
-                                {
-                                    Object value = field.get(selectedNode);
-                                    if(field.getName().equals("resourceID"))
-                                    {
-                                        ImGui.sameLine();
-                                        ImGui.text(String.valueOf(((long)value)));
-                                    }
-                                    else if(Integer.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        if(value == null)
-                                        {
-                                            value = 0;
-                                        }
-                                        ImInt imValue = new ImInt((Integer) value);
-                                        if(ImGui.inputInt("##" + field.getName(), imValue))
-                                        {
-                                            field.set(selectedNode, imValue.get());
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(long.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        //ImGui doesn't directly support longs, hopefully this doesn't cause problems lol.
-                                        if(value == null)
-                                        {
-                                            value = 0L;
-                                        }
-                                        ImLong imValue = new ImLong((long) value);
-                                        if(ImGui.inputScalar("##" + field.getName(), ImGuiDataType.S64, imValue))
-                                        {
-                                            field.set(selectedNode, imValue.get());
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(Float.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        if(value == null)
-                                        {
-                                            value = 0f;
-                                        }
-                                        ImFloat imValue = new ImFloat((Float) value);
-                                        if(ImGui.inputFloat("##" + field.getName(), imValue))
-                                        {
-                                            field.set(selectedNode, imValue.get());
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(Double.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        if(value == null)
-                                        {
-                                            value = 0d;
-                                        }
-                                        ImDouble imValue = new ImDouble((Double) value);
-                                        if(ImGui.inputDouble("##" + field.getName(), imValue))
-                                        {
-                                            field.set(selectedNode, imValue.get());
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(Vector3f.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        float[] imValue = new float[3];
-                                        Vector3f vector;
-                                        if(value != null)
-                                        {
-                                            vector = ((Vector3f) value);
-                                            imValue[0] = vector.x();
-                                            imValue[1] = vector.y();
-                                            imValue[2] = vector.z();
-                                        }
-                                        else
-                                        {
-                                            vector = new Vector3f();
-                                            field.set(selectedNode, vector);
-                                        }
-                                        if(ImGui.inputFloat3("##" + field.getName(), imValue))
-                                        {
-                                            vector.set(imValue[0], imValue[1], imValue[2]);
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(Quaternionf.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        float[] imValue = new float[3];
-                                        Quaternionf quaternion;
-                                        if(value != null)
-                                        {
-                                            quaternion = ((Quaternionf) value);
-                                            imValue[0] = quaternion.x();
-                                            imValue[1] = quaternion.y();
-                                            imValue[2] = quaternion.z();
-                                        }
-                                        else
-                                        {
-                                            quaternion = new Quaternionf();
-                                            field.set(selectedNode, quaternion);
-                                        }
-                                        if(ImGui.inputFloat3("##" + field.getName(), imValue))
-                                        {
-                                            quaternion.set(imValue[0], imValue[1], imValue[2], 1);
-                                            modified = true;
-                                        }
-                                    }
-                                    else if(String.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        if(value == null)
-                                        {
-                                            value = "";
-                                        }
-                                        //Pre-allocating the String buffer, otherwise the buffers size is limited to the length of whatever was first added to it.
-                                        ImString imValue = new ImString(MAX_STRING_FIELD_LENGTH);
-                                        imValue.set(value);
-                                        if(ImGui.inputText("##" + field.getName(), imValue))
-                                        {
-                                            if(ImGui.isItemDeactivatedAfterEdit())
-                                            {
-                                                field.set(selectedNode, imValue.get());
-                                                modified = true;
-                                            }
-                                        }
-                                    }
-/* ------------------------------------------Model------------------------------------------ */
-                                    else if(Model.class.equals(field.getType()))
-                                    {
-                                        ImGui.sameLine();
-                                        if(value == null)
-                                        {
-                                            if(ImGui.beginCombo("##" + field.getName(), "Pick Model"))
-                                            {
-                                                if(ImGui.selectable("new Model"))
-                                                {
-                                                
-                                                }
-                                                
-                                                
-                                                ImGui.endCombo();
-                                            }
-                                            final Asset[] asset = {null};
-                                            ImGuiUtils.createDragAndDropAssetTarget(AssetType.MODEL,
-                                                    file ->
-                                                    {
-                                                        AssetInfo info = Toml.getAssetHeader(file);
-                                                        asset[0] = AssetManager.getInstance().getAsset(info.assetID());
-                                                        modified = true;
-                                                        
-                                                    });
-                                            if(asset[0] != null)
-                                            {
-                                                field.set(selectedNode, asset[0]);
-                                                asset[0] = null;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if(ImGui.beginMenuBar())
-                                            {
-                                                if(ImGui.beginMenu("Model"))
-                                                {
-                                                    ImGui.menuItem("Menu Item");
-                                                    
-                                                    ImGui.endMenu();
-                                                }
-                                                
-                                                
-                                                ImGui.endMenuBar();
-                                            }
-                                            if(ImGui.beginDragDropTarget())
-                                            {
-                                                Object payload = ImGui.acceptDragDropPayload("String");
-        
-                                                ImGui.endDragDropTarget();
-                                            }
-                                            
-                                        }
-                                        
-                                        
-                                    }
-                                    
-                                    else
-                                    {
-                                        ImGui.text("Implement - " + field.getType());
-                                    }
-                                } catch(IllegalAccessException e)
-                                {
-                                    throw new RuntimeException(e);
-                                }
-                            }
+                            ImBoolean modified = new ImBoolean(false);
+    
+                            EditorProperty.propertyTable(nodeClass, selectedNode, modified);
+                            
+                            if(modified.get()) this.modified = true;
                         }
                     }
                     nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
@@ -673,6 +482,9 @@ public class EditorNode extends Node
         }
         ImGui.end();
     }
+    
+    
+    
     public File getAssetBrowserPath()
     {
         return assetBrowserPath;

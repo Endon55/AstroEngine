@@ -1,5 +1,8 @@
 package com.anthonycosenza.engine.util;
 
+import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetInfo;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
 import imgui.ImColor;
 import imgui.ImGui;
@@ -28,6 +31,16 @@ public class ImGuiUtils
         {
             textBuilder.insert(0, " ");
         }
+        return textBuilder.toString();
+    }
+    
+    public static String padRight(String text, float fieldWidth)
+    {
+        float stringWidth = ImGui.calcTextSize(text).x;
+        float indentation = (fieldWidth - stringWidth);
+        int spaces = (int) (indentation / getSpaceWidth());
+        StringBuilder textBuilder = new StringBuilder(text);
+        textBuilder.append(" ".repeat(spaces));
         return textBuilder.toString();
     }
     public static float getSpaceWidth()
@@ -75,6 +88,21 @@ public class ImGuiUtils
     private static boolean ddValidAsset = false;
     private static int RED = -167711939;
     private static int GREEN = -16711936;
+    
+    
+    public static Asset assetDragAndDropTarget(AssetType assetType)
+    {
+        final Asset[] asset = {null};
+        ImGuiUtils.createDragAndDropAssetTarget(assetType,
+                file ->
+                {
+                    AssetInfo info = Toml.getAssetHeader(file);
+                    asset[0] = AssetManager.getInstance().getAsset(info.assetID());
+                
+                });
+        return asset[0];
+    }
+    
     public static void createDragAndDropAssetTarget(AssetType assetType, DragAndDropAssetTarget target)
     {
         //System.out.println("R" + ImColor.rgba(1f, 0, 0, 1f));

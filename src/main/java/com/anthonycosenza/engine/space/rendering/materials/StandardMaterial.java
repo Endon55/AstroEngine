@@ -5,6 +5,7 @@ import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
+import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.Color;
 
 import java.util.HashSet;
@@ -24,8 +25,6 @@ public class StandardMaterial implements Material
     public Color diffuseColor;
     @Property
     public Texture texture;
-    @Property
-    public ShaderPipeline pipeline;
     
     Set<Mesh> meshes;
     
@@ -95,6 +94,13 @@ public class StandardMaterial implements Material
     @Override
     public ShaderPipeline getShaderPipeline()
     {
-        return pipeline;
+        return null;
+    }
+    
+    
+    @Override
+    public String toString()
+    {
+        return "StandardMaterial(" + diffuseColor.toString() + "," + Toml.serializeValue(texture.getClass(), texture) + ")";
     }
 }

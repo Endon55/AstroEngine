@@ -12,9 +12,9 @@ import java.util.List;
 public class Mesh3D extends Node3D implements Renderable
 {
     @Property
-    Mesh mesh;
+    public Mesh mesh;
     @Property
-    Material material;
+    public Material material;
     
     private Model model;
     

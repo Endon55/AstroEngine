@@ -9,6 +9,7 @@ import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
+import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.math.Color;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
@@ -248,14 +249,20 @@ public class Toml
         return parent;
     }
     
-    private static Object serializeValue(Class<?> clazz, Object fieldValue)
+    public static Object serializeValue(Class<?> clazz, Object fieldValue)
     {
         Object serializedValue = fieldValue;
         if(fieldValue != null)
         {
             if(Asset.class.isAssignableFrom(clazz))
             {
-                serializedValue = "Asset(" + ((Asset) fieldValue).getResourceID() + ")";
+                long resourceID = ((Asset) fieldValue).getResourceID();
+                AssetInfo info = AssetManager.getInstance().getAssetInfo(resourceID);
+                if(info == null)
+                {
+                    serializedValue = fieldValue.toString();
+                }
+                else serializedValue = "Asset(" + resourceID + ")";
             }
             else if(clazz == Vector2f.class)
             {
@@ -271,7 +278,8 @@ public class Toml
             }
             else if(clazz == Color.class)
             {
-                serializedValue = "Color(" + ((Color) fieldValue).r() + "," + ((Color) fieldValue).g() + "," + ((Color) fieldValue).b() + "," + ((Color) fieldValue).a() + ")";
+                //serializedValue = "Color(" + ((Color) fieldValue).r() + "," + ((Color) fieldValue).g() + "," + ((Color) fieldValue).b() + "," + ((Color) fieldValue).a() + ")";
+                serializedValue = fieldValue.toString();
             }
             else if(clazz == String.class)
             {
@@ -281,7 +289,7 @@ public class Toml
         return serializedValue;
     }
     
-    private static Object deserializeValue(Object value)
+    public static Object deserializeValue(Object value)
     {
         if(value instanceof String)
         {
@@ -306,6 +314,14 @@ public class Toml
                 String[] values = split[1].split(",");
                 value = new Color(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
             }
+            else if(split[0].equals("StandardMaterial"))
+            {
+                String[] values = split[2].split(",");
+                StandardMaterial material = new StandardMaterial();
+                material.diffuseColor = new Color(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
+                value = material;
+            }
+            
             else if(split[0].equals("String"))
             {
                 value = split[1];
@@ -322,7 +338,6 @@ public class Toml
     public static class builder
     {
         private final CommentedConfig config = CommentedConfig.inMemory();
-    
     
     
         public Toml.builder asset(AssetInfo info, Asset asset)
