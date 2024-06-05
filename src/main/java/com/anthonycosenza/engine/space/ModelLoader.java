@@ -5,6 +5,7 @@ import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
+import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
 import com.anthonycosenza.engine.util.math.Color;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.AIColor4D;
@@ -98,9 +99,9 @@ public class ModelLoader
             aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null,
                     null, null, null, null, null);
             String texturePath = aiTexturePath.dataString();
-            if(texturePath != null && texturePath.length() > 0)
+            if(texturePath.length() > 0)
             {
-                material.setTexture(parentDirectory + File.separator + new File(texturePath).getName());
+                material.setTexture(new ImageTexture(parentDirectory + File.separator + new File(texturePath).getName()));
                 material.setDiffuseColor(StandardMaterial.DEFAULT_COLOR);
             }
         }

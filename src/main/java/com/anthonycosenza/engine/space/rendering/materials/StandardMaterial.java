@@ -2,6 +2,8 @@ package com.anthonycosenza.engine.space.rendering.materials;
 
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
+import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
 import com.anthonycosenza.engine.util.math.Color;
@@ -15,7 +17,7 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 public class StandardMaterial implements Material
 {
     public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
-    public static final Texture DEFAULT_TEXTURE = new Texture("AstroEngine/resources/images/Default_Texture.png");
+    public static final Texture DEFAULT_TEXTURE = new ImageTexture("AstroEngine/resources/images/Default_Texture.png");
     
     public long resourceID = -1;
     public Color diffuseColor;
@@ -52,9 +54,9 @@ public class StandardMaterial implements Material
         else return texture;
     }
     
-    public void setTexture(String texturePath)
+    public void setTexture(Texture texture)
     {
-        this.texture = new Texture(texturePath);
+        this.texture = texture;
     }
     
     public long getResourceID()

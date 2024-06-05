@@ -4,7 +4,7 @@ package com.anthonycosenza.engine.space.entity;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
-import com.anthonycosenza.engine.space.rendering.materials.Texture;
+import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
 
 import java.util.List;
 

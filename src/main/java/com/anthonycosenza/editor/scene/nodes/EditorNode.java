@@ -14,7 +14,8 @@ import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
-import com.anthonycosenza.engine.space.rendering.materials.Texture;
+import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
+import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
@@ -108,15 +109,15 @@ public class EditorNode extends Node
         name = "Editor";
 
         camera = new MoveableCamera();
-        folderIcon = new Texture("AstroEngine/resources/icons/folder.png");
-        settingsIcon = new Texture("AstroEngine/resources/icons/settingsPaper.png");
-        textIcon = new Texture("AstroEngine/resources/icons/txtPaper.png");
-        codeIcon = new Texture("AstroEngine/resources/icons/codePaper.png");
-        sceneIcon = new Texture("AstroEngine/resources/icons/diagram.png");
-        textureIcon = new Texture("AstroEngine/resources/icons/picture.png");
-        modelIcon = new Texture("AstroEngine/resources/icons/modeling.png");
-        projectIcon = new Texture("AstroEngine/resources/icons/project.png");
-        materialIcon = new Texture("AstroEngine/resources/icons/paint-bucket.png");
+        folderIcon = new ImageTexture("AstroEngine/resources/icons/folder.png");
+        settingsIcon = new ImageTexture("AstroEngine/resources/icons/settingsPaper.png");
+        textIcon = new ImageTexture("AstroEngine/resources/icons/txtPaper.png");
+        codeIcon = new ImageTexture("AstroEngine/resources/icons/codePaper.png");
+        sceneIcon = new ImageTexture("AstroEngine/resources/icons/diagram.png");
+        textureIcon = new ImageTexture("AstroEngine/resources/icons/picture.png");
+        modelIcon = new ImageTexture("AstroEngine/resources/icons/modeling.png");
+        projectIcon = new ImageTexture("AstroEngine/resources/icons/project.png");
+        materialIcon = new ImageTexture("AstroEngine/resources/icons/paint-bucket.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
         
         this.hadIni = hadIni;
