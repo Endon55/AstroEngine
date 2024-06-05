@@ -1,8 +1,6 @@
 package com.anthonycosenza.engine.space.node;
 
 
-import com.anthonycosenza.engine.annotations.Ignore;
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.util.math.EngineMath;
 
 import java.util.ArrayList;
@@ -10,13 +8,10 @@ import java.util.List;
 
 public class Node
 {
-    @Property
     public long resourceID;
-    @Property
     public String name;
     
-    @Ignore
-    public Node parent;
+    public transient Node parent;
     public List<Node> children;
     
     public Node(List<Node> children)

@@ -1,7 +1,6 @@
 package com.anthonycosenza.engine.util;
 
 import com.anthonycosenza.editor.EditorIO;
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -25,6 +24,7 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -129,6 +129,8 @@ public class Toml
         
         Node node = null;
         Map<String, Object> map = config.valueMap();
+        List<Asset> assetRefs = new ArrayList<>();
+        Map.Entry<String, Object> nodeEntry = null;
         for(Map.Entry<String, Object> attribute : map.entrySet())
         {
             if(attribute.getKey().equals(ASSET))
@@ -136,45 +138,58 @@ public class Toml
                 CommentedConfig asset = (CommentedConfig) attribute.getValue();
                 info = new AssetInfo(asset.getLong("handle"), AssetType.valueOf(asset.get("type")), asset.get("path"));
             }
+            else if(attribute.getKey().startsWith("ref"))
+            {
+                assetRefs.add((Asset)parseObject((CommentedConfig) attribute.getValue(), assetRefs));
+            }
             else if(attribute.getValue() instanceof Config)
             {
-                if(node != null) throw new RuntimeException("Multiple nodes in scene file.");
-            
-                node = parseNode((Config)attribute.getValue(), attribute.getKey(), null);
+                if(nodeEntry != null) throw new RuntimeException("Multiple nodes in scene file.");
+                nodeEntry = attribute;
+                
             }
         }
+        if(nodeEntry != null)
+        {
+            node = parseNode((Config) nodeEntry.getValue(), nodeEntry.getKey(), null, assetRefs);
+        }
+        else
+        {
+            throw new RuntimeException("Couldn't find scene entry node.");
+        }
+        
+        
         return (Scene) node;
     }
     
-    public static Node getNode(File file)
+    public static Object parseObject(CommentedConfig config, List<Asset> assets)
     {
-        CommentedConfig config = CommentedConfig.inMemory();
         
-        TomlParser reader = new TomlParser();
-        
-        reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
-        
-        return parse(config);
-    }
-    
-    private static Node parse(CommentedConfig config)
-    {
-        Node node = null;
-        Map<String, Object> map = config.valueMap();
-        for(Map.Entry<String, Object> attribute : map.entrySet())
+        try
         {
-            if(attribute.getValue() instanceof Config)
+            System.out.println(config.get("type").toString());
+            Class<?> clazz = Class.forName(config.get("type"));
+            //if(type == null) throw new RuntimeException("Couldn't parse Object: " + config);
+    
+    
+            Object object = clazz.getDeclaredConstructor().newInstance();
+            
+            for(Map.Entry<String, Object> entry : config.valueMap().entrySet())
             {
-                if(node != null) throw new RuntimeException("Multiple nodes in scene file.");
-                
-                node = parseNode((Config) attribute.getValue(), attribute.getKey(), null);
+                if(entry.getKey().equals("type")) continue;
+                object.getClass().getField(entry.getKey()).set(object, deserializeValue(entry.getValue(), assets));
             }
+    
+            return object;
+        } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
+                NoSuchFieldException | ClassNotFoundException e)
+        {
+            throw new RuntimeException(e);
         }
-        return node;
+    
     }
     
-    
-    private static Node parseNode(Config config, String name, Node parent)
+    private static Node parseNode(Config config, String name, Node parent, List<Asset> assets)
     {
         Map<String, Object> map = config.valueMap();
         
@@ -204,7 +219,7 @@ public class Toml
         }
         
         node.name = name;
-        
+        Map.Entry<String, Object> nodeRoot;
         for(Map.Entry<String, Object> attribute : map.entrySet())
         {
             String key = attribute.getKey();
@@ -217,7 +232,7 @@ public class Toml
             
             if(value instanceof Config)
             {
-                parseNode((Config) value, key, node);
+                parseNode((Config) value, key, node, assets);
             }
             else
             {
@@ -239,7 +254,7 @@ public class Toml
                 
                 try
                 {
-                    field.set(node, deserializeValue(value));
+                    field.set(node, deserializeValue(value, assets));
                 } catch(IllegalAccessException e)
                 {
                     throw new RuntimeException(e);
@@ -248,48 +263,10 @@ public class Toml
         }
         return parent;
     }
+
+
     
-    public static Object serializeValue(Class<?> clazz, Object fieldValue)
-    {
-        Object serializedValue = fieldValue;
-        if(fieldValue != null)
-        {
-            if(Asset.class.isAssignableFrom(clazz))
-            {
-                long resourceID = ((Asset) fieldValue).getResourceID();
-                AssetInfo info = AssetManager.getInstance().getAssetInfo(resourceID);
-                if(info == null)
-                {
-                    serializedValue = fieldValue.toString();
-                }
-                else serializedValue = "Asset(" + resourceID + ")";
-            }
-            else if(clazz == Vector2f.class)
-            {
-                serializedValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
-            }
-            else if(clazz == Vector3f.class)
-            {
-                serializedValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
-            }
-            else if(clazz == Quaternionf.class)
-            {
-                serializedValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
-            }
-            else if(clazz == Color.class)
-            {
-                //serializedValue = "Color(" + ((Color) fieldValue).r() + "," + ((Color) fieldValue).g() + "," + ((Color) fieldValue).b() + "," + ((Color) fieldValue).a() + ")";
-                serializedValue = fieldValue.toString();
-            }
-            else if(clazz == String.class)
-            {
-                serializedValue = "String(" + fieldValue + ")";
-            }
-        }
-        return serializedValue;
-    }
-    
-    public static Object deserializeValue(Object value)
+    public static Object deserializeValue(Object value, List<Asset> assets)
     {
         if(value instanceof String)
         {
@@ -321,7 +298,6 @@ public class Toml
                 material.diffuseColor = new Color(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
                 value = material;
             }
-            
             else if(split[0].equals("String"))
             {
                 value = split[1];
@@ -329,6 +305,13 @@ public class Toml
             else if(split[0].equals("Asset"))
             {
                 value = AssetManager.getInstance().getAsset(Long.parseLong(split[1]));
+            }
+            else if(split[0].equals("AssetRef"))
+            {
+                //ref=resourceID
+                value = assets.stream().filter(asset -> asset.getResourceID() == Long.parseLong(split[1])).findAny()
+                        .orElseGet(() -> (Asset) null);
+                
             }
         }
         return value;
@@ -339,7 +322,87 @@ public class Toml
     {
         private final CommentedConfig config = CommentedConfig.inMemory();
     
+        /*
+         * Path should include the destination for this objects fields.
+         */
+        public Toml.builder serializeObject(List<String> path, Object object)
+        {
+            return serializeObject(Arrays.stream(object.getClass().getDeclaredFields())
+                    .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
+                            !Modifier.isStatic(field.getModifiers())).toList(),
+                    path, object);
+        }
+        
+        public Toml.builder serializeObject(List<Field> fields, List<String> path, Object object)
+        {
+            int lastItem = path.size();
+            path.add("type");
+            config.set(path, object.getClass().getName());
+            for(Field field : fields)
+            {
+                field.setAccessible(true);
+                
+                Object value = null;
+                try
+                {
+                Object fieldValue = field.get(object);
+                if(fieldValue == null) continue;
+                path.set(lastItem, field.getName());
     
+                
+                    value = serializeValue(field.getType(), fieldValue);
+                } catch(IllegalAccessException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                if(value != null)
+                {
+                    config.set(path, value);
+                }
+            }
+            path.remove(path.size() - 1);
+            return this;
+        }
+    
+        private Object serializeValue(Class<?> clazz, Object fieldValue)
+        {
+            Object serializedValue = fieldValue;
+            if(fieldValue != null)
+            {
+                if(Asset.class.isAssignableFrom(clazz))
+                {
+                    long resourceID = ((Asset) fieldValue).getResourceID();
+                    AssetInfo info = AssetManager.getInstance().getAssetInfo(resourceID);
+                    if(info == null)
+                    {
+                        serializedValue = "AssetRef(" + resourceID + ")";
+                        assetRef(((Asset) fieldValue));
+                    }
+                    else serializedValue = "Asset(" + resourceID + ")";
+                }
+                else if(clazz == Vector2f.class)
+                {
+                    serializedValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
+                }
+                else if(clazz == Vector3f.class)
+                {
+                    serializedValue = "Vector3f(" + ((Vector3f) fieldValue).x() + "," + ((Vector3f) fieldValue).y() + "," + ((Vector3f) fieldValue).z() + ")";
+                }
+                else if(clazz == Quaternionf.class)
+                {
+                    serializedValue = "Quaternionf(" + ((Quaternionf) fieldValue).x() + "," + ((Quaternionf) fieldValue).y() + "," + ((Quaternionf) fieldValue).z() + "," + ((Quaternionf) fieldValue).w() + ")";
+                }
+                else if(clazz == Color.class)
+                {
+                    serializedValue = "Color(" + ((Color) fieldValue).r() + "," + ((Color) fieldValue).g() + "," + ((Color) fieldValue).b() + "," + ((Color) fieldValue).a() + ")";
+                }
+                else if(clazz == String.class)
+                {
+                    serializedValue = "String(" + fieldValue + ")";
+                }
+            }
+            return serializedValue;
+        }
         public Toml.builder asset(AssetInfo info, Asset asset)
         {
             if(asset instanceof Scene scene) return scene(scene, info);
@@ -349,26 +412,9 @@ public class Toml
             path.add(asset.getClass().getSimpleName());
             path.add("type");
             config.add(path, asset.getClass().getName());
+            path.remove(path.size() - 1);
             
-            Field[] fields = asset.getClass().getDeclaredFields();
-            for(Field field : fields)
-            {
-                if(!field.isAnnotationPresent(Property.class)) continue;
-                field.setAccessible(true);
-                
-                path.set(1, field.getName());
-                try
-                {
-                    Object value = serializeValue(field.getType(), field.get(asset));
-                    if(value != null)
-                    {
-                        config.set(path, value);
-                    }
-                } catch(IllegalAccessException e)
-                {
-                    throw new RuntimeException(e);
-                }
-            }
+            serializeObject(path, asset);
             return this;
         }
         
@@ -401,18 +447,8 @@ public class Toml
         {
             List<String> path = new ArrayList<>(2);
             path.add(PROJECT_SETTINGS);
-            for(Field field : ProjectSettings.class.getDeclaredFields())
-            {
-                path.add(field.getName());
-                try
-                {
-                    config.add(path, field.get(settings));
-                } catch(IllegalAccessException e)
-                {
-                    throw new RuntimeException(e);
-                }
-                path.remove(1);
-            }
+            
+            serializeObject(path, settings);
             
             return this;
         }
@@ -422,8 +458,15 @@ public class Toml
             saveNode(new ArrayList<>(), config, node);
             return this;
         }
-    
-        private static void saveNode(List<String> path, CommentedConfig config, Node node)
+        private Toml.builder assetRef(Asset asset)
+        {
+            List<String> path = new ArrayList<>();
+            path.add("ref_" + asset.getResourceID());
+            serializeObject(path, asset);
+            return this;
+        }
+        
+        private void saveNode(List<String> path, CommentedConfig config, Node node)
         {
             path.add(node.name);
             List<String> propertyPath = new ArrayList<>(path);
@@ -439,34 +482,13 @@ public class Toml
             while(nodeClass != null && !Object.class.equals(nodeClass))
             {
                 List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
-                        .filter(field -> field.isAnnotationPresent(Property.class) &&
+                        .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                                 !field.getName().equals("parent") &&
                                 !field.getName().equals("children") &&
                                 !field.getName().equals("name")
                         ).toList();
-                
-                for(Field field : fields)
-                {
-                    field.setAccessible(true);
-                    String fieldName = field.getName();
-                    propertyPath.add(fieldName);
-                    Object fieldValue = null;
-                    try
-                    {
-                        fieldValue = serializeValue(field.getType(), field.get(node));
-                        if(fieldValue != null)
-                        {
-                            config.set(propertyPath, fieldValue);
-                        }
-                        
-                        propertyPath.remove(propertyPath.size() - 1);
-            
-                    } catch(IllegalAccessException e)
-                    {
-                        throw new RuntimeException(e);
-                    }
-        
-                }
+    
+                serializeObject(fields, path,  node);
     
                 nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
             }

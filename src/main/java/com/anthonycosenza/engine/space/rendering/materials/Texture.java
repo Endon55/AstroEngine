@@ -1,5 +1,7 @@
 package com.anthonycosenza.engine.space.rendering.materials;
 
+import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.loader.image.ImageLoader;
 import org.lwjgl.system.MemoryStack;
 
@@ -26,10 +28,10 @@ import static org.lwjgl.stb.STBImage.stbi_failure_reason;
 import static org.lwjgl.stb.STBImage.stbi_image_free;
 import static org.lwjgl.stb.STBImage.stbi_load;
 
-public class Texture
+public class Texture implements Asset
 {
+    public long resourceID;
     private int textureID;
-    
     
     public Texture(int width, int height, ByteBuffer pixelData)
     {
@@ -141,5 +143,21 @@ public class Texture
     public void bind()
     {
         glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+    
+    @Override
+    public long getResourceID()
+    {
+        if(resourceID == -1)
+        {
+            resourceID = AssetManager.getInstance().generateResourceID();
+        }
+        return resourceID;
+    }
+    
+    @Override
+    public void setResourceID(long resourceID)
+    {
+        this.resourceID = resourceID;
     }
 }

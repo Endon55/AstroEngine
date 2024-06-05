@@ -9,7 +9,6 @@ import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.editor.scene.popups.ProjectSettingsPopup;
 import com.anthonycosenza.engine.Engine;
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
@@ -32,7 +31,6 @@ import imgui.ImGuiViewport;
 import imgui.ImVec2;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
-import imgui.flag.ImGuiDataType;
 import imgui.flag.ImGuiDir;
 import imgui.flag.ImGuiDockNodeFlags;
 import imgui.flag.ImGuiSliderFlags;
@@ -41,17 +39,12 @@ import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
-import imgui.type.ImDouble;
-import imgui.type.ImFloat;
 import imgui.type.ImInt;
-import imgui.type.ImLong;
-import imgui.type.ImString;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
@@ -461,7 +454,7 @@ public class EditorNode extends Node
                 while(nodeClass != null && !Object.class.equals(nodeClass))
                 {
                     List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
-                            .filter(field -> field.isAnnotationPresent(Property.class) &&
+                            .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                                     !field.getName().equals("parent") &&
                                     !field.getName().equals("children") &&
                                     !field.getName().equals("resourceID")).toList();

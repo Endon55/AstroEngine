@@ -1,11 +1,9 @@
 package com.anthonycosenza.engine.space.rendering.materials;
 
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.space.rendering.shader.UniformMap;
-import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.Color;
 
 import java.util.HashSet;
@@ -19,21 +17,18 @@ public class StandardMaterial implements Material
     public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
     public static final Texture DEFAULT_TEXTURE = new Texture("AstroEngine/resources/images/Default_Texture.png");
     
-    @Property
     public long resourceID = -1;
-    @Property
     public Color diffuseColor;
-    @Property
     public Texture texture;
     
-    Set<Mesh> meshes;
+    transient Set<Mesh> meshes;
     
     
     public StandardMaterial()
     {
         diffuseColor = DEFAULT_COLOR;
         meshes = new HashSet<>();
-        texture = DEFAULT_TEXTURE;
+        texture = null;
     }
     
     public Set<Mesh> getMeshes()
@@ -53,7 +48,8 @@ public class StandardMaterial implements Material
     
     public Texture getTexture()
     {
-        return texture;
+        if(texture == null) return DEFAULT_TEXTURE;
+        else return texture;
     }
     
     public void setTexture(String texturePath)
@@ -79,7 +75,7 @@ public class StandardMaterial implements Material
     @Override
     public void bind()
     {
-    
+        getTexture();
     }
     
     @Override
@@ -88,7 +84,7 @@ public class StandardMaterial implements Material
         UniformMap uniforms = pipeline.getUniforms();
         uniforms.setUniform("material.diffuse", diffuseColor);
         glActiveTexture(GL_TEXTURE0);
-        texture.bind();
+        bind();
     }
     
     @Override
@@ -96,11 +92,6 @@ public class StandardMaterial implements Material
     {
         return null;
     }
+
     
-    
-    @Override
-    public String toString()
-    {
-        return "StandardMaterial(" + diffuseColor.toString() + "," + Toml.serializeValue(texture.getClass(), texture) + ")";
-    }
 }

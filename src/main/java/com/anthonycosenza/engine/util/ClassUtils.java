@@ -13,11 +13,6 @@ public class ClassUtils
     {
         try
         {
-            /*return ClassPath.from(ClassLoader.getSystemClassLoader()).getAllClasses().stream()
-                    .filter(clazz -> clazz.getPackageName().equalsIgnoreCase(packageName))
-                    .map(ClassPath.ClassInfo::load).collect(Collectors.toSet());*/
-    
-    
             return ClassPath.from(ClassLoader.getSystemClassLoader()).getTopLevelClassesRecursive("com.anthonycosenza")
                     .stream()
                     .map(ClassPath.ClassInfo::load)

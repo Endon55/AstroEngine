@@ -1,10 +1,8 @@
 package com.anthonycosenza.engine.assets;
 
-import com.anthonycosenza.engine.annotations.Property;
 
 public interface Asset
 {
-    @Property
     long getResourceID();
     void setResourceID(long resourceID);
     
@@ -12,12 +10,12 @@ public interface Asset
     private long resourceID = -1;
     public Asset() {}
     
-    
+    @Override
     public long getResourceID()
     {
         if(resourceID == -1)
         {
-            resourceID = AssetManager.generateResourceID();
+            resourceID = AssetManager.getInstance().generateResourceID();
         }
         return resourceID;
     }

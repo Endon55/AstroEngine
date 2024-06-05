@@ -1,6 +1,5 @@
 package com.anthonycosenza.engine.space;
 
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.node.Node;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -12,18 +11,16 @@ public class Camera extends Node
     
     //https://www.tomdalling.com/blog/modern-opengl/04-cameras-vectors-and-input/
     
-    @Property
     public Vector3f position;
     //We don't need a z component really unless we plan to have the camera go upside down.
-    @Property
     public Vector3f rotation;
     
     
-    private Vector3f xAxisLocal;
-    private Vector3f yAxisLocal;
-    private Vector3f zAxisLocal;
+    private transient Vector3f xAxisLocal;
+    private transient Vector3f yAxisLocal;
+    private transient Vector3f zAxisLocal;
     
-    private Matrix4f cameraMatrix;
+    private transient Matrix4f cameraMatrix;
     
     
     public Camera()

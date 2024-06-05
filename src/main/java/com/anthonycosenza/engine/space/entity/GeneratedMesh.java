@@ -1,19 +1,13 @@
 package com.anthonycosenza.engine.space.entity;
 
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.shape.MeshShape;
 
 public class GeneratedMesh extends Mesh
 {
-    @Property
     public MeshShape shape;
-    @Property
     public float width;
-    @Property
     public float height;
-    @Property
     public float depth;
-    @Property
     public int subdivisions;
     
     public GeneratedMesh()

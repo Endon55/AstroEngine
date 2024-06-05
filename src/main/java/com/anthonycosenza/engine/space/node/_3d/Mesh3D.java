@@ -1,6 +1,5 @@
 package com.anthonycosenza.engine.space.node._3d;
 
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
@@ -11,12 +10,10 @@ import java.util.List;
 
 public class Mesh3D extends Node3D implements Renderable
 {
-    @Property
     public Mesh mesh;
-    @Property
     public Material material;
     
-    private Model model;
+    private transient Model model;
     
     public Mesh3D()
     {

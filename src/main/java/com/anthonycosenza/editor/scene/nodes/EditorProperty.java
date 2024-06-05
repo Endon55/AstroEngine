@@ -1,6 +1,5 @@
 package com.anthonycosenza.editor.scene.nodes;
 
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -28,6 +27,7 @@ import org.joml.Vector3f;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -83,7 +83,8 @@ public class EditorProperty
                 ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX))
         {
             List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(
-                    field -> field.isAnnotationPresent(Property.class) &&
+                    field -> !Modifier.isTransient(field.getModifiers()) &&
+                            !Modifier.isStatic(field.getModifiers()) &&
                             !field.getName().equals("resourceID")).toList();
             float longestName = 0;
             float[] fieldNameLengths = new float[fields.size()];

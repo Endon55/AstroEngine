@@ -1,7 +1,5 @@
 package com.anthonycosenza.engine.space.node._3d;
 
-import com.anthonycosenza.engine.annotations.Ignore;
-import com.anthonycosenza.engine.annotations.Property;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Positional;
 import org.joml.Matrix4f;
@@ -10,14 +8,10 @@ import org.joml.Vector3f;
 
 public class Node3D extends Node implements Positional
 {
-    @Property
     public Vector3f position;
-    @Property
     public Quaternionf rotation;
-    @Property
     public Vector3f scale;
-    @Ignore
-    private final Matrix4f matrix;
+    private transient final Matrix4f matrix;
     
     public Node3D()
     {
