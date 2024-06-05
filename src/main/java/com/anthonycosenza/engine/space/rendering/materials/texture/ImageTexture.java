@@ -26,7 +26,7 @@ import static org.lwjgl.stb.STBImage.stbi_load;
 
 public class ImageTexture extends Texture implements Asset
 {
-    public long resourceID;
+    public long resourceID = -1;
     public String filepath;
     
     public ImageTexture()

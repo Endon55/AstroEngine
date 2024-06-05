@@ -5,8 +5,8 @@ import static org.lwjgl.opengl.GL11.glBindTexture;
 
 public abstract class Texture
 {
-    protected int textureID;
-    protected boolean generated = false;
+    protected transient int textureID;
+    protected transient boolean generated = false;
     
     
     public int getTextureID()

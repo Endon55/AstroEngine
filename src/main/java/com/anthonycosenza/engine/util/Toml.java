@@ -26,7 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +108,7 @@ public class Toml
         ProjectSettings settings = new ProjectSettings();
         for(Map.Entry<String, Object> entry : map.entrySet())
         {
+            if(entry.getKey().equals("type")) continue;
             try
             {
                 Field field = ProjectSettings.class.getField(entry.getKey());
@@ -125,11 +126,15 @@ public class Toml
         CommentedConfig config = CommentedConfig.inMemory();
         TomlParser reader = new TomlParser();
         File file = new File(info.filePath());
+        if(!file.exists())
+        {
+            return null;
+        }
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
         
         Node node = null;
         Map<String, Object> map = config.valueMap();
-        List<Asset> assetRefs = new ArrayList<>();
+        Map<Long, Asset> assetRefs = new HashMap<>();
         Map.Entry<String, Object> nodeEntry = null;
         for(Map.Entry<String, Object> attribute : map.entrySet())
         {
@@ -140,7 +145,8 @@ public class Toml
             }
             else if(attribute.getKey().startsWith("ref"))
             {
-                assetRefs.add((Asset)parseObject((CommentedConfig) attribute.getValue(), assetRefs));
+                String refID = attribute.getKey().split("_")[1];
+                assetRefs.put(Long.parseLong(refID), (Asset)parseObject((CommentedConfig) attribute.getValue(), assetRefs));
             }
             else if(attribute.getValue() instanceof Config)
             {
@@ -162,22 +168,22 @@ public class Toml
         return (Scene) node;
     }
     
-    public static Object parseObject(CommentedConfig config, List<Asset> assets)
+    public static Object parseObject(CommentedConfig config, Map<Long, Asset> assets)
     {
         
         try
         {
-            System.out.println(config.get("type").toString());
             Class<?> clazz = Class.forName(config.get("type"));
             //if(type == null) throw new RuntimeException("Couldn't parse Object: " + config);
     
     
             Object object = clazz.getDeclaredConstructor().newInstance();
-            
             for(Map.Entry<String, Object> entry : config.valueMap().entrySet())
             {
                 if(entry.getKey().equals("type")) continue;
-                object.getClass().getField(entry.getKey()).set(object, deserializeValue(entry.getValue(), assets));
+                Field field = object.getClass().getField(entry.getKey());
+                field.setAccessible(true);
+                field.set(object, deserializeValue(entry.getValue(), assets));
             }
     
             return object;
@@ -189,7 +195,7 @@ public class Toml
     
     }
     
-    private static Node parseNode(Config config, String name, Node parent, List<Asset> assets)
+    private static Node parseNode(Config config, String name, Node parent, Map<Long, Asset> assets)
     {
         Map<String, Object> map = config.valueMap();
         
@@ -266,7 +272,7 @@ public class Toml
 
 
     
-    public static Object deserializeValue(Object value, List<Asset> assets)
+    public static Object deserializeValue(Object value, Map<Long, Asset> assets)
     {
         if(value instanceof String)
         {
@@ -309,9 +315,7 @@ public class Toml
             else if(split[0].equals("AssetRef"))
             {
                 //ref=resourceID
-                value = assets.stream().filter(asset -> asset.getResourceID() == Long.parseLong(split[1])).findAny()
-                        .orElseGet(() -> (Asset) null);
-                
+                value = assets.get(Long.parseLong(split[1]));
             }
         }
         return value;
@@ -321,13 +325,14 @@ public class Toml
     public static class builder
     {
         private final CommentedConfig config = CommentedConfig.inMemory();
+        private int refID = 10000;
     
         /*
          * Path should include the destination for this objects fields.
          */
         public Toml.builder serializeObject(List<String> path, Object object)
         {
-            return serializeObject(Arrays.stream(object.getClass().getDeclaredFields())
+            return serializeObject(ClassUtils.getAllFields(object.getClass()).stream()
                     .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                             !Modifier.isStatic(field.getModifiers())).toList(),
                     path, object);
@@ -345,12 +350,12 @@ public class Toml
                 Object value = null;
                 try
                 {
-                Object fieldValue = field.get(object);
-                if(fieldValue == null) continue;
-                path.set(lastItem, field.getName());
-    
-                
-                    value = serializeValue(field.getType(), fieldValue);
+                    Object fieldValue = field.get(object);
+                    if(fieldValue == null) continue;
+                    
+                    path.set(lastItem, field.getName());
+                    value = serializeValue(fieldValue.getClass(), fieldValue);
+                    
                 } catch(IllegalAccessException e)
                 {
                     throw new RuntimeException(e);
@@ -375,8 +380,9 @@ public class Toml
                     AssetInfo info = AssetManager.getInstance().getAssetInfo(resourceID);
                     if(info == null)
                     {
-                        serializedValue = "AssetRef(" + resourceID + ")";
-                        assetRef(((Asset) fieldValue));
+                        refID++;
+                        serializedValue = "AssetRef(" + refID + ")";
+                        assetRef(refID, ((Asset) fieldValue));
                     }
                     else serializedValue = "Asset(" + resourceID + ")";
                 }
@@ -432,6 +438,13 @@ public class Toml
             return this;
         }
     
+        private Toml.builder assetRef(long refID, Asset asset)
+        {
+            serializeObject(new ArrayList<>(List.of("ref_" + refID)), asset);
+            
+            return this;
+        }
+    
         public Toml.builder scene(Scene scene, AssetInfo info)
         {
             assetHeader(info);
@@ -458,52 +471,26 @@ public class Toml
             saveNode(new ArrayList<>(), config, node);
             return this;
         }
-        private Toml.builder assetRef(Asset asset)
-        {
-            List<String> path = new ArrayList<>();
-            path.add("ref_" + asset.getResourceID());
-            serializeObject(path, asset);
-            return this;
-        }
-        
+
         private void saveNode(List<String> path, CommentedConfig config, Node node)
         {
             path.add(node.name);
-            List<String> propertyPath = new ArrayList<>(path);
-            propertyPath.add("type");
-            config.set(propertyPath, node.getClass().getName());
-            propertyPath.remove(propertyPath.size() - 1);
+    
             for(Node child : node.children)
             {
                 saveNode(new ArrayList<>(path), config, child);
             }
             
-            Class<? extends Node> nodeClass = node.getClass();
-            while(nodeClass != null && !Object.class.equals(nodeClass))
-            {
-                List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
-                        .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
-                                !field.getName().equals("parent") &&
-                                !field.getName().equals("children") &&
-                                !field.getName().equals("name")
-                        ).toList();
-    
-                serializeObject(fields, path,  node);
-    
-                nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
-            }
-        
-        
-        /*for(Map.Entry<String, Object> property : node.properties.entrySet())
-        {
-            List<String> propertyPath = new ArrayList<>(path);
-            propertyPath.add(property.getKey());
-            config.set(propertyPath, property.getValue());
-        }*/
-            for(Node child : node.children)
-            {
-                saveNode(new ArrayList<>(path), config, child);
-            }
+            List<Field> fields = ClassUtils.getAllFields(node.getClass()).stream()
+                    .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
+                            !field.getName().equals("parent") &&
+                            !field.getName().equals("children") &&
+                            !field.getName().equals("name")
+                    ).toList();
+            serializeObject(fields, path, node);
+
+            
+            path.remove(path.size() - 1);
         }
     
         public void build(String destination)

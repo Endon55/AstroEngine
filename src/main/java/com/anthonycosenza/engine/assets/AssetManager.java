@@ -135,7 +135,6 @@ public class AssetManager
         
         if(info == null)
         {
-            System.out.println(assetInfoMap);
             throw new RuntimeException("Where the fuck do I even find this thing?: " + assetID);
         }
         Asset asset = switch(info.assetType())
@@ -212,6 +211,11 @@ public class AssetManager
     public Scene instantiateScene(long assetID)
     {
         AssetInfo info = getAssetInfo(assetID);
+        if(info == null)
+        {
+            System.out.println("Cannot instantiate a scene that doesn't exist: " + assetID);
+            throw new RuntimeException();
+        }
         return Toml.getScene(info);
     }
 

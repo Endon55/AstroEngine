@@ -30,7 +30,7 @@ public class StandardMaterial implements Material
     {
         diffuseColor = DEFAULT_COLOR;
         meshes = new HashSet<>();
-        texture = null;
+        texture = DEFAULT_TEXTURE;
     }
     
     public Set<Mesh> getMeshes()

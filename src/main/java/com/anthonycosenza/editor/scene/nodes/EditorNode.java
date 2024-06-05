@@ -132,7 +132,14 @@ public class EditorNode extends Node
         long mainScene = EditorIO.getProjectSettings().mainScene;
         if(mainScene != -1)
         {
-            loadScene(AssetManager.getInstance().instantiateScene(mainScene));
+            Scene scene = AssetManager.getInstance().instantiateScene(mainScene);
+            if(scene == null)
+            {
+                ProjectSettings settings = EditorIO.getProjectSettings();
+                settings.mainScene = -1;
+                Toml.updateProjectSettings(settings);
+            }
+            else loadScene(scene);
         }
     }
     
