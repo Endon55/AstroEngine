@@ -1,78 +1,27 @@
 package com.anthonycosenza.engine.space.entity;
 
-import com.anthonycosenza.engine.space.shape.MeshShape;
+import com.anthonycosenza.engine.assets.Asset;
+import com.anthonycosenza.engine.assets.AssetManager;
 
-public class GeneratedMesh extends Mesh
+public abstract class GeneratedMesh extends Mesh implements Asset
 {
-    public MeshShape shape;
-    public float width;
-    public float height;
-    public float depth;
-    public int subdivisions;
+    public long resourceID = -1;
     
-    public GeneratedMesh()
+
+    @Override
+    public long getResourceID()
     {
-    
-    }
-    public void generate()
-    {
-        switch(shape)
+        if(resourceID == -1)
         {
-            case PLANE -> generatePlane();
+            resourceID = AssetManager.getInstance().generateResourceID();
         }
-        //generate all the values
-        //set(vertices, indices, textureCoordinates);
-    }
-    private void generatePlane()
-    {
-        float width = this.width /= 2f;
-        float depth = this.depth /= 2f;
-        float[] vertices = new float[]
-                {       //X, Y, Z
-                        -width, 0, -depth,
-                        -width, 0, depth,
-                        width, 0, -depth,
-                        width, 0, depth
-                };
-        int[] indices = new int[]
-                {
-                        0, 1, 2,
-                        2, 1, 3
-                };
-        float[] texture = new float[]
-                {       //X, Y
-                        0, 1,
-                        0, 0,
-                        1, 1,
-                        1, 0
-                };
-        set(vertices, indices, texture);
+        return resourceID;
     }
     
-    public void square(float width, float height)
+    @Override
+    public void setResourceID(long resourceID)
     {
-        width /= 2f;
-        height /= 2f;
-        float[] vertices = new float[]
-                {       //X, Y, Z
-                        -width, -height, 0,
-                        -width, height, 0,
-                        width, -height, 0,
-                        width, height, 0
-                };
-        int[] indices = new int[]
-                {
-                        0, 2, 1,
-                        2, 3, 1
-                };
-        float[] texture = new float[]
-                {       //X, Y
-                        0, 1,
-                        0, 0,
-                        1, 1,
-                        1, 0
-                };
-        set(vertices, indices, texture);
+        this.resourceID = resourceID;
     }
     
     /*public void pyramid3(float height, float baseEdgeLength)

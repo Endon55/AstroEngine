@@ -23,11 +23,11 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public abstract class Mesh
 {
-    private int vaoID;
-    private List<Integer> vboIDs;
+    private transient int vaoID = -1;
+    private transient List<Integer> vboIDs;
     
-    private int vertexCount;
-    private boolean initialized = false;
+    private transient int vertexCount;
+    private transient boolean initialized = false;
     
     public Mesh()
     {
@@ -41,6 +41,8 @@ public abstract class Mesh
     
     public void set(float[] vertices, int[] indices, float[] textureCoordinates)
     {
+        if(vaoID != -1) cleanup();
+        
         if(textureCoordinates.length == 0)
         {
             textureCoordinates = new float[(vertices.length / 3) * 2];
@@ -100,9 +102,6 @@ public abstract class Mesh
         initialized = true;
     }
     
-    
-    
-    
     public int getVertexCount()
     {
         return vertexCount;
@@ -110,7 +109,11 @@ public abstract class Mesh
     
     public void bind()
     {
-        if(!initialized) throw new RuntimeException("Mesh not initialized before attempting to bind it.");
+        if(!initialized)
+        {
+            initialize();
+            if(!initialized) throw new RuntimeException("Mesh not initialized before attempting to bind it.");
+        }
         glBindVertexArray(vaoID);
     }
     
@@ -119,4 +122,6 @@ public abstract class Mesh
         vboIDs.forEach(GL30::glDeleteBuffers);
         glDeleteVertexArrays(vaoID);
     }
+    
+    public abstract void initialize();
 }

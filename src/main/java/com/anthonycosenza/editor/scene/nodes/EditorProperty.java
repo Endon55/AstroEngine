@@ -4,7 +4,9 @@ import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
+import com.anthonycosenza.engine.space.entity.PlaneMesh;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.ImGuiUtils;
@@ -41,6 +43,22 @@ public class EditorProperty
     
     }
     
+    public static Mesh createNewMesh(AssetType type)
+    {
+        String typeStr = type.name().toLowerCase();
+        String text = "Create New " + typeStr;
+        Mesh mesh = null;
+        
+        if(ImGui.beginCombo("##-" + typeStr + " Dropdown", text))
+        {
+            if(ImGui.selectable("New " + "PlaneMesh"))
+            {
+                mesh = new PlaneMesh();
+            }
+            ImGui.endCombo();
+        }
+        return mesh;
+    }
     public static boolean createNew(AssetType type, Asset asset)
     {
         String typeStr = type.name().toLowerCase();
@@ -133,7 +151,20 @@ public class EditorProperty
         {
             ImGui.text(String.valueOf(((long) fieldValue)));
         }
-        else if(Integer.class.equals(fieldType))
+        else if(short.class.equals(fieldType) || Short.class.equals(fieldType))
+        {
+            if(fieldValue == null)
+            {
+                fieldValue = 0;
+            }
+            ImInt imValue = new ImInt((int) fieldValue);
+            if(ImGui.inputInt("##" + fieldName, imValue))
+            {
+                fieldValue = imValue.get();
+                modified.set(true);
+            }
+        }
+        else if(int.class.equals(fieldType) || Integer.class.equals(fieldType))
         {
             if(fieldValue == null)
             {
@@ -146,7 +177,7 @@ public class EditorProperty
                 modified.set(true);
             }
         }
-        else if(long.class.equals(fieldType))
+        else if(long.class.equals(fieldType) || Long.class.equals(fieldType))
         {
             //ImGui doesn't directly support longs, hopefully this doesn't cause problems lol.
             if(fieldValue == null)
@@ -160,7 +191,7 @@ public class EditorProperty
                 modified.set(true);
             }
         }
-        else if(Float.class.equals(fieldType))
+        else if(float.class.equals(fieldType) || Float.class.equals(fieldType))
         {
             if(fieldValue == null)
             {
@@ -173,7 +204,7 @@ public class EditorProperty
                 modified.set(true);
             }
         }
-        else if(Double.class.equals(fieldType))
+        else if(double.class.equals(fieldType) || Double.class.equals(fieldType))
         {
             if(fieldValue == null)
             {
@@ -248,13 +279,6 @@ public class EditorProperty
                 }
             }
         }
-        /*else if(Model.class.equals(fieldType))
-        {
-        
-            ImGui.sameLine();
-            field.set(selectedNode, EditorProperty.modelDropdown((Model) fieldValue, modified));
-            this.modified = modified.get();
-        }  */
         else if(Color.class.equals(fieldType))
         {
             float[] imValue = new float[4];
@@ -276,6 +300,36 @@ public class EditorProperty
             {
                 color.set(imValue[0], imValue[1], imValue[2], imValue[3]);
                 modified.set(true);
+            }
+        }
+        else if(Mesh.class.equals(fieldType))
+        {
+            AssetType type = AssetType.MESH;
+            ImGui.sameLine();
+            if(fieldValue == null)
+            {
+                Mesh mesh = EditorProperty.createNewMesh(type);
+                if(mesh != null)
+                {
+                    fieldValue = mesh;
+                    modified.set(true);
+                    mesh.initialize();
+                }
+                Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
+                if(dragAndDrop != null)
+                {
+                    modified.set(true);
+                    fieldValue = dragAndDrop;
+                }
+            }
+            else
+            {
+                propertyTable(fieldValue.getClass(), fieldValue, modified);
+                if(modified.get())
+                {
+                    ((Mesh) fieldValue).initialize();
+                }
+                
             }
         }
         else if(Material.class.equals(fieldType))
@@ -301,6 +355,25 @@ public class EditorProperty
             else
             {
                 propertyTable(StandardMaterial.class, fieldValue, modified);
+            }
+        }
+        else if(Model.class.equals(fieldType))
+        {
+            AssetType type = AssetType.MODEL;
+            ImGui.sameLine();
+            if(fieldValue == null)
+            {
+                String text = "Add Model";
+                if(ImGui.beginCombo("##Model Viewer Combo", text))
+                {
+                    ImGui.endCombo();
+                }
+                Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
+                if(dragAndDrop != null)
+                {
+                    modified.set(true);
+                    fieldValue = dragAndDrop;
+                }
             }
         }
         else

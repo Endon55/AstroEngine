@@ -6,4 +6,11 @@ public class AssetMesh extends Mesh
     {
         super(vertices, indices, textureCoordinates);
     }
+    
+    @Override
+    public void initialize()
+    {
+        //We call the constructor which sets for us.
+    }
+
 }

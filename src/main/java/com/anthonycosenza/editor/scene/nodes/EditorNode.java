@@ -100,6 +100,8 @@ public class EditorNode extends Node
     
     private Camera camera;
     private Process projectProcess;
+    private long lastSceneSave = 0;
+    private final long minSaveTime = 5000;
     
     public EditorNode(Engine engine, boolean hadIni)
     {
@@ -158,10 +160,11 @@ public class EditorNode extends Node
             projectProcess = null;
         }
         
-        if(modified)
+        if(modified && (System.currentTimeMillis() - lastSceneSave) >= minSaveTime)
         {
             Toml.updateScene(sceneManagerNode);
             modified = false;
+            lastSceneSave = System.currentTimeMillis();
         }
 
         createMainDockspace();

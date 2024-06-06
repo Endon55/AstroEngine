@@ -183,7 +183,7 @@ public class Toml
                 if(entry.getKey().equals("type")) continue;
                 Field field = object.getClass().getField(entry.getKey());
                 field.setAccessible(true);
-                field.set(object, deserializeValue(entry.getValue(), assets));
+                field.set(object, deserializeValue(field.getType(), entry.getValue(), assets));
             }
     
             return object;
@@ -260,7 +260,7 @@ public class Toml
                 
                 try
                 {
-                    field.set(node, deserializeValue(value, assets));
+                    field.set(node, deserializeValue(field.getType(), value, assets));
                 } catch(IllegalAccessException e)
                 {
                     throw new RuntimeException(e);
@@ -272,7 +272,7 @@ public class Toml
 
 
     
-    public static Object deserializeValue(Object value, Map<Long, Asset> assets)
+    public static Object deserializeValue(Class<?> type, Object value, Map<Long, Asset> assets)
     {
         if(value instanceof String)
         {
@@ -317,6 +317,26 @@ public class Toml
                 //ref=resourceID
                 value = assets.get(Long.parseLong(split[1]));
             }
+        }
+        else if(short.class.equals(type) || Short.class.equals(type))
+        {
+            value = ((Number) value).shortValue();
+        }
+        else if(int.class.equals(type) || Integer.class.equals(type))
+        {
+            value = ((Number) value).intValue();
+        }
+        else if(long.class.equals(type) || Long.class.equals(type))
+        {
+            value = ((Number) value).longValue();
+        }
+        else if(float.class.equals(type) || Float.class.equals(type))
+        {
+            value = ((Number) value).floatValue();
+        }
+        else if(double.class.equals(type) || Double.class.equals(type))
+        {
+            value = ((Number) value).doubleValue();
         }
         return value;
     }
