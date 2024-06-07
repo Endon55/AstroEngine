@@ -29,10 +29,7 @@ public class ImageTexture extends Texture implements Asset
     public long resourceID = -1;
     public String filepath;
     
-    public ImageTexture()
-    {
-
-    }
+    public ImageTexture() { }
     
     public ImageTexture(String filepath)
     {

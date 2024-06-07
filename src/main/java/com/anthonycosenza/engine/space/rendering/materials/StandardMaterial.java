@@ -38,6 +38,12 @@ public class StandardMaterial implements Material
         return meshes;
     }
     
+    @Override
+    public void addMesh(Mesh mesh)
+    {
+        meshes.add(mesh);
+    }
+    
     public Color getDiffuseColor()
     {
         return diffuseColor;
@@ -77,7 +83,7 @@ public class StandardMaterial implements Material
     @Override
     public void bind()
     {
-        getTexture();
+        getTexture().bind();
     }
     
     @Override
@@ -92,6 +98,7 @@ public class StandardMaterial implements Material
     @Override
     public ShaderPipeline getShaderPipeline()
     {
+        //return ShaderManager.getDefaultPipeline();
         return null;
     }
 

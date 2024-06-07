@@ -11,10 +11,10 @@ public class Model3D extends Node3D implements Renderable
     
     public Model model;
     
-    
     @Override
     public List<Material> getMaterials()
     {
-        return model.getMaterials();
+        if(model == null) return List.of();
+        else return model.getMaterials();
     }
 }

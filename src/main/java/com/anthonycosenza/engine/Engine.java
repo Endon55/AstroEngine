@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine;
 
+import com.anthonycosenza.engine.assets.ShaderManager;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.Window;
@@ -156,9 +157,9 @@ public class Engine
             SceneManager.update(delta);
     
     
+            renderer.render(scene, projection);
             imGuiImpl.endFrame();
             imGuiImpl.render();
-            renderer.render(scene, projection);
             
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
             if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
@@ -236,7 +237,8 @@ public class Engine
     {
         //renderer.cleanup();
         window.cleanup();
-        imGuiImpl.clean();;
+        imGuiImpl.clean();
+        ShaderManager.cleanup();
     }
     
     public void stop()

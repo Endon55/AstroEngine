@@ -3,7 +3,6 @@ package com.anthonycosenza.engine.assets;
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.node.Scene;
-import com.anthonycosenza.engine.space.rendering.shader.ShaderData;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
 import com.anthonycosenza.engine.util.FileUtils;
 import com.anthonycosenza.engine.util.Toml;
@@ -12,9 +11,6 @@ import com.anthonycosenza.engine.util.math.EngineMath;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
 
 public class AssetManager
 {
@@ -32,11 +28,7 @@ public class AssetManager
         assetInfoMap = new HashMap<>();
         assetMap = new HashMap<>();
         assetInfoMap.put(DEFAULT_SHADER, new AssetInfo(DEFAULT_SHADER, AssetType.SHADER, "engine"));
-        
-        ShaderPipeline defaultPipeline = new ShaderPipeline(new ShaderData("AstroEngine/resources/shaders/scene.vert", GL_VERTEX_SHADER),
-                new ShaderData("AstroEngine/resources/shaders/scene.frag", GL_FRAGMENT_SHADER));
-        defaultPipeline.setResourceID(DEFAULT_SHADER);
-        assetMap.put(DEFAULT_SHADER, defaultPipeline);
+
         
         updateAssets();
     }

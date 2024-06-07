@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.space.rendering;
 
-import com.anthonycosenza.engine.assets.AssetManager;
+import com.anthonycosenza.engine.assets.ShaderManager;
 import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
@@ -52,7 +52,8 @@ public class SceneRenderer
         
         for(Map.Entry<Long, List<Map.Entry<Material, Matrix4f>>> shader : pipelineMap.entrySet())
         {
-            ShaderPipeline pipeline = AssetManager.getInstance().getShader(shader.getKey());
+            ShaderPipeline pipeline = ShaderManager.getPipeline(shader.getKey());
+            if(pipeline == null) throw new RuntimeException("Pipeline is null: " + shader.getKey());
             pipeline.bind();
             
             pipeline.getUniforms().setUniform("projectionMatrix", projection.getMatrix());
@@ -80,6 +81,7 @@ public class SceneRenderer
         
         Stack<Node> nodes = new Stack<>();
         nodes.add(scene);
+        ShaderPipeline defaultPipeline = ShaderManager.getDefaultPipeline();
         
         while(!nodes.isEmpty())
         {
@@ -88,7 +90,6 @@ public class SceneRenderer
             
             if(node instanceof Renderable renderable)
             {
-                
                 Matrix4f transform = ((Node3D) renderable).getTransformation();
                 for(Material material : renderable.getMaterials())
                 {
@@ -96,9 +97,9 @@ public class SceneRenderer
                     long pipelineID;
                     if(material.getShaderPipeline() == null)
                     {
-                        pipelineID = AssetManager.DEFAULT_SHADER;
+                        pipelineID = defaultPipeline.getResourceID();
                     }
-                    else pipelineID = material.getShaderPipeline().resourceID;
+                    else pipelineID = material.getShaderPipeline().getResourceID();
                     
                     List<Map.Entry<Material, Matrix4f>> materialPairs = pipelineMap.get(pipelineID);
                     if(materialPairs == null)

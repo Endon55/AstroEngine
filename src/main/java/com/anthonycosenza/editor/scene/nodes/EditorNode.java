@@ -380,6 +380,7 @@ public class EditorNode extends Node
 
     private void loadScene(Scene scene)
     {
+        //SceneManager.setScene(scene);
         sceneManagerNode = scene;
         sceneManagerSelected = sceneManagerNode;
     }
