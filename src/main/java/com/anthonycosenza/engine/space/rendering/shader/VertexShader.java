@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL20;
 public class VertexShader implements Shader
 {
     public static final VertexShader DEFAULT = new VertexShader("AstroEngine/resources/shaders/scene.vert");
+    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.vert");
     private long resourceID = -1;
     private String shaderpath;
     
@@ -14,6 +15,12 @@ public class VertexShader implements Shader
     private VertexShader(String filepath)
     {
         resourceID = -10000;
+        shaderpath = filepath;
+    }
+    
+    public VertexShader(String filepath, long resourceID)
+    {
+        setResourceID(resourceID);
         shaderpath = filepath;
     }
     public VertexShader() { }

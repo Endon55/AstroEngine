@@ -38,6 +38,18 @@ public class EditorIO
             throw new RuntimeException("Project settings should at least exist here...");
         }
     }
+    public static File getShaderDirectory()
+    {
+       if(shaderDirectory == null)
+       {
+           shaderDirectory = new File(getProjectDirectory().getPath() + "\\shaders");
+           if(!shaderDirectory.exists() && !shaderDirectory.mkdirs())
+           {
+               throw new RuntimeException("Failed to create Shader directory.");
+           }
+       }
+       return shaderDirectory;
+    }
     
     private static String getProjectFileName()
     {

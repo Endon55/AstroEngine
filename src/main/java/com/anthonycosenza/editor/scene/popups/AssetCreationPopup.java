@@ -16,7 +16,7 @@ import java.util.List;
 
 public class AssetCreationPopup implements Popup
 {
-    private static final List<AssetType> types = new ArrayList<>(List.of(AssetType.values())).stream().filter(AssetType::hasFunction).toList();
+    private static final List<AssetType> types = new ArrayList<>(List.of(AssetType.values())).stream().filter(AssetType::isImplemented).toList();
     private static final List<String> typesString = types.stream().map(Enum::name).toList();
     
     private boolean finished = false;
@@ -27,7 +27,7 @@ public class AssetCreationPopup implements Popup
     private String error = "";
     private File directory;
     private Asset asset;
-    private boolean firstRun = true;
+    private boolean shouldSelectText = true;
     
     public AssetCreationPopup(AssetType defaultType, File directory)
     {
@@ -47,7 +47,6 @@ public class AssetCreationPopup implements Popup
     @Override
     public void create()
     {
-        
         if(ImGuiUtils.createPopupWindow(windowSize))
         {
             ImGui.text("Save As...");
@@ -59,10 +58,10 @@ public class AssetCreationPopup implements Popup
             {
                 ImGuiUtils.error(error);
             }
-            if(firstRun)
+            if(shouldSelectText)
             {
                 ImGui.setKeyboardFocusHere();
-                firstRun = false;
+                shouldSelectText = false;
             }
             if(ImGui.inputText("##2", filename, ImGuiInputTextFlags.EnterReturnsTrue))
             {
@@ -90,6 +89,7 @@ public class AssetCreationPopup implements Popup
                 {
                     typeSelection = i;
                     ImGui.setItemDefaultFocus();
+                    shouldSelectText = true;
                 }
                 else if(typeSelection == i)
                 {

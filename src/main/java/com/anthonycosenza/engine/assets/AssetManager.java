@@ -3,19 +3,22 @@ package com.anthonycosenza.engine.assets;
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.node.Scene;
+import com.anthonycosenza.engine.space.rendering.shader.FragmentShader;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
+import com.anthonycosenza.engine.space.rendering.shader.VertexShader;
 import com.anthonycosenza.engine.util.FileUtils;
 import com.anthonycosenza.engine.util.Toml;
 import com.anthonycosenza.engine.util.math.EngineMath;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
 public class AssetManager
 {
     private static AssetManager INSTANCE;
-    public static final long DEFAULT_SHADER = 10000000;
     private final boolean runtime;
     private final File assetRoot;
     private final Map<Long, AssetInfo> assetInfoMap;
@@ -27,7 +30,6 @@ public class AssetManager
         this.assetRoot = assetRoot;
         assetInfoMap = new HashMap<>();
         assetMap = new HashMap<>();
-        assetInfoMap.put(DEFAULT_SHADER, new AssetInfo(DEFAULT_SHADER, AssetType.SHADER, "engine"));
 
         
         updateAssets();
@@ -132,7 +134,9 @@ public class AssetManager
         Asset asset = switch(info.assetType())
                 {
                     case MODEL -> ModelLoader.loadModel(info.filePath());
-                    case MESH, TEXTURE, MATERIAL, SHADER -> throw new RuntimeException("Implement: " + info.assetType());
+                    case MESH, TEXTURE, MATERIAL -> throw new RuntimeException("Implement: " + info.assetType());
+                    case VERTEX ->  new VertexShader(info.filePath(), info.assetID());
+                    case FRAGMENT -> new FragmentShader(info.filePath(), info.assetID());
                     case SCENE -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
                 };
         asset.setResourceID(info.assetID());
@@ -143,23 +147,63 @@ public class AssetManager
     public Asset createNewAsset(File directory, String filename, AssetType assetType)
     {
         if(!assetType.hasFunction()) throw new RuntimeException("Cannot create assets of type: " + assetType);
-        Asset asset = assetType.create();
         
         long resourceID = generateResourceID();
+        Asset asset = assetType.create();
         asset.setResourceID(resourceID);
-        String filepath = directory.getPath() + "\\" + filename + "." + assetType.getExtension();
-        AssetInfo info = new AssetInfo(resourceID, assetType, filepath);
+
+        String projectPath = directory.getPath() + "\\" + filename + "." + assetType.getExtension();
+        String rawAssetPath = switch(assetType)
+                {
+                    case VERTEX ->
+                    {
+                        String path = EditorIO.getShaderDirectory().getPath() + "\\" + filename + ".vert";
+                        File shaderFile = new File(path);
+                        try
+                        {
+                            if(shaderFile.createNewFile())
+                            {
+                                Files.writeString(shaderFile.toPath(), VertexShader.DEFAULT_SHADER_CODE);
+                            }
+                        } catch(IOException e)
+                        {
+                            throw new RuntimeException(e);
+                        }
+                        yield path;
+                    }
+                    case FRAGMENT ->
+                    {
+                        String path = EditorIO.getShaderDirectory().getPath() + "\\" + filename + ".frag";
+                        File file = new File(path);
+                        try
+                        {
+                            if(file.createNewFile())
+                            {
+                                Files.writeString(file.toPath(), FragmentShader.DEFAULT_SHADER_CODE);
+                            }
+                        } catch(IOException e)
+                        {
+                            throw new RuntimeException(e);
+                        }
+                        yield path;
+                    }
+                    case SCENE, TEXTURE, MESH, MODEL, MATERIAL -> projectPath;
+                };
+        
+        AssetInfo info = new AssetInfo(resourceID, assetType, rawAssetPath);
     
+        
+        
         assetInfoMap.put(resourceID, info);
         
         if(asset instanceof Scene scene)
         {
             scene.name = filename;
-            Toml.updateScene(scene, filepath);
+            Toml.updateScene(scene, projectPath);
         }
         else
         {
-            Toml.updateAsset(info, asset, filepath);
+            Toml.updateAsset(info, asset, projectPath);
         }
         return asset;
     }
@@ -168,11 +212,6 @@ public class AssetManager
                 Shader Creation
     
     ------------------------------------------ */
-    
-    public ShaderPipeline getShaderDefault()
-    {
-        return getShader(DEFAULT_SHADER);
-    }
     
     public ShaderPipeline getShader(long assetID)
     {

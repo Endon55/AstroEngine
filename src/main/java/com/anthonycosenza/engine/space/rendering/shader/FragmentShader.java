@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL20;
 public class FragmentShader implements Shader
 {
     public static final FragmentShader DEFAULT = new FragmentShader("AstroEngine/resources/shaders/scene.frag");
+    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.frag");
     private long resourceID = -1;
     private String shaderpath;
     
@@ -15,6 +16,12 @@ public class FragmentShader implements Shader
     private FragmentShader(String filepath)
     {
         resourceID = -10002;
+        shaderpath = filepath;
+    }
+    
+    public FragmentShader(String filepath, long resourceID)
+    {
+        setResourceID(resourceID);
         shaderpath = filepath;
     }
     public FragmentShader()

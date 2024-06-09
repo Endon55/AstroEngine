@@ -229,7 +229,6 @@ public class EditorNode extends Node
         {
             sceneManagerNode = scene;
         }
-        
     }
     
     final float commandHeight = .08f;

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
@@ -143,11 +142,11 @@ public class Input
     
     private void keyCallback(long handle, int key, int scancode, int action, int mods)
     {
-        if(key == GLFW_KEY_ESCAPE)
+        /*if(key == GLFW_KEY_ESCAPE)
         {
             glfwSetWindowShouldClose(windowID, true);
             return;
-        }
+        }*/
 /*        ImGuiIO io = ImGui.getIO();
         //Im gui wants to consume an input
         if(io.getWantCaptureKeyboard())
