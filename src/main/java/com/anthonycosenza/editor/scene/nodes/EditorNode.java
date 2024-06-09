@@ -2,6 +2,9 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.Main;
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.logger.EditorLogger;
+import com.anthonycosenza.editor.logger.Message;
+import com.anthonycosenza.editor.logger.MessageType;
 import com.anthonycosenza.editor.scene.popups.AssetCreationPopup;
 import com.anthonycosenza.editor.scene.popups.ImportPopup;
 import com.anthonycosenza.editor.scene.popups.MaterialEditorPopup;
@@ -29,19 +32,25 @@ import com.anthonycosenza.engine.util.math.Color;
 import com.anthonycosenza.engine.util.math.EngineMath;
 import imgui.ImColor;
 import imgui.ImGui;
+import imgui.ImGuiListClipper;
 import imgui.ImGuiViewport;
 import imgui.ImVec2;
+import imgui.callback.ImListClipperCallback;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDir;
 import imgui.flag.ImGuiDockNodeFlags;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiSliderFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
+import imgui.flag.ImGuiTableColumnFlags;
+import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImInt;
+import imgui.type.ImString;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,6 +95,8 @@ public class EditorNode extends Node
     private int assetBrowserFileSelected = -1;
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
+    private boolean consoleShouldLockScroll = true;
+    private int consoleLastMessageCount = 0;
 
     private boolean hadIni;
     private boolean firstDockBuild = true;
@@ -122,11 +133,11 @@ public class EditorNode extends Node
         projectIcon = new ImageTexture("AstroEngine/resources/icons/project.png");
         materialIcon = new ImageTexture("AstroEngine/resources/icons/paint-bucket.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
-        
+
         this.hadIni = hadIni;
-    
-        
+
     }
+    
     
     @Override
     public void initialize()
@@ -150,7 +161,8 @@ public class EditorNode extends Node
     int left;
     int right;
     int center;
-    int bottom;
+    int bottomLeft;
+    int bottomRight;
     int top;
     @Override
     public void updateUI(float delta)
@@ -171,6 +183,7 @@ public class EditorNode extends Node
         createMainDockspace();
     
         ImGui.pushStyleColor(ImGuiCol.WindowBg, astroColor.getInt());
+        
         ImGui.setNextWindowDockID(top, ImGuiCond.FirstUseEver);
         createCommandBar();
         
@@ -180,8 +193,11 @@ public class EditorNode extends Node
         ImGui.setNextWindowDockID(right, ImGuiCond.FirstUseEver);
         createPropertyInspector();
     
-        ImGui.setNextWindowDockID(bottom, ImGuiCond.FirstUseEver);
+        ImGui.setNextWindowDockID(bottomLeft, ImGuiCond.FirstUseEver);
         createAssetBrowser();
+        
+        ImGui.setNextWindowDockID(bottomRight, ImGuiCond.FirstUseEver);
+        createConsole();
         
         ImGui.setNextWindowDockID(center, ImGuiCond.FirstUseEver);
         createSceneViewport();
@@ -249,15 +265,16 @@ public class EditorNode extends Node
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0.0f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0.0f, 0.0f);
         ImGui.setNextWindowSize(viewport.getSizeX(), viewport.getSizeY());
-        ImGui.setNextWindowPos(viewport.getPosX(), viewport.getPosY() + viewport.getSizeY() * commandHeight);
+        ImGui.setNextWindowPos(0, 0);
         ImGui.setNextWindowViewport(viewport.getID());
     
         ImGui.begin("Dockspace", mainWindowFlags);
     
         ImGui.popStyleVar(3);
         int dockspaceID = ImGui.getID("MyDockspace");
-    
+        
         ImGui.dockSpace(dockspaceID, 0f, 0f, dockspaceConfig);
+    
         
         if(!hadIni && firstDockBuild)
         {
@@ -269,11 +286,16 @@ public class EditorNode extends Node
             imgui.internal.ImGui.dockBuilderSetNodePos(dockspaceID, viewport.getPosX(), viewport.getPosY());
         
             ImInt id = new ImInt(dockspaceID);
+            ImInt botRight = new ImInt(0);
+            //CommandBar
+            
             top = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Up, commandHeight, null, id);
+            int bottom = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Down, .3f, null, id);
             left = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Left, .15f, null, id);
             right = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Right, .2f, null, id);
-            bottom = imgui.internal.ImGui.dockBuilderSplitNode(id.get(), ImGuiDir.Down, .3f, null, id);
-    
+            
+            bottomLeft = imgui.internal.ImGui.dockBuilderSplitNode(bottom, ImGuiDir.Left, .5f, null, botRight);
+            bottomRight = botRight.get();
             center = dockspaceID;
             
             imgui.internal.ImGui.dockBuilderFinish(id.get());
@@ -298,7 +320,7 @@ public class EditorNode extends Node
                     {
                         if(popup != null)
                         {
-                            throw new RuntimeException("Can't open a popup when one is already open.");
+                            EditorLogger.warn("Can't open a popup when one is already open.");
                         }
                         else popup = new ProjectSettingsPopup(EditorIO.getProjectSettings());
                     }
@@ -332,12 +354,9 @@ public class EditorNode extends Node
                         ProcessBuilder builder = new ProcessBuilder("java", "-jar", mainFolder, EditorIO
                                 .getProjectDirectory().getAbsolutePath());
                         projectProcess = builder.start();
-                    } catch(IOException e)
+                    } catch(IOException | URISyntaxException e)
                     {
-                        throw new RuntimeException(e);
-                    } catch(URISyntaxException e)
-                    {
-                        throw new RuntimeException(e);
+                        EditorLogger.log(e);
                     }
                 }
             }
@@ -483,7 +502,64 @@ public class EditorNode extends Node
         ImGui.end();
     }
     
-    
+    private void createConsole()
+    {
+        int frameConfig = 0;
+        if(ImGui.begin("Console", frameConfig))
+        {
+            AstroFonts.push(defaultFont, headerFontSize);
+            ImGui.text("Console");
+            ImGui.separator();
+            AstroFonts.pop();
+            if(ImGui.beginChild("Console Child"))
+            {
+                if(ImGui.beginTable("Console Table", 2, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.BordersInner))
+                {
+                    
+                    ImGui.tableSetupColumn("## line #", 0);
+                    ImGui.tableSetupColumn("## log message", ImGuiTableColumnFlags.WidthStretch);
+                    
+                    ImGui.pushStyleColor(ImGuiCol.FrameBg, 0);
+                    
+                    int messageCount = EditorLogger.getMessages().size();
+                    if(consoleLastMessageCount != messageCount)
+                    {
+                        consoleShouldLockScroll = ImGuiUtils.getScrollPercentY() > .9;
+                        consoleLastMessageCount = messageCount;
+                    }
+                    else consoleShouldLockScroll = false;
+                    
+                    if(consoleShouldLockScroll) ImGui.setScrollY(ImGui.getScrollMaxY());
+                    
+                    ImGuiListClipper.forEach(messageCount, new ImListClipperCallback()
+                    {
+                        @Override
+                        public void accept(int i)
+                        {
+                            Message message = EditorLogger.getMessages().get(i);
+                            ImGui.tableNextColumn();
+                            ImGui.text(String.valueOf(i + 1));
+                            ImGui.tableNextColumn();
+                            //ImGui.text(consoleLog[i]);
+                            ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+                            switch(message.type())
+                            {
+                                case ERROR -> ImGui.pushStyleColor(ImGuiCol.Text, EditorLogger.ERROR_COLOR);
+                                case WARNING -> ImGui.pushStyleColor(ImGuiCol.Text, EditorLogger.WARNING_COLOR);
+                            }
+                            ImGui.inputText("##ConsoleText" + i, new ImString(message.message()), ImGuiInputTextFlags.ReadOnly);
+                            
+                            if(message.type() != MessageType.NORMAL) ImGui.popStyleColor();
+                        }
+                    });
+                    ImGui.popStyleColor();
+                    ImGui.endTable();
+                }
+            }
+            ImGui.endChild();
+        }
+        ImGui.end();
+    }
     
     public File getAssetBrowserPath()
     {

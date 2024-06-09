@@ -141,4 +141,14 @@ public class ImGuiUtils
         return ImGui.begin("Popup Window", frameConfig);
     }
     
+    public static float getScrollPercentX()
+    {
+        return ImGui.getScrollX() / ImGui.getScrollMaxX();
+    }
+    
+    public static float getScrollPercentY()
+    {
+        return ImGui.getScrollY() / ImGui.getScrollMaxY();
+    }
+    
 }

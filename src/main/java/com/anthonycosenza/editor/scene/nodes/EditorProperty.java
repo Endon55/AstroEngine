@@ -1,5 +1,6 @@
 package com.anthonycosenza.editor.scene.nodes;
 
+import com.anthonycosenza.editor.logger.EditorLogger;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -191,7 +192,7 @@ public class EditorProperty
         
             } catch(IllegalAccessException e)
             {
-                throw new RuntimeException(e);
+                EditorLogger.log(e);
             }
         }
         if(!recreateTable) ImGui.endTable();
