@@ -66,6 +66,9 @@ public class ShaderMaterial implements Material
     }
     public void updatePipeline()
     {
+        vertexShader.assemble = true;
+        fragmentShader.assemble = true;
+        
         pipeline = ShaderManager.createPipeline(vertexShader, fragmentShader);
     }
     @Override

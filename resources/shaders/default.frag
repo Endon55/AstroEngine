@@ -3,6 +3,7 @@
 
 
 
-vec4 fragmentColor() {
+vec4 fragmentColor()
+{
 
 }

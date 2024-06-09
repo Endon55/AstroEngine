@@ -2,6 +2,7 @@
 
 
 
-vec4 modelToWorld(vec4 model) {
+vec4 modelToWorld(vec4 model)
+{
 
 }

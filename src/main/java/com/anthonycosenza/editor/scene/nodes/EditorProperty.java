@@ -8,6 +8,7 @@ import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.PlaneMesh;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
+import com.anthonycosenza.engine.space.rendering.materials.ShaderMaterial;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.math.Color;
@@ -58,6 +59,39 @@ public class EditorProperty
             ImGui.endCombo();
         }
         return mesh;
+    }
+    
+    public static String createNew(Asset asset, AssetType assetType, String...types)
+    {
+        String typeStr = assetType.name().toLowerCase();
+        String text;
+        String selectedType = null;
+        if(asset == null) text = "Create New " + typeStr;
+        else
+        {
+            AssetInfo info = AssetManager.getInstance().getAssetInfo(asset.getResourceID());
+            if(info == null)
+            {
+                text = String.valueOf(asset.getResourceID());
+            }
+            else
+            {
+                text = new File(AssetManager.getInstance().getAssetInfo(asset.getResourceID()).filePath()).getName();
+            }
+            
+        }
+        if(ImGui.beginCombo("##-" + typeStr + " Dropdown", text))
+        {
+            for(String type: types)
+            {
+                if(ImGui.selectable("New " + type))
+                {
+                    selectedType = type;
+                }
+            }
+            ImGui.endCombo();
+        }
+        return selectedType;
     }
     public static boolean createNew(AssetType type, Asset asset)
     {
@@ -338,10 +372,14 @@ public class EditorProperty
             ImGui.sameLine();
             if(fieldValue == null)
             {
-                if(EditorProperty.createNew(type, (Asset) fieldValue))
+                String selected = EditorProperty.createNew((Asset) fieldValue, type, "Standard", "Shader");
+                if(selected != null)
                 {
-                    StandardMaterial material = new StandardMaterial();
-        
+                    
+                    Material material = null;
+                    if(selected.equals("Standard")) material = new StandardMaterial();
+                    else if(selected.equals("Shader")) material = new ShaderMaterial();
+    
                     fieldValue = material;
                     modified.set(true);
                 }

@@ -1,5 +1,7 @@
 package com.anthonycosenza.editor;
 
+import com.anthonycosenza.engine.space.rendering.shader.FragmentShader;
+import com.anthonycosenza.engine.space.rendering.shader.VertexShader;
 import com.anthonycosenza.engine.util.FileUtils;
 
 import java.io.File;
@@ -8,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GLSLParser
+public class GLSLBuilder
 {
     //Read GLSL file
     //Extract structs, global vars, layouts, and uniforms(to be merged into the source file).
@@ -26,17 +28,122 @@ public class GLSLParser
     public final List<String> functionNames = new ArrayList<>();
     public final List<String> functionTypes = new ArrayList<>();
     public final List<String> inout = new ArrayList<>();
+    boolean vertex;
     
-    
-    public GLSLParser(File file)
+    public GLSLBuilder(File file)
     {
+        String extension = FileUtils.getExtension(file);
+        if(extension.endsWith("vert"))
+        {
+            vertex = true;
+        }
+        else if(extension.endsWith("frag"))
+        {
+            vertex = false;
+        }
+        else throw new RuntimeException("Don't know this file type: " + extension);
+        
+        
         fileContentsRaw = FileUtils.getFileContents(file.getPath());
         fileContents = clean(fileContentsRaw.split("\\r?\\n"));
+        
+        parse();
     }
-    public GLSLParser(String filepath)
+    private GLSLBuilder(String shaderCode, boolean isVertex)
     {
-        fileContentsRaw = FileUtils.getFileContents(filepath);
+        vertex = isVertex;
+        fileContentsRaw = shaderCode;
         fileContents = clean(fileContentsRaw.split("\\r?\\n"));
+        
+        parse();
+    }
+    
+    
+    private List<String> buildVertex()
+    {
+        GLSLBuilder baseVertex = new GLSLBuilder(VertexShader.DEFAULT.getShaderCode(), true);
+        List<String> lines = new ArrayList<>();
+        lines.addAll(this.layouts);
+        lines.addAll(baseVertex.layouts);
+        
+        lines.addAll(this.structs);
+        lines.addAll(baseVertex.structs);
+        
+        lines.addAll(this.uniforms);
+        lines.addAll(baseVertex.uniforms);
+        
+        lines.addAll(this.inout);
+        lines.addAll(baseVertex.inout);
+    
+        String mainLine = null;
+        for(int i = 0; i < functions.size(); i++)
+        {
+            String name = functionNames.get(i);
+            if(name.equals("modelToWorld"))
+            {
+                if(mainLine != null) throw new RuntimeException("Multiple shader functions in one file");
+                
+                mainLine = "gl_Position = projectionMatrix * cameraMatrix * modelToWorld(vec4(inPosition, 1.0));";
+            }
+            lines.add(functions.get(i));
+        }
+    
+        if(mainLine == null) throw new RuntimeException("No primary function in vertex shader");
+        lines.add("void main() \n{\n" + mainLine + "\n}\n");
+        
+        
+        return lines;
+    }
+    
+    private List<String> buildFragment()
+    {
+        GLSLBuilder baseFragment = new GLSLBuilder(FragmentShader.DEFAULT.getShaderCode(), false);
+        List<String> lines = new ArrayList<>();
+        lines.addAll(this.layouts);
+        lines.addAll(baseFragment.layouts);
+    
+        lines.addAll(this.structs);
+        lines.addAll(baseFragment.structs);
+    
+        lines.addAll(this.uniforms);
+        lines.addAll(baseFragment.uniforms);
+        
+        lines.addAll(this.inout);
+        lines.addAll(baseFragment.inout);
+    
+        String mainLine = null;
+        for(int i = 0; i < functions.size(); i++)
+        {
+            String name = functionNames.get(i);
+            if(name.equals("fragmentColor"))
+            {
+                if(mainLine != null) throw new RuntimeException("Multiple shader functions in one file");
+            
+                mainLine = "fragColor = fragmentColor();";
+            }
+            lines.add(functions.get(i));
+        }
+        if(mainLine == null) throw new RuntimeException("No primary function in fragment shader");
+        lines.add("void main() \n{\n" + mainLine + "\n}\n");
+    
+    
+        return lines;
+    }
+    
+    public String build()
+    {
+        List<String> lines;
+        if(vertex)
+        {
+            lines = buildVertex();
+        }
+        else lines = buildFragment();
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.version).append("\n");
+        lines.forEach(string -> builder.append(string).append("\n"));
+    
+        return builder.toString();
     }
     
 
@@ -66,7 +173,7 @@ public class GLSLParser
                 String[] funcSignature = function.toString().split("\\{");
                 String[] splitSignature = funcSignature[0].split(" ");
                 String type = splitSignature[0];
-                String name = splitSignature[1].substring(0, splitSignature[1].length() - 2);
+                String name = splitSignature[1].split("\\(")[0];
                 String funcBody = funcSignature[1].split("\\}")[0];
                 if(!funcBody.isBlank())
                 {
@@ -137,8 +244,8 @@ public class GLSLParser
     }
     public static String mergeGLSL(File baseShader, File additiveShader)
     {
-        GLSLParser base = new GLSLParser(baseShader);
-        GLSLParser add = new GLSLParser(additiveShader);
+        GLSLBuilder base = new GLSLBuilder(baseShader);
+        GLSLBuilder add = new GLSLBuilder(additiveShader);
         base.parse();
         add.parse();
     

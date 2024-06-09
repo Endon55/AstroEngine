@@ -1,24 +1,21 @@
 package com.anthonycosenza.engine.space.rendering.shader;
 
+import com.anthonycosenza.editor.GLSLBuilder;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.util.FileUtils;
 import org.lwjgl.opengl.GL20;
 
+import java.io.File;
+
 
 public class FragmentShader implements Shader
 {
-    public static final FragmentShader DEFAULT = new FragmentShader("AstroEngine/resources/shaders/scene.frag");
+    public static final FragmentShader DEFAULT = new FragmentShader("AstroEngine/resources/shaders/scene.frag", -10002);
     public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.frag");
     private long resourceID = -1;
     private String shaderpath;
-    
-    //Specifically only to make the default shader.
-    private FragmentShader(String filepath)
-    {
-        resourceID = -10002;
-        shaderpath = filepath;
-    }
-    
+    public boolean assemble = false;
+  
     public FragmentShader(String filepath, long resourceID)
     {
         setResourceID(resourceID);
@@ -54,7 +51,11 @@ public class FragmentShader implements Shader
     @Override
     public String getShaderCode()
     {
-        return FileUtils.getFileContents(shaderpath);
+        if(assemble)
+        {
+            return new GLSLBuilder(new File(shaderpath)).build();
+        }
+       else return FileUtils.getFileContents(shaderpath);
     }
     
 }
