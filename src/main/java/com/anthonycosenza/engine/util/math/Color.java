@@ -1,5 +1,7 @@
 package com.anthonycosenza.engine.util.math;
 
+import imgui.ImColor;
+
 public class Color
 {
     private float r;
@@ -14,7 +16,10 @@ public class Color
         this.b = b / 255f;
         this.a = 1;
     }
-    
+    public Color(Color color)
+    {
+        this(color.r(), color.g(), color.b(), color.a());
+    }
     public Color(int r, int g, int b)
     {
         this.r = r / 255f;
@@ -47,6 +52,40 @@ public class Color
     public Color(float[] floats)
     {
          this(floats[0], floats[1], floats[2], floats[3]);
+    }
+    
+    public Color add(int r, int g, int b, int a)
+    {
+        return add(r / 255f, g / 255f, b / 255f, a / 255f);
+    }
+    
+    public Color add(float r, float g, float b, float a)
+    {
+        this.r += r;
+        this.g += g;
+        this.b += b;
+        this.a += a;
+        
+        return this;
+    }
+    public Color mult(float scalar)
+    {
+        this.r *= scalar;
+        this.g *= scalar;
+        this.b *= scalar;
+        this.a *= scalar;
+        
+        return this;
+    }
+    
+    public Color normalize()
+    {
+        this.r %= 1f;
+        this.g %= 1f;
+        this.b %= 1f;
+        this.a %= 1f;
+        
+        return this;
     }
     
     public Color set(float r, float g, float b, float a)
@@ -125,6 +164,11 @@ public class Color
     {
         this.a = a / 255f;
         return this;
+    }
+    
+    public int getInt()
+    {
+        return ImColor.rgba(r, g, b, a);
     }
     
     public float[] getAsArray()

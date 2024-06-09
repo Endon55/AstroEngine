@@ -25,6 +25,7 @@ import com.anthonycosenza.engine.ui.AstroFonts;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
+import com.anthonycosenza.engine.util.math.Color;
 import com.anthonycosenza.engine.util.math.EngineMath;
 import imgui.ImColor;
 import imgui.ImGui;
@@ -60,7 +61,6 @@ import static org.lwjgl.opengl.GL11.glViewport;
 
 public class EditorNode extends Node
 {
-    
     private final long doubleClickInterval = 250;
     
     private final Engine engine;
@@ -82,6 +82,7 @@ public class EditorNode extends Node
     private final int defaultTableColor = ImColor.rgba(0, 0, 0, 0);
     private final int hoveredTableColor = ImColor.rgba(22, 71, 62, 255);
     private final int selectedTableColor = ImColor.rgba(22, 57, 71, 255);
+    private final Color propertyTableColor = new Color(.2f, .6f, .8f);
     private int assetBrowserFileSelected = -1;
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
@@ -95,7 +96,7 @@ public class EditorNode extends Node
     private Scene sceneManagerNode;
     private Node sceneManagerSelected;
     private boolean modified = false;
-    final int astroColor = ImColor.rgba(20, 13, 35, 255);
+    final Color astroColor = new Color(20, 13, 35, 255);
     private Popup popup;
     
     private Camera camera;
@@ -169,7 +170,7 @@ public class EditorNode extends Node
 
         createMainDockspace();
     
-        ImGui.pushStyleColor(ImGuiCol.WindowBg, astroColor);
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, astroColor.getInt());
         ImGui.setNextWindowDockID(top, ImGuiCond.FirstUseEver);
         createCommandBar();
         
@@ -342,8 +343,6 @@ public class EditorNode extends Node
             }
         }
         ImGui.end();
-        
-        
     }
     
     private void drawTree(Node node, int flags)
@@ -410,7 +409,6 @@ public class EditorNode extends Node
                     sceneManagerSelected = sceneManagerNode;
                 }
                 
-                
                 if(ImGui.button("+"))
                 {
                     if(!hasPopup())
@@ -439,13 +437,11 @@ public class EditorNode extends Node
     }
     
     
-    
     private void createPropertyInspector()
     {
         int frameConfig = ImGuiWindowFlags.NoMove;
         if(ImGui.begin("Property Inspector", frameConfig))
         {
-    
             AstroFonts.push(defaultFont, headerFontSize);
             ImGui.text(ImGuiUtils.centerAlignOffset("Property Inspector", ImGui.getContentRegionAvailX()));
             ImGui.separator();
@@ -475,7 +471,7 @@ public class EditorNode extends Node
                         {
                             ImBoolean modified = new ImBoolean(false);
     
-                            EditorProperty.propertyTable(nodeClass, selectedNode, modified);
+                            EditorProperty.propertyTable(nodeClass, selectedNode, modified, astroColor);
                             
                             if(modified.get()) this.modified = true;
                         }

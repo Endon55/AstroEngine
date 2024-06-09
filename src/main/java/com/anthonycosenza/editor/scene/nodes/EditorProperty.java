@@ -12,11 +12,10 @@ import com.anthonycosenza.engine.space.rendering.materials.ShaderMaterial;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.math.Color;
-import imgui.ImColor;
 import imgui.ImGui;
-import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiDataType;
 import imgui.flag.ImGuiStyleVar;
+import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTableColumnFlags;
 import imgui.flag.ImGuiTableFlags;
 import imgui.type.ImBoolean;
@@ -72,7 +71,7 @@ public class EditorProperty
             AssetInfo info = AssetManager.getInstance().getAssetInfo(asset.getResourceID());
             if(info == null)
             {
-                text = String.valueOf(asset.getResourceID());
+                text = asset.getClass().getSimpleName();
             }
             else
             {
@@ -93,6 +92,7 @@ public class EditorProperty
         }
         return selectedType;
     }
+    
     public static boolean createNew(AssetType type, Asset asset)
     {
         String typeStr = type.name().toLowerCase();
@@ -123,61 +123,81 @@ public class EditorProperty
         return create;
     }
     
-    public static void propertyTable(Object object, ImBoolean modified)
+    public static void propertyTable(Object object, ImBoolean modified, Color tableBgColor)
     {
-        propertyTable(object.getClass(), object, modified);
+        propertyTable(object.getClass(), object, modified, tableBgColor);
     }
     
-    public static void propertyTable(Class<?> clazz, Object object, ImBoolean modified)
+    public static void propertyTable(Class<?> clazz, Object object, ImBoolean modified, Color tableBgColor)
     {
         ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 2, 1);
-        if(ImGui.beginTable("##Property Table - " + clazz.getSimpleName(), 2,
-                ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX))
+        List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(
+                field -> !Modifier.isTransient(field.getModifiers()) &&
+                        !Modifier.isStatic(field.getModifiers()) &&
+                        !field.getName().equals("resourceID")).toList();
+    
+        float longestName = 0;
+    
+        for(Field item : fields)
         {
-            List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(
-                    field -> !Modifier.isTransient(field.getModifiers()) &&
-                            !Modifier.isStatic(field.getModifiers()) &&
-                            !field.getName().equals("resourceID")).toList();
-            float longestName = 0;
-            float[] fieldNameLengths = new float[fields.size()];
-            for(int i = 0; i < fields.size(); i++)
+            float length = ImGui.calcTextSize(item.getName()).x;
+            if(length > longestName) longestName = length;
+        }
+    
+        boolean recreateTable = true;
+        for(int i = 0; i < fields.size(); i++)
+        {
+            if(recreateTable)
             {
-                float length = ImGui.calcTextSize(fields.get(i).getName()).x;
-                fieldNameLengths[i] = length;
-                if(length > longestName) longestName = length;
-            }
-            
-            ImGui.tableSetupColumn("## property column", ImGuiTableColumnFlags.WidthFixed, longestName);
-            ImGui.tableSetupColumn("## value column", ImGuiTableColumnFlags.WidthStretch);
-
-            for(int i = 0; i < fields.size(); i++)
-            {
-                Field field = fields.get(i);
-                field.setAccessible(true);
-                
-                ImGui.tableNextRow();
-                
-                ImGui.tableSetColumnIndex(0);
-                ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
-                ImGui.text(field.getName());
-                
-                ImGui.tableSetColumnIndex(1);
-                try
+                if(ImGui.beginTable("##Property Table - " + clazz.getSimpleName(), 2,
+                        ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX))
                 {
-                    ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
-                    Object value = EditorProperty.createInputField(field.getType(), field.getName(), field.get(object), modified);
-                    field.set(object, value);
-            
-                } catch(IllegalAccessException e)
-                {
-                    throw new RuntimeException(e);
+                    ImGui.tableSetupColumn("## property column", ImGuiTableColumnFlags.WidthFixed, longestName);
+                    ImGui.tableSetupColumn("## value column", ImGuiTableColumnFlags.WidthStretch);
+                    recreateTable = false;
                 }
+                else return;
             }
     
-            ImGui.endTable();
+            Field field = fields.get(i);
+            field.setAccessible(true);
+    
+    
+            ImGui.tableNextRow();
+            ImGui.tableSetBgColor(ImGuiTableBgTarget.RowBg0, tableBgColor.getInt());
+            
+            ImGui.tableSetColumnIndex(0);
+            ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+            ImGui.text(field.getName());
+            
+            ImGui.tableSetColumnIndex(1);
+            try
+            {
+                ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+                //Dropdown combo box.
+                Object value = EditorProperty.createInputField(field.getType(), field.getName(), field.get(object), modified);
+                
+                if(Asset.class.isAssignableFrom(field.getType()))
+                {
+                    ImGui.endTable();
+                    //Asset fields
+                    Object objValue = field.get(object);
+                    propertyTable((objValue == null ? field.getType() : objValue.getClass()), objValue, modified, new Color(tableBgColor).mult(2));
+                    
+                    recreateTable = true;
+                }
+                
+                field.set(object, value);
+        
+            } catch(IllegalAccessException e)
+            {
+                throw new RuntimeException(e);
+            }
         }
+        if(!recreateTable) ImGui.endTable();
         ImGui.popStyleVar();
     }
+    
     
     public static Object createInputField(Class<?> fieldType, String fieldName, Object fieldValue, ImBoolean modified)
     {
@@ -358,7 +378,6 @@ public class EditorProperty
             }
             else
             {
-                propertyTable(fieldValue.getClass(), fieldValue, modified);
                 if(modified.get())
                 {
                     ((Mesh) fieldValue).initialize();
@@ -366,33 +385,27 @@ public class EditorProperty
                 
             }
         }
+        
         else if(Material.class.equals(fieldType))
         {
             AssetType type = AssetType.MATERIAL;
             ImGui.sameLine();
-            if(fieldValue == null)
+            
+            String selected = EditorProperty.createNew((Asset) fieldValue, type, "Standard", "Shader");
+            if(selected != null)
             {
-                String selected = EditorProperty.createNew((Asset) fieldValue, type, "Standard", "Shader");
-                if(selected != null)
-                {
-                    
-                    Material material = null;
-                    if(selected.equals("Standard")) material = new StandardMaterial();
-                    else if(selected.equals("Shader")) material = new ShaderMaterial();
-    
-                    fieldValue = material;
-                    modified.set(true);
-                }
-                Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
-                if(dragAndDrop != null)
-                {
-                    modified.set(true);
-                    fieldValue = dragAndDrop;
-                }
+                Material material = null;
+                if(selected.equals("Standard")) material = new StandardMaterial();
+                else if(selected.equals("Shader")) material = new ShaderMaterial();
+        
+                fieldValue = material;
+                modified.set(true);
             }
-            else
+            Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
+            if(dragAndDrop != null)
             {
-                propertyTable(StandardMaterial.class, fieldValue, modified);
+                modified.set(true);
+                fieldValue = dragAndDrop;
             }
         }
         else if(Model.class.equals(fieldType))
@@ -414,109 +427,10 @@ public class EditorProperty
                 }
             }
         }
-        else
-        {
-            ImGui.text("Implement - " + fieldType.getSimpleName());
-        }
         return fieldValue;
     }
-    public static Material materialDropdown(Material material, ImBoolean modified)
-    {
-        boolean exists = material != null;
     
-        if(beginDropdownCombo(AssetType.MATERIAL, material))
-        {
-            if(ImGui.selectable("new Material"))
-            {
-            
-            }
-        
-        
-            ImGui.endCombo();
-        }
-        Material dragAndDrop = (Material) ImGuiUtils.assetDragAndDropTarget(AssetType.MATERIAL);
-        if(dragAndDrop != null)
-        {
-            modified.set(true);
-            return dragAndDrop;
-        }
     
-        if(exists)
-        {
-            int tableConfig = 0;
-            ImGui.indent();
-            ImGui.pushStyleColor(ImGuiCol.TableRowBg, ImColor.rgba(1f,1f,1f, 1f));
-            if(ImGui.beginTable("Material Property Editor", COLUMN_COUNT, tableConfig))
-            {
-                ImGui.tableNextColumn();
-                ImGui.text("Mesh");
-                ImGui.tableNextColumn();
-                ImGui.text("Implement");
-            
-                ImGui.tableNextColumn();
-                ImGui.text("Whatever");
-                ImGui.tableNextColumn();
-                ImGui.text("Implement");
-            
-                ImGui.endTable();
-            }
-            ImGui.unindent();
-            ImGui.popStyleColor();
-        }
-        return material;
-    }
+    
 
-    
-    private static boolean beginDropdownCombo(AssetType type, Asset asset)
-    {
-        String typeStr = type.name().toLowerCase();
-        return ImGui.beginCombo("##-" + typeStr + "ModelDropdown", (asset != null ?
-                new File(AssetManager.getInstance().getAssetInfo(asset.getResourceID()).filePath()).getName()
-                : "Pick " + typeStr));
-    }
-    public static Model modelDropdown(Model model, ImBoolean modified)
-    {
-        boolean exists = model != null;
-        
-        if(beginDropdownCombo(AssetType.MODEL, model))
-        {
-            if(ImGui.selectable("new Model"))
-            {
-            
-            }
-        
-        
-            ImGui.endCombo();
-        }
-        Model dragAndDrop = (Model) ImGuiUtils.assetDragAndDropTarget(AssetType.MODEL);
-        if(dragAndDrop != null)
-        {
-            modified.set(true);
-            return dragAndDrop;
-        }
-        
-        if(exists)
-        {
-            int tableConfig = 0;
-            ImGui.indent();
-            ImGui.pushStyleColor(ImGuiCol.TableRowBg, ImColor.rgba(1f, 1f, 1f, 1f));
-            if(ImGui.beginTable("Model Property Editor", COLUMN_COUNT, tableConfig))
-            {
-                ImGui.tableNextColumn();
-                ImGui.text("Mesh");
-                ImGui.tableNextColumn();
-                ImGui.text("Implement");
-        
-                ImGui.tableNextColumn();
-                Material material = materialDropdown(model.getMaterials().get(0), modified);
-                ImGui.tableNextColumn();
-                ImGui.text("Implement");
-        
-                ImGui.endTable();
-            }
-            ImGui.unindent();
-            ImGui.popStyleColor();
-        }
-        return model;
-    }
 }
