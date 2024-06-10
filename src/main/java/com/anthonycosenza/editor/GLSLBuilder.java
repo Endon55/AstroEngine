@@ -236,7 +236,7 @@ public class GLSLBuilder
             {
                 uniforms.add(line);
             }
-            else if(line.startsWith("in") || line.startsWith("out"))
+            else if(line.startsWith("in ") || line.startsWith("out "))
             {
                 inout.add(line);
             }

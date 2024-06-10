@@ -13,7 +13,7 @@ public class VertexShader implements Shader
     public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.vert");
     private long resourceID = -1;
     private String shaderpath;
-    public boolean assemble = false;
+    public transient boolean assemble = false;
 
     public VertexShader(String filepath, long resourceID)
     {

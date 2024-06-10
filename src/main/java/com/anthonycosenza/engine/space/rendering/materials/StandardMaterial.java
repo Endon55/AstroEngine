@@ -87,7 +87,7 @@ public class StandardMaterial implements Material
     }
     
     @Override
-    public void set(ShaderPipeline pipeline)
+    public void setUniforms(ShaderPipeline pipeline)
     {
         UniformMap uniforms = pipeline.getUniforms();
         uniforms.setUniform("material.diffuse", diffuseColor);

@@ -11,6 +11,9 @@ import com.anthonycosenza.engine.space.entity.PlaneMesh;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.rendering.materials.ShaderMaterial;
 import com.anthonycosenza.engine.space.rendering.materials.StandardMaterial;
+import com.anthonycosenza.engine.space.rendering.shader.FragmentShader;
+import com.anthonycosenza.engine.space.rendering.shader.Shader;
+import com.anthonycosenza.engine.space.rendering.shader.VertexShader;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.math.Color;
 import imgui.ImGui;
@@ -37,7 +40,7 @@ import java.util.List;
 public class EditorProperty
 {
     private static int COLUMN_COUNT = 2;
-    private static int MAX_STRING_FIELD_LENGTH = 20;
+    private static int MAX_STRING_FIELD_LENGTH = 100;
     
     public static void createMeshDropdown()
     {
@@ -131,7 +134,7 @@ public class EditorProperty
     
     public static void propertyTable(Class<?> clazz, Object object, ImBoolean modified, Color tableBgColor)
     {
-        ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, 2, 1);
+        ImGui.pushStyleVar(ImGuiStyleVar.CellPadding, COLUMN_COUNT, 1);
         List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(
                 field -> !Modifier.isTransient(field.getModifiers()) &&
                         !Modifier.isStatic(field.getModifiers()) &&
@@ -150,7 +153,7 @@ public class EditorProperty
         {
             if(recreateTable)
             {
-                if(ImGui.beginTable("##Property Table - " + clazz.getSimpleName(), 2,
+                if(ImGui.beginTable("##Property Table - " + clazz.getSimpleName(), COLUMN_COUNT,
                         ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX))
                 {
                     ImGui.tableSetupColumn("## property column", ImGuiTableColumnFlags.WidthFixed, longestName);
@@ -174,21 +177,25 @@ public class EditorProperty
             ImGui.tableSetColumnIndex(1);
             try
             {
+                Object fieldValue = (object != null ? field.get(object) : null);
                 ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
+                Class<?> fieldClass = (fieldValue == null ? field.getType() : fieldValue.getClass());
                 //Dropdown combo box.
-                Object value = EditorProperty.createInputField(field.getType(), field.getName(), field.get(object), modified);
+                Object value = EditorProperty.createInputField(field.getType(), field.getName(), fieldValue, modified);
                 
-                if(Asset.class.isAssignableFrom(field.getType()))
+                if(Asset.class.isAssignableFrom(fieldClass))
                 {
                     ImGui.endTable();
                     //Asset fields
-                    Object objValue = field.get(object);
-                    propertyTable((objValue == null ? field.getType() : objValue.getClass()), objValue, modified, new Color(tableBgColor).mult(2));
+                    
+                    propertyTable(fieldClass, fieldValue, modified, new Color(tableBgColor).mult(2));
                     
                     recreateTable = true;
                 }
-                
-                field.set(object, value);
+                if(object != null)
+                {
+                    field.set(object, value);
+                }
         
             } catch(IllegalAccessException e)
             {
@@ -361,32 +368,23 @@ public class EditorProperty
         {
             AssetType type = AssetType.MESH;
             ImGui.sameLine();
-            if(fieldValue == null)
+    
+            String selected = EditorProperty.createNew((Asset) fieldValue, type, "Plane");
+            if(selected != null)
             {
-                Mesh mesh = EditorProperty.createNewMesh(type);
-                if(mesh != null)
-                {
-                    fieldValue = mesh;
-                    modified.set(true);
-                    mesh.initialize();
-                }
-                Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
-                if(dragAndDrop != null)
-                {
-                    modified.set(true);
-                    fieldValue = dragAndDrop;
-                }
+                Mesh mesh = null;
+                if(selected.equals("Plane")) mesh = new PlaneMesh();
+        
+                fieldValue = mesh;
+                modified.set(true);
             }
-            else
+            Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
+            if(dragAndDrop != null)
             {
-                if(modified.get())
-                {
-                    ((Mesh) fieldValue).initialize();
-                }
-                
+                modified.set(true);
+                fieldValue = dragAndDrop;
             }
         }
-        
         else if(Material.class.equals(fieldType))
         {
             AssetType type = AssetType.MATERIAL;
@@ -426,6 +424,33 @@ public class EditorProperty
                     modified.set(true);
                     fieldValue = dragAndDrop;
                 }
+            }
+        }
+        else if(Shader.class.isAssignableFrom(fieldType))
+        {
+            AssetType type;
+            if(fieldType.equals(FragmentShader.class)) type = AssetType.FRAGMENT;
+            else type = AssetType.VERTEX;
+            
+            ImGui.sameLine();
+    
+            String selected = EditorProperty.createNew((Asset) fieldValue, type, "Shader");
+            if(selected != null)
+            {
+                Shader shader = null;
+                if(selected.equals("Shader"))
+                {
+                    shader = (type == AssetType.VERTEX ? new VertexShader() : new FragmentShader());
+                }
+        
+                fieldValue = shader;
+                modified.set(true);
+            }
+            Asset dragAndDrop = ImGuiUtils.assetDragAndDropTarget(type);
+            if(dragAndDrop != null)
+            {
+                modified.set(true);
+                fieldValue = dragAndDrop;
             }
         }
         return fieldValue;

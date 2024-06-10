@@ -111,7 +111,7 @@ public class ImGuiUtils
         if(ImGui.beginDragDropTarget())
         {
             Object payload = ImGui.acceptDragDropPayload(File.class, ImGuiDragDropFlags.AcceptBeforeDelivery);
-            if(payload instanceof File file && file.getName().endsWith(".a" + assetType.name().toLowerCase()))
+            if(payload instanceof File file && file.getName().endsWith(assetType.getExtension()))
             {
                 ddValidAsset = true;
                 if(!ImGui.isMouseDragging(0)) //Peek at payload

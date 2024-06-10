@@ -81,8 +81,12 @@ public class ShaderManager
     {
         //Register a new shader with OpenGL
         int shaderID = glCreateShader(shader.getShaderType());
+        
         //Load Shader code.
-        glShaderSource(shaderID, shader.getShaderCode());//FileUtils.getFileContents(shaderData.filePath));
+        String shaderCode = shader.getShaderCode();
+        System.out.println(shaderCode);
+        System.out.println("----------------------------------");
+        glShaderSource(shaderID, shaderCode);//FileUtils.getFileContents(shaderData.filePath));
         //Compile the loaded shader code.
         glCompileShader(shaderID);
         

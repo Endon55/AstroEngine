@@ -11,6 +11,6 @@ public interface Material extends Asset
     Set<Mesh> getMeshes();
     void addMesh(Mesh mesh);
     void bind();
-    void set(ShaderPipeline pipeline);
+    void setUniforms(ShaderPipeline pipeline);
     ShaderPipeline getShaderPipeline();
 }

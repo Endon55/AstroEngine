@@ -3,10 +3,10 @@ package com.anthonycosenza.engine.space.entity;
 
 public class PlaneMesh extends GeneratedMesh
 {
-    public int quadsWide = -1;
-    public int quadsDeep = -1;
-    public float quadWidth = -1;
-    public float quadDepth = -1;
+    public int quadsWide = 10;
+    public int quadsDeep = 10;
+    public float quadWidth = 1;
+    public float quadDepth = 1;
     
     public void setPlane(int quadsWide, int quadsDeep, float quadWidth, float quadDepth)
     {

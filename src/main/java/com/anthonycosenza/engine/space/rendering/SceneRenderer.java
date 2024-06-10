@@ -25,8 +25,6 @@ import static org.lwjgl.opengl.GL11.glDrawElements;
 
 public class SceneRenderer
 {
-    private static final Matrix4f DEFAULT_IDENTITY_MATRIX = new Matrix4f().identity();
-    
     private Map<Long, List<Map.Entry<Material, Matrix4f>>> pipelineMap;
     
     public SceneRenderer()
@@ -62,7 +60,7 @@ public class SceneRenderer
             for(Map.Entry<Material, Matrix4f> materialPair : shader.getValue())
             {
                 pipeline.getUniforms().setUniform("entityMatrix", materialPair.getValue());
-                materialPair.getKey().set(pipeline);
+                materialPair.getKey().setUniforms(pipeline);
                 
                 for(Mesh mesh : materialPair.getKey().getMeshes())
                 {

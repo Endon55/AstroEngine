@@ -60,14 +60,14 @@ public class ShaderMaterial implements Material
     }
     
     @Override
-    public void set(ShaderPipeline pipeline)
+    public void setUniforms(ShaderPipeline pipeline)
     {
     
     }
     public void updatePipeline()
     {
-        vertexShader.assemble = true;
-        fragmentShader.assemble = true;
+        if(vertexShader != null) vertexShader.assemble = true;
+        if(fragmentShader != null) fragmentShader.assemble = true;
         
         pipeline = ShaderManager.createPipeline(vertexShader, fragmentShader);
     }

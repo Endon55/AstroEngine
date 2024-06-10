@@ -23,7 +23,7 @@ public class Mesh3D extends Node3D implements Renderable
     @Override
     public List<Material> getMaterials()
     {
-        if(mesh != null)
+        if(mesh != null && material != null)
         {
             material.getMeshes().add(mesh);
             return List.of(material);
