@@ -35,6 +35,7 @@ public class Toml
 {
     private static final String ASSET = "ASSET_HEADER";
     private static final String PROJECT_SETTINGS = "PROJECT_SETTINGS";
+    private static final String CAMERA = "CAMERA";
     
     public static void updateAsset(AssetInfo info, Asset asset, String filename)
     {
@@ -91,7 +92,7 @@ public class Toml
         TomlParser reader = new TomlParser();
     
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
-        config = config.get("CAMERA");
+        config = config.get(CAMERA);
         Camera camera;
         if(config == null)
         {
@@ -497,7 +498,7 @@ public class Toml
         public Toml.builder camera(Camera camera)
         {
             List<String> path = new ArrayList<>();
-            path.add("CAMERA");
+            path.add(CAMERA);
             path.add("type");
             config.set(path, camera.getClass().getName());
             for(Field field : ClassUtils.getAllFields(Camera.class))

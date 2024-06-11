@@ -139,7 +139,7 @@ public class EditorProperty
         List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(
                 field -> !Modifier.isTransient(field.getModifiers()) &&
                         !Modifier.isStatic(field.getModifiers()) &&
-                        !field.getName().equals("resourceID")).toList();
+                        !field.getName().equals("resourceID") && !field.getName().equals("children") && !field.getName().equals("parent")).toList();
     
         float longestName = 0;
     
@@ -176,10 +176,10 @@ public class EditorProperty
             ImGui.text(field.getName());
             
             ImGui.tableSetColumnIndex(1);
+            ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
             try
             {
                 Object fieldValue = (object != null ? field.get(object) : null);
-                ImGui.setNextItemWidth(ImGui.getContentRegionAvailX());
                 Class<?> fieldClass = (fieldValue == null ? field.getType() : fieldValue.getClass());
                 //Dropdown combo box.
                 Object value = EditorProperty.createInputField(field.getType(), field.getName(), fieldValue, modified);

@@ -15,6 +15,7 @@ import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
 import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
@@ -39,6 +40,8 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDir;
 import imgui.flag.ImGuiDockNodeFlags;
+import imgui.flag.ImGuiFocusedFlags;
+import imgui.flag.ImGuiHoveredFlags;
 import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiSliderFlags;
 import imgui.flag.ImGuiStyleVar;
@@ -739,39 +742,49 @@ public class EditorNode extends Node
         int frameConfig = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f);
-        if(ImGui.begin("Scene Viewport", frameConfig))
+        if(ImGui.begin("Scene Viewport Window", frameConfig))
         {
-            if(ImGui.isWindowFocused())
+            if(ImGui.isWindowHovered(ImGuiHoveredFlags.ChildWindows) && Input.getInstance().isMiddleMouseButtonPressed())
+            {
+                ImGui.setWindowFocus();
+            }
+            if(ImGui.isWindowFocused(ImGuiFocusedFlags.ChildWindows))
             {
                 camera.update(delta);
             }
-            
-            int windowWidth = engine.getWindow().getWidth();
-            int windowHeight = engine.getWindow().getHeight();
-            
-            ImVec2 contentRegion = ImGui.getWindowContentRegionMax();
-            int width = (int) contentRegion.x;
-            int height = (int) (contentRegion.y - ImGui.getFrameHeight());
-            viewportFrameBuffer.resize(width, height);
-            
-            viewportFrameBuffer.bind();
-            
-    
-            glClearColor(0f, 1f, 0f, 0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-            
-            if(sceneManagerNode != null)
+            if(ImGui.button("Reset Camera"))
             {
-                sceneRenderer.render(sceneManagerNode, camera, engine.getProjection());
+                camera.reset();
             }
-            
-            ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
-            viewportFrameBuffer.unbind();
-    
-    
-            glViewport(0, 0, windowWidth, windowHeight);
-            
-            
+            if(ImGui.beginChild("Scene actual Viewport"))
+            {
+
+                int windowWidth = engine.getWindow().getWidth();
+                int windowHeight = engine.getWindow().getHeight();
+                
+                ImVec2 contentRegion = ImGui.getWindowContentRegionMax();
+                int width = (int) contentRegion.x;
+                int height = (int) (contentRegion.y - ImGui.getFrameHeight());
+                viewportFrameBuffer.resize(width, height);
+                
+                viewportFrameBuffer.bind();
+                
+        
+                glClearColor(0f, 1f, 0f, 0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+                
+                if(sceneManagerNode != null)
+                {
+                    sceneRenderer.render(sceneManagerNode, camera, engine.getProjection());
+                }
+                
+                ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
+                viewportFrameBuffer.unbind();
+        
+        
+                glViewport(0, 0, windowWidth, windowHeight);
+            }
+            ImGui.endChild();
         }
         ImGui.popStyleVar();
         //ImGui.popStyleVar();
