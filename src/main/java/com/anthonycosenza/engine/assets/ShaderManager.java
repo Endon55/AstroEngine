@@ -84,8 +84,7 @@ public class ShaderManager
         
         //Load Shader code.
         String shaderCode = shader.getShaderCode();
-        System.out.println(shaderCode);
-        System.out.println("----------------------------------");
+        
         glShaderSource(shaderID, shaderCode);//FileUtils.getFileContents(shaderData.filePath));
         //Compile the loaded shader code.
         glCompileShader(shaderID);

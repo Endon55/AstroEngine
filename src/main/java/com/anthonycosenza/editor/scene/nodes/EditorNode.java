@@ -200,7 +200,7 @@ public class EditorNode extends Node
         createConsole();
         
         ImGui.setNextWindowDockID(center, ImGuiCond.FirstUseEver);
-        createSceneViewport();
+        createSceneViewport(delta);
         ImGui.popStyleColor();
 
         if(hasPopup())
@@ -216,12 +216,20 @@ public class EditorNode extends Node
         {
             if(popup instanceof NodeViewerPopup nodeViewerPopup)
             {
-                sceneManagerNode.addChild(nodeViewerPopup.finish());
-                modified = true;
+                Node node = nodeViewerPopup.finish();
+                if(node != null)
+                {
+                    sceneManagerNode.addChild(nodeViewerPopup.finish());
+                    modified = true;
+                }
             }
             else if(popup instanceof ImportPopup importPopup)
             {
-                AssetManager.getInstance().importAsset(new File(importPopup.finish()));
+                String pathname = importPopup.finish();
+                if(pathname != null && !pathname.isEmpty())
+                {
+                    AssetManager.getInstance().importAsset(new File(importPopup.finish()));
+                }
             }
             else if(popup instanceof ProjectSettingsPopup settingsPopup)
             {
@@ -229,7 +237,11 @@ public class EditorNode extends Node
             }
             else if(popup instanceof AssetCreationPopup assetPopup)
             {
-                loadAsset(assetPopup.finish());
+                Asset asset = assetPopup.finish();
+                if(asset != null)
+                {
+                    loadAsset(assetPopup.finish());
+                }
             }
             else if(popup instanceof MaterialEditorPopup)
             {
@@ -717,13 +729,18 @@ public class EditorNode extends Node
         ImGui.end();
     }
     
-    private void createSceneViewport()
+    private void createSceneViewport(float delta)
     {
         int frameConfig = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
         
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f);
         if(ImGui.begin("Scene Viewport", frameConfig))
         {
+            if(ImGui.isWindowFocused())
+            {
+                camera.update(delta);
+            }
+            
             int windowWidth = engine.getWindow().getWidth();
             int windowHeight = engine.getWindow().getHeight();
             

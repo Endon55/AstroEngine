@@ -5,8 +5,7 @@ import com.anthonycosenza.engine.loader.text.tables.types.points.CurvedPoint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.FontPoint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.StraightPoint;
 import com.anthonycosenza.engine.util.math.BezierCurves;
-import com.anthonycosenza.engine.util.math.vector.Vector2;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
+import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +59,7 @@ public class CharacterGlyph implements Glyph
             for(FontPoint point : path)
             {
                 if(point instanceof CurvedPoint) hasCurves = true;
-                Vector2 position = point.getPosition();
+                Vector2f position = point.getPosition();
                 
                 if(position.x() > xMax) xMax = position.x();
                 if(position.x() < xMin) xMin = position.x();
@@ -147,11 +146,11 @@ public class CharacterGlyph implements Glyph
                      * 0, .5, 1
                      */
                     FontPoint prevPoint = path.get(i - 1 >= 0 ? i - 1 : path.size() - 1);
-                    List<Vector2> points = new ArrayList<>();
+                    List<Vector2f> points = new ArrayList<>();
                     
                     for(int j = 0; j <= smoothness; j++)
                     {
-                        Vector2 curvedSegment = BezierCurves.bezier(timeInc * j,
+                        Vector2f curvedSegment = BezierCurves.bezier(timeInc * j,
                                 prevPoint.getPosition(),
                                 cPoint.getControlPoint1(),
                                 cPoint.getControlPoint2(),
@@ -180,7 +179,7 @@ public class CharacterGlyph implements Glyph
                         }
                     }
                     
-                    for(Vector2 line : points)
+                    for(Vector2f line : points)
                     {
                         straightPoints.add(new StraightPoint(cPoint.getHintMask(), line.x(), line.y()));
                     }

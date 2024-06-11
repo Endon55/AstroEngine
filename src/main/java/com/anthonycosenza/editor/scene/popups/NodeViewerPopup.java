@@ -4,6 +4,7 @@ import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node._2d.Node2D;
 import com.anthonycosenza.engine.space.node._3d.Node3D;
 import com.anthonycosenza.engine.util.ClassUtils;
+import com.anthonycosenza.engine.util.ImGuiUtils;
 import imgui.ImGui;
 import imgui.flag.ImGuiSelectableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
@@ -62,6 +63,13 @@ public class NodeViewerPopup implements Popup
     
         if(ImGui.begin("Popup Window", frameConfig))
         {
+            if(ImGuiUtils.activeAndEscHit())
+            {
+                finished = true;
+                node = null;
+                ImGui.end();
+                return;
+            }
             if(ImGui.collapsingHeader("Node3D", ImGuiTreeNodeFlags.DefaultOpen))
             {
                 for(Class<? extends Node> clazz : classes3D)

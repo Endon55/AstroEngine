@@ -28,6 +28,13 @@ public class MaterialEditorPopup implements Popup
         
         if(ImGuiUtils.createPopupWindow(windowSize))
         {
+            if(ImGuiUtils.activeAndEscHit())
+            {
+                finished = true;
+                material = null;
+                ImGui.end();
+                return;
+            }
             if(ImGui.beginTable("Material Editor", columns, tableConfig))
             {
                 ImGui.tableNextColumn();

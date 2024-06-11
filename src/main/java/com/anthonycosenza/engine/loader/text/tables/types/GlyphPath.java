@@ -3,9 +3,9 @@ package com.anthonycosenza.engine.loader.text.tables.types;
 import com.anthonycosenza.engine.loader.text.FontData;
 import com.anthonycosenza.engine.loader.text.tables.types.points.FontPoint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.StraightPoint;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
 import com.anthonycosenza.engine.loader.text.tables.types.hints.Hint;
 import com.anthonycosenza.engine.loader.text.tables.types.points.CurvedPoint;
+import org.joml.Vector2i;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +13,10 @@ import java.util.Stack;
 
 public class GlyphPath
 {
-    private Vector2i point;
+    private final Vector2i point;
     private Vector2i startPoint;
     private boolean pathOpen;
-    private Stack<Number> stack;
+    private final Stack<Number> stack;
     private int width;
     private boolean hasWidth;
     private int totalValues;
@@ -147,7 +147,7 @@ public class GlyphPath
                             hasWidth = true;
                         }
                         endPath();
-                        point.addY(popBottom().intValue());
+                        point.add(0, popBottom().intValue());
                         yield "vmoveto";
                     }
                     case 22 ->
@@ -158,7 +158,7 @@ public class GlyphPath
                             hasWidth = true;
                         }
                         endPath();
-                        point.addX(popBottom().intValue());
+                        point.add(popBottom().intValue(), 0);
                         yield "hmoveto";
                     }
                     case 5 ->
@@ -405,7 +405,7 @@ public class GlyphPath
     {
         if(stack.size() % 2 == 1)
         {
-            point.addX(popBottom().intValue());
+            point.add(popBottom().intValue(), 0);
         }
         while(stack.size() > 0)
         {
@@ -424,7 +424,7 @@ public class GlyphPath
     {
         if(stack.size() % 2 == 1)
         {
-            point.addY(popBottom().intValue());
+            point.add(0, popBottom().intValue());
         }
         
         while(stack.size() > 0)

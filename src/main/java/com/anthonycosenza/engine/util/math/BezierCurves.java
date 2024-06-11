@@ -1,6 +1,6 @@
 package com.anthonycosenza.engine.util.math;
 
-import com.anthonycosenza.engine.util.math.vector.Vector2;
+import org.joml.Vector2f;
 
 public class BezierCurves
 {
@@ -11,7 +11,7 @@ public class BezierCurves
      * Obviously you can't know that easily so call the other function instead where it's
      * estimated based on distance.
      */
-    public static Vector2 bezier(float time, Vector2... points)
+    public static Vector2f bezier(float time, Vector2f... points)
     {
         //System.out.println(Arrays.toString(points));
         int pointCount = points.length;
@@ -52,7 +52,7 @@ public class BezierCurves
             }
             default -> throw new RuntimeException("We shouldn't be here.");
         }
-    return new Vector2( x, y);
+    return new Vector2f( x, y);
 
     }
     

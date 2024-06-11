@@ -16,11 +16,11 @@ public class Camera extends Node
     public Vector3f rotation;
     
     
-    private transient Vector3f xAxisLocal;
-    private transient Vector3f yAxisLocal;
-    private transient Vector3f zAxisLocal;
+    private final transient Vector3f xAxisLocal;
+    private final transient Vector3f yAxisLocal;
+    private final transient Vector3f zAxisLocal;
     
-    private transient Matrix4f cameraMatrix;
+    private final transient Matrix4f cameraMatrix;
     
     
     public Camera()
@@ -62,6 +62,7 @@ public class Camera extends Node
         this.rotation.add(y, x, 0);
         updateMatrix();
     }
+    
     public void setRotationDeg(Vector2f rotation)
     {
         this.rotation.set(rotation.x(), rotation.y(), 0);

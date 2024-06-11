@@ -1,31 +1,31 @@
 package com.anthonycosenza.engine.loader.text.tables.types.points;
 
 
-import com.anthonycosenza.engine.util.math.vector.Vector2;
+import org.joml.Vector2f;
 
 public class CurvedPoint implements FontPoint
 {
     private int hintMask;
-    private final Vector2 position;
+    private final Vector2f position;
     private int width;
-    private final Vector2 controlPoint1;
-    private final Vector2 controlPoint2;
+    private final Vector2f controlPoint1;
+    private final Vector2f controlPoint2;
     
     
     public CurvedPoint(int hintMask, float xa, float ya, float xb, float yb, float posX, float posY)
     {
         this.hintMask = hintMask;
-        position = new Vector2(posX, posY);
-        controlPoint1 = new Vector2(xa, ya);
-        controlPoint2 = new Vector2(xb, yb);
+        position = new Vector2f(posX, posY);
+        controlPoint1 = new Vector2f(xa, ya);
+        controlPoint2 = new Vector2f(xb, yb);
     }
     
     public CurvedPoint(float xa, float ya, float xb, float yb, float posX, float posY)
     {
         hintMask = 0;
-        position = new Vector2(posX, posY);
-        controlPoint1 = new Vector2(xa, ya);
-        controlPoint2 = new Vector2(xb, yb);
+        position = new Vector2f(posX, posY);
+        controlPoint1 = new Vector2f(xa, ya);
+        controlPoint2 = new Vector2f(xb, yb);
     }
     
     public CurvedPoint setHintMask(int hintMask)
@@ -35,7 +35,7 @@ public class CurvedPoint implements FontPoint
     }
     
     @Override
-    public Vector2 getPosition()
+    public Vector2f getPosition()
     {
         return position;
     }
@@ -49,9 +49,9 @@ public class CurvedPoint implements FontPoint
     @Override
     public FontPoint scale(float scale)
     {
-        controlPoint1.mult(scale);
-        controlPoint2.mult(scale);
-        position.mult(scale);
+        controlPoint1.mul(scale);
+        controlPoint2.mul(scale);
+        position.mul(scale);
         return this;
     }
     
@@ -61,12 +61,12 @@ public class CurvedPoint implements FontPoint
         return new CurvedPoint(hintMask, controlPoint1.x(), controlPoint1.y(), controlPoint2.x(), controlPoint2.y(), position.x(), position.y());
     }
     
-    public Vector2 getControlPoint1()
+    public Vector2f getControlPoint1()
     {
         return controlPoint1;
     }
     
-    public Vector2 getControlPoint2()
+    public Vector2f getControlPoint2()
     {
         return controlPoint2;
     }

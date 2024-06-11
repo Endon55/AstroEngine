@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.util.math;
 
-import com.anthonycosenza.engine.util.math.vector.Vector2;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
 
 public class Lines
 {
@@ -9,7 +9,7 @@ public class Lines
      * https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
      *
      */
-    public static Vector2 intersection(Vector2i a1, Vector2i b1, Vector2i a2, Vector2i b2)
+    public static Vector2f intersection(Vector2i a1, Vector2i b1, Vector2i a2, Vector2i b2)
     {
         int aY = b1.y() - a1.y();
         int aX = a1.x() - b1.x();
@@ -23,12 +23,12 @@ public class Lines
         
         if(determinant == 0) return null;
         
-        return new Vector2((bX * c1 - aX * c2) / (float)determinant,
+        return new Vector2f((bX * c1 - aX * c2) / (float)determinant,
         (aY * c2 - bY * c1) / (float)determinant);
         
     }
     
-    public static Vector2 intersection(Vector2 a1, Vector2 b1, Vector2 a2, Vector2 b2)
+    public static Vector2f intersection(Vector2f a1, Vector2f b1, Vector2f a2, Vector2f b2)
     {
         float aY = b1.y() - a1.y();
         float aX = a1.x() - b1.x();
@@ -42,7 +42,7 @@ public class Lines
         
         if(determinant == 0) return null;
         
-        return new Vector2((bX * c1 - aX * c2) / determinant,
+        return new Vector2f((bX * c1 - aX * c2) / determinant,
                 (aY * c2 - bY * c1) / determinant);
         
     }
@@ -57,7 +57,7 @@ public class Lines
     }
     
     
-    public static double angle(Vector2 intersection, Vector2 point1, Vector2 point2)
+    public static double angle(Vector2f intersection, Vector2f point1, Vector2f point2)
     {
         //Center the vectors to the origin(the intersection)
         float p1x = point1.x() - intersection.x();
@@ -139,12 +139,12 @@ public class Lines
         return p1.x() == p2.x();
     }
     
-    public static boolean isHorizontal(Vector2 p1, Vector2 p2)
+    public static boolean isHorizontal(Vector2f p1, Vector2f p2)
     {
         return p1.y() == p2.y();
     }
     
-    public static boolean isVertical(Vector2 p1, Vector2 p2)
+    public static boolean isVertical(Vector2f p1, Vector2f p2)
     {
         return p1.x() == p2.x();
     }

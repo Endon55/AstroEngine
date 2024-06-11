@@ -1,9 +1,8 @@
 package com.anthonycosenza.engine.space.rendering.shader;
 
 import com.anthonycosenza.engine.util.math.Color;
-import com.anthonycosenza.engine.util.math.matrix.Matrix4;
-import com.anthonycosenza.engine.util.math.vector.Vector2;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
@@ -61,7 +60,7 @@ public class UniformMap
         glUniform4f(getUniformID(uniformName), data.r(), data.g(), data.b(), data.a());
     }
     
-    public void setUniform(String uniformName, Vector2 data)
+    public void setUniform(String uniformName, Vector2f data)
     {
         glUniform2f(getUniformID(uniformName), data.x(), data.y());
     }
@@ -73,13 +72,6 @@ public class UniformMap
             glUniformMatrix4fv(getUniformID(uniformName), false, data.get(stack.mallocFloat(16)));
         }
     }
-    
-    public void setUniform(String uniformName, Matrix4 data)
-    {
-        try(MemoryStack stack = MemoryStack.stackPush())
-        {
-            glUniformMatrix4fv(getUniformID(uniformName), false, data.get(stack.mallocFloat(16)));
-        }
-    }
+
     
 }

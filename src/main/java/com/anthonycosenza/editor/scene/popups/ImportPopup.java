@@ -25,6 +25,13 @@ public class ImportPopup implements Popup
         ImGui.beginTooltip();
         if(ImGuiUtils.createPopupWindow(popupSize))
         {
+            if(ImGuiUtils.activeAndEscHit())
+            {
+                finished = true;
+                assetPath = null;
+                ImGui.end();
+                return;
+            }
             ImGui.text("Asset Importer");
             ImGui.separator();
             ImGui.setTooltip("Put a copy of this asset in the assets directory?");

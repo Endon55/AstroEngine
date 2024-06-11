@@ -1,10 +1,11 @@
 package com.anthonycosenza.engine.loader.text.tables.types.points;
 
-import com.anthonycosenza.engine.util.math.vector.Vector2;
+
+import org.joml.Vector2f;
 
 public interface FontPoint
 {
-    Vector2 getPosition();
+    Vector2f getPosition();
     int getHintMask();
     FontPoint scale(float scale);
     FontPoint copy();

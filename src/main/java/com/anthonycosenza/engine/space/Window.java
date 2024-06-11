@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.space;
 
 import com.anthonycosenza.engine.util.Constants;
-import com.anthonycosenza.engine.util.math.vector.Vector2i;
+import org.joml.Vector2i;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;

@@ -49,6 +49,14 @@ public class AssetCreationPopup implements Popup
     {
         if(ImGuiUtils.createPopupWindow(windowSize))
         {
+            if(ImGuiUtils.activeAndEscHit())
+            {
+                finished = true;
+                asset = null;
+                ImGui.end();
+                return;
+            }
+            
             ImGui.text("Save As...");
             ImGui.separator();
             

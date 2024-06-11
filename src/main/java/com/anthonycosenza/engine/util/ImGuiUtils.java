@@ -1,9 +1,11 @@
 package com.anthonycosenza.engine.util;
 
+import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.input.Key;
 import imgui.ImColor;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
@@ -139,6 +141,11 @@ public class ImGuiUtils
                 .getCenterY() - windowSize.y() * .5f);
     
         return ImGui.begin("Popup Window", frameConfig);
+    }
+    
+    public static boolean activeAndEscHit()
+    {
+        return ImGui.isWindowFocused() && Engine.INPUT.isPressed(Key.ESCAPE);
     }
     
     public static float getScrollPercentX()

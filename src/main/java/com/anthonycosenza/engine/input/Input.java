@@ -1,11 +1,12 @@
 package com.anthonycosenza.engine.input;
 
+import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.events.KeyEvent;
 import com.anthonycosenza.engine.space.ProjectSettings;
-import com.anthonycosenza.engine.util.math.vector.Vector2;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.joml.Vector2f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.Map;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_1;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_2;
+import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
@@ -23,18 +25,18 @@ import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 
 public class Input
 {
-    private static Input INSTANCE;
+    private static Input instance;
     private final Map<Key, KeyAction> keys;
-    private Vector2 lastMousePosition;
-    private Vector2 currentMousePosition;
+    private Vector2f lastMousePosition;
+    private Vector2f currentMousePosition;
     
     private boolean mouseInWindow;
     private boolean leftMouseButtonPressed;
     private boolean rightMouseButtonPressed;
+    private boolean middleMouseButtonPressed;
     private boolean cursorStale;
     private long windowID;
     private MouseType mouseType;
@@ -59,8 +61,8 @@ public class Input
             keys.put(key, KeyAction.RELEASED);
         }
         
-        currentMousePosition = new Vector2();
-        lastMousePosition = new Vector2();
+        currentMousePosition = new Vector2f();
+        lastMousePosition = new Vector2f();
         
         mouseInWindow = true;
         cursorStale = false;
@@ -93,9 +95,9 @@ public class Input
         glfwSetInputMode(windowID, GLFW_CURSOR, mouseType.getType());
     }
     
-    public Vector2 getMousePosition()
+    public Vector2f getMousePosition()
     {
-        return currentMousePosition;
+        return new Vector2f(currentMousePosition);
     }
     
     public int getScrollPosition()
@@ -124,9 +126,15 @@ public class Input
         return rightMouseButtonPressed;
     }
     
-    public Vector2 getMouseDirection()
+    public boolean isMiddleMouseButtonPressed()
     {
-        return currentMousePosition.subtract(lastMousePosition, new Vector2());
+        return middleMouseButtonPressed;
+    }
+    
+    
+    public Vector2f getMouseDirection()
+    {
+        return currentMousePosition.sub(lastMousePosition, new Vector2f());
     }
     
     public boolean isCursorStale()
@@ -206,10 +214,10 @@ public class Input
                 resetMouse();
             }
         }
-        else if(key == Key.ESCAPE && keyAction == KeyAction.PRESSED)
+        /*else if(key == Key.ESCAPE && keyAction == KeyAction.PRESSED)
         {
             glfwSetWindowShouldClose(windowID, true);
-        }
+        }*/
     }
     
     private void mouseButtonCallback(long handle, int button, int action, int mods)
@@ -221,6 +229,10 @@ public class Input
         else if(button == GLFW_MOUSE_BUTTON_2)
         {
             rightMouseButtonPressed = (action == GLFW_PRESS);
+        }
+        else if(button == GLFW_MOUSE_BUTTON_MIDDLE)
+        {
+            middleMouseButtonPressed = (action == GLFW_PRESS);
         }
     }
     
@@ -246,4 +258,8 @@ public class Input
         //System.out.println("yOffset: " + yOffset);
     }
     
+    public static Input getInstance()
+    {
+        return Engine.INPUT;
+    }
 }
