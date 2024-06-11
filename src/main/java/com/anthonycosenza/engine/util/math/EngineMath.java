@@ -1,5 +1,7 @@
 package com.anthonycosenza.engine.util.math;
 
+import org.joml.Quaternionf;
+
 import java.util.Random;
 
 public class EngineMath
@@ -45,5 +47,23 @@ public class EngineMath
     public static long generateMaxLengthLong()
     {
         return EngineMath.getRandom().nextLong(1000000000000000000L, Long.MAX_VALUE);
+    }
+    
+    public static Quaternionf getQuatXRads(float angle)
+    {
+        float hangle = angle * .5f;
+        return new Quaternionf(Math.sin(hangle), 0, 0, Math.cos(hangle));
+    }
+    
+    public static Quaternionf getQuatYRads(float angle)
+    {
+        float hangle = angle * .5f;
+        return new Quaternionf(0, Math.sin(hangle),  0, Math.cos(hangle));
+    }
+    
+    public static Quaternionf getQuatZRads(float angle)
+    {
+        float hangle = angle * .5f;
+        return new Quaternionf(0, 0, Math.sin(hangle),Math.cos(hangle));
     }
 }

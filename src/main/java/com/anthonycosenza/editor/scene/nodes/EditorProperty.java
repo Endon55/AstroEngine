@@ -18,6 +18,7 @@ import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.math.Color;
 import imgui.ImGui;
 import imgui.flag.ImGuiDataType;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiTableBgTarget;
 import imgui.flag.ImGuiTableColumnFlags;
@@ -305,21 +306,37 @@ public class EditorProperty
         {
             float[] imValue = new float[3];
             Quaternionf quaternion;
+            Vector3f euler;
             if(fieldValue != null)
             {
                 quaternion = ((Quaternionf) fieldValue);
-                imValue[0] = quaternion.x();
-                imValue[1] = quaternion.y();
-                imValue[2] = quaternion.z();
+                euler = quaternion.getEulerAnglesXYZ(new Vector3f());
+                euler.mul((float) (180f / Math.PI));
+                imValue[0] = euler.x();
+                imValue[1] = euler.y();
+                imValue[2] = euler.z();
             }
             else
             {
                 quaternion = new Quaternionf();
+                euler = quaternion.getEulerAnglesXYZ(new Vector3f());
                 fieldValue = quaternion;
             }
-            if(ImGui.inputFloat3("##" + fieldName, imValue))
+            if(ImGui.inputFloat3("##" + fieldName, imValue,"%.3f",  ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                quaternion.set(imValue[0], imValue[1], imValue[2], 1);
+                if(euler.x() != imValue[0])
+                {
+                    quaternion.rotateX((float) Math.toRadians(imValue[0] - euler.x()));
+                }
+                if(euler.y() != imValue[1])
+                {
+                    quaternion.rotateY((float) Math.toRadians(imValue[1] - euler.y()));
+                }
+                if(euler.z() != imValue[2])
+                {
+                    quaternion.rotateZ((float) Math.toRadians(imValue[2] - euler.z()));
+                }
+
                 modified.set(true);
             }
         }

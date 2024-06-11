@@ -8,9 +8,10 @@ import org.joml.Vector3f;
 
 public class Node3D extends Node implements Positional
 {
-    public Vector3f position;
-    public Quaternionf rotation;
-    public Vector3f scale;
+    private Vector3f position;
+    private Quaternionf rotation;
+    private Vector3f scale;
+    
     private transient final Matrix4f matrix;
     
     public Node3D()
@@ -21,11 +22,61 @@ public class Node3D extends Node implements Positional
         scale = new Vector3f(1, 1, 1);
     }
     
+    /*
+     * Turning in place. Seeing 360 around you. Equivalent to rotateY.
+     */
+    public void yaw(float angle)
+    {
+        rotateY(angle);
+    }
+    
+    /*
+     * Not moving, but seeing your camera rotate the scene 360. Equivalent to rotateZ.
+     */
+    public void roll(float angle)
+    {
+        rotateZ(angle);
+    }
+    /*
+     * Front flip. Equivalent to rotateX.
+     */
+    public void pitch(float angle)
+    {
+        rotateX(angle);
+    }
+    
+    public void rotateX(float angle)
+    {
+        rotation.rotateX(angle);
+    }
+    
+    public void rotateY(float angle)
+    {
+        rotation.rotateY(angle);
+    }
+    
+    public void rotateZ(float angle)
+    {
+        rotation.rotateZ(angle);
+    }
+    public void setRotationDeg(float x, float y, float z, float angle)
+    {
+        rotation.fromAxisAngleDeg(x, y, z, angle);
+    }
+    
+    public void setRotationRad(float x, float y, float z, float angle)
+    {
+        rotation.fromAxisAngleRad(x, y, z, angle);
+    }
     
     public void setPosition(float x, float y, float z)
     {
         this.position.set(x, y , z);
         //updateMatrix();
+    }
+    public Vector3f getEulerAngle()
+    {
+        return rotation.getEulerAnglesXYZ(new Vector3f());
     }
     
     public Matrix4f getTransformation()

@@ -5,6 +5,7 @@ import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
@@ -39,7 +40,10 @@ public class Toml
     {
         new builder().asset(info, asset).build(filename);
     }
-    
+    public static void updateCamera(Camera camera, File file)
+    {
+        new builder().load(file).camera(camera).build(file);
+    }
     public static void updateScene(Scene scene, String filename)
     {
         new builder().scene(scene, filename).build(filename);
@@ -67,7 +71,7 @@ public class Toml
     }
     public static void updateProjectSettings(ProjectSettings settings)
     {
-        new builder().settings(settings).build(EditorIO.getProjectConfig());
+        new builder().load(EditorIO.getProjectConfig()).settings(settings).build(EditorIO.getProjectConfig());
     }
     
     public static AssetInfo getAssetHeader(File file)
@@ -80,7 +84,26 @@ public class Toml
         config = config.get(ASSET);
         return new AssetInfo(config.getLong("handle"), AssetType.valueOf(config.get("type")), config.get("path"));
     }
+    public static Camera getCamera(File file)
+    {
+        CommentedConfig config = CommentedConfig.inMemory();
     
+        TomlParser reader = new TomlParser();
+    
+        reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+        config = config.get("CAMERA");
+        Camera camera;
+        if(config == null)
+        {
+            camera = null;
+        }
+        else
+        {
+            camera = parseCamera(config);
+        }
+    
+        return camera;
+    }
     public static ProjectSettings getProjectSettings(File file)
     {
         CommentedConfig config = CommentedConfig.inMemory();
@@ -119,6 +142,36 @@ public class Toml
             }
         }
         return settings;
+    }
+    
+    private static Camera parseCamera(CommentedConfig config)
+    {
+        Map<String, Object> map = config.valueMap();
+        Camera camera;
+        try
+        {
+            camera = (Camera) Class.forName(config.get("type")).getConstructor().newInstance();
+            
+        } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
+                ClassNotFoundException e)
+        {
+            throw new RuntimeException(e);
+        }
+        for(Map.Entry<String, Object> entry : map.entrySet())
+        {
+            if(entry.getKey().equals("type")) continue;
+            try
+            {
+                Field field = ClassUtils.getFieldInclSuper(camera.getClass(), entry.getKey());
+                if(field == null) throw new NoSuchFieldException();
+                field.setAccessible(true);
+                field.set(camera, deserializeValue(field.getType(), entry.getValue(), null));
+            } catch(NoSuchFieldException | IllegalAccessException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+        return camera;
     }
     
     public static Scene getScene(AssetInfo info)
@@ -246,11 +299,7 @@ public class Toml
                 Class<? extends Node> nodeClass = node.getClass();
                 while(field == null && nodeClass != null && !Object.class.equals(nodeClass))
                 {
-                    
-                    try{
-                        field = nodeClass.getField(key);
-                    } catch(NoSuchFieldException ignored) { }
-                    
+                    field = ClassUtils.getField(nodeClass, key);
                     nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
                 }
                 if(field == null)
@@ -260,6 +309,7 @@ public class Toml
                 
                 try
                 {
+                    field.setAccessible(true);
                     field.set(node, deserializeValue(field.getType(), value, assets));
                 } catch(IllegalAccessException e)
                 {
@@ -352,7 +402,7 @@ public class Toml
          */
         public Toml.builder serializeObject(List<String> path, Object object)
         {
-            return serializeObject(ClassUtils.getAllFields(object.getClass()).stream()
+            return serializeObject(ClassUtils.getAllFieldsInclSuper(object.getClass()).stream()
                     .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                             !Modifier.isStatic(field.getModifiers())).toList(),
                     path, object);
@@ -444,7 +494,25 @@ public class Toml
             return this;
         }
         
-
+        public Toml.builder camera(Camera camera)
+        {
+            List<String> path = new ArrayList<>();
+            path.add("CAMERA");
+            path.add("type");
+            config.set(path, camera.getClass().getName());
+            for(Field field : ClassUtils.getAllFields(Camera.class))
+            {
+                path.set(1, field.getName());
+                try
+                {
+                    config.set(path, serializeValue(field.getType(), field.get(camera)));
+                } catch(IllegalAccessException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+            return this;
+        }
         
         public Toml.builder assetHeader(AssetInfo info)
         {
@@ -501,7 +569,7 @@ public class Toml
                 saveNode(new ArrayList<>(path), config, child);
             }
             
-            List<Field> fields = ClassUtils.getAllFields(node.getClass()).stream()
+            List<Field> fields = ClassUtils.getAllFieldsInclSuper(node.getClass()).stream()
                     .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                             !field.getName().equals("parent") &&
                             !field.getName().equals("children") &&
@@ -513,6 +581,16 @@ public class Toml
             path.remove(path.size() - 1);
         }
     
+        public Toml.builder load(File file)
+        {
+            TomlParser reader = new TomlParser();
+            if(file.exists())
+            {
+                reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+            }
+            return this;
+        }
+        
         public void build(String destination)
         {
             build(new File(destination));

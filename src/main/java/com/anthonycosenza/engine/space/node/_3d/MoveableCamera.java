@@ -10,7 +10,6 @@ import org.joml.Vector2f;
 
 public class MoveableCamera extends Camera
 {
-    float rotation = 0;
     float moveSpeed = 10f;
     final float minMoveSpeed = 10f;
     final float maxMoveSpeed = 1000f;
@@ -22,11 +21,25 @@ public class MoveableCamera extends Camera
     final float maxMouseSensitivity = 1000;
     final float mouseIncrement = 10;
     Vector2f lastPos = null;
+    private boolean moved = true;
     
     public void reset()
     {
         setPosition(0, 0, 0);
         setRotationDeg(0, 0, 0);
+        moved();
+    }
+    private void moved()
+    {
+        this.moved = true;
+    }
+    public void finishMoving()
+    {
+        this.moved = false;
+    }
+    public boolean isMoved()
+    {
+        return moved;
     }
     
     @Override
@@ -43,39 +56,45 @@ public class MoveableCamera extends Camera
         if(input.isPressed(Key.A))
         {
             moveLocalX(-deltaSpeed);
+            moved();
         }
         if(input.isPressed(Key.D))
         {
             moveLocalX(deltaSpeed);
+            moved();
         }
         if(input.isPressed(Key.W))
         {
             moveLocalZ(-deltaSpeed);
+            moved();
         }
         if(input.isPressed(Key.S))
         {
-           moveLocalZ(deltaSpeed);
+            moveLocalZ(deltaSpeed);
+            moved();
         }
         //Down
         if(input.isPressed(Key.C))
         {
             moveGlobalY(deltaSpeed);
+            moved();
         }
         //Up
         if(input.isPressed(Key.SPACE))
         {
             moveGlobalY(-deltaSpeed);
+            moved();
         }
     
         if(input.isMiddleMouseButtonPressed())
         {
             Vector2f pos = input.getMousePosition();
-            System.out.println(pos);
             if(lastPos != null)
             {
                 float x = (pos.x - lastPos.x) * mouseSensitivity;
                 float y = (pos.y - lastPos.y) * -mouseSensitivity;
                 rotateDeg(x, y);
+                moved();
             }
             
             lastPos = pos;

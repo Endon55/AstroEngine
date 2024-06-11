@@ -15,7 +15,6 @@ import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
-import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
 import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
@@ -110,7 +109,8 @@ public class EditorNode extends Node
     final Color astroColor = new Color(20, 13, 35, 255);
     private Popup popup;
     
-    private Camera camera;
+    private MoveableCamera camera;
+    private ProjectSettings settings;
     private Process projectProcess;
     private long lastSceneSave = 0;
     private final long minSaveTime = 5000;
@@ -143,6 +143,7 @@ public class EditorNode extends Node
     public void initialize()
     {
         super.initialize();
+        camera = (MoveableCamera) Toml.getCamera(EditorIO.getProjectConfig());
         long mainScene = EditorIO.getProjectSettings().mainScene;
         if(mainScene != -1)
         {
@@ -207,7 +208,11 @@ public class EditorNode extends Node
         {
             updatePopups();
         }
-        
+        if(camera.isMoved())
+        {
+            Toml.updateCamera(camera, EditorIO.getProjectConfig());
+            camera.finishMoving();
+        }
     }
     
     private void updatePopups()
