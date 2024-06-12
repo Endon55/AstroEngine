@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glUniform1f;
 import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL20.glUniform2f;
 import static org.lwjgl.opengl.GL20.glUniform4f;
@@ -44,15 +45,21 @@ public class UniformMap
         Integer id = uniformsMap.get(uniformName);
         if(id == null)
         {
-            throw new RuntimeException("Could not find Uniform[" +  uniformName + "]" + " in uniform map.");
+            createUniform(uniformName);
+            id = uniformsMap.get(uniformName);
+            if(id == null) throw new RuntimeException("Couldn't make uniform when getting: " + uniformName);
         }
-        
         return id;
     }
     
     public void setUniform(String uniformName, int data)
     {
         glUniform1i(getUniformID(uniformName), data);
+    }
+    
+    public void setUniform(String uniformName, float data)
+    {
+        glUniform1f(getUniformID(uniformName), data);
     }
     
     public void setUniform(String uniformName, Color data)

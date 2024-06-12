@@ -14,7 +14,7 @@ public class ProjectSettings
     
     public boolean enableSystemDiagnostics = true;
     
-    public int lwjglStackSize = 512;
+    public int lwjglStackSize = 2056;
     public boolean guiMultiViewport = false;
     public boolean guiDocking = true;
     public boolean guiHideViewportTaskbar = true;

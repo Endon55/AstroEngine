@@ -17,6 +17,7 @@ public class Main
         if(args.length != 0)
         {
             String projectDirectory = args[0];
+            EditorIO.loadProject(projectDirectory);
             ProjectSettings settings = EditorIO.loadProjectData(projectDirectory);
             Engine engine = new Engine(settings, false);
             long mainSceneID = settings.mainScene;

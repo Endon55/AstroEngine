@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.util;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.logger.EditorLogger;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -15,6 +16,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingMode;
+import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlParser;
 import com.electronwill.nightconfig.toml.TomlWriter;
@@ -599,8 +601,13 @@ public class Toml
         public void build(File destination)
         {
             TomlWriter writer = new TomlWriter();
-    
-            writer.write(config, destination, WritingMode.REPLACE);
+            try
+            {
+                writer.write(config, destination, WritingMode.REPLACE);
+            }catch(WritingException e)
+            {
+                EditorLogger.log(e);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.Main;
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.external.Intellij;
 import com.anthonycosenza.editor.logger.EditorLogger;
 import com.anthonycosenza.editor.logger.Message;
 import com.anthonycosenza.editor.logger.MessageType;
@@ -117,6 +118,7 @@ public class EditorNode extends Node
     private Process projectProcess;
     private long lastSceneSave = 0;
     private final long minSaveTime = 5000;
+    private Intellij intellij;
     
     public EditorNode(Engine engine, boolean hadIni)
     {
@@ -141,12 +143,19 @@ public class EditorNode extends Node
 
     }
     
+    private Intellij getIntellij()
+    {
+        if(intellij == null) intellij = new Intellij();
+        return intellij;
+    }
+    
     
     @Override
     public void initialize()
     {
         super.initialize();
         camera = (MoveableCamera) Toml.getCamera(EditorIO.getProjectConfig());
+        if(camera == null) camera = new MoveableCamera();
         long mainScene = EditorIO.getProjectSettings().mainScene;
         if(mainScene != -1)
         {
@@ -370,9 +379,10 @@ public class EditorNode extends Node
                     {
                         String mainFolder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation()
                                 .toURI()).getPath();
-            
+                        
                         ProcessBuilder builder = new ProcessBuilder("java", "-jar", mainFolder, EditorIO
                                 .getProjectDirectory().getAbsolutePath());
+                                builder.inheritIO();
                         projectProcess = builder.start();
                     } catch(IOException | URISyntaxException e)
                     {
@@ -704,7 +714,11 @@ public class EditorNode extends Node
                                 {
                                     loadScene(AssetManager.getInstance().instantiateScene(child));
                                 }
-                                else System.out.println("Not a directory");
+                                else
+                                {
+                                    //figure out how to make it open to a specific child.
+                                    getIntellij().open(EditorIO.getProjectDirectory());
+                                }
                                 
                                 assetBrowserFileSelected = -1;
                                 assetBrowserLastClickTime = -1;
