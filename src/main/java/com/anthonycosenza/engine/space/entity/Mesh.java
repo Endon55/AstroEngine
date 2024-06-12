@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.space.entity;
 
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -50,55 +50,54 @@ public abstract class Mesh
         
         this.vertexCount = indices.length;
         vboIDs = new ArrayList<>();
-        //Keeps track of all registered vbos to properly delete them.
-        
-        try(MemoryStack stack = MemoryStack.stackPush())
-        {
-            //Vertex Array Object - This array holds all the stuff that gets passed into the Vertex shader.
-            vaoID = glGenVertexArrays();
-            //Setting this array as the active "working directory"
-            glBindVertexArray(vaoID);
-        
-            int vbo = glGenBuffers();
-            vboIDs.add(vbo);
-            FloatBuffer pointsBuffer = stack.callocFloat(vertices.length);
-            pointsBuffer.put(0, vertices);
-            //Bind a new buffer within the vertex array context, and specifies the type of data stored.
-            //More buffer types - https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        
-            //https://docs.gl/gl4/glBufferData
-            //Add the data to the previously bound buffer. Re-specifying the type of data held within.
-            //Usage is entirely for optimization and allows open gl to more intelligently handle the data but never interferes with its access.
-            glBufferData(GL_ARRAY_BUFFER, pointsBuffer, GL_STATIC_DRAW);
-        
-            //Marks the buffer at index 0 as ready for use.
-            glEnableVertexAttribArray(0);
-            //Tells OpenGL how to use the data.
-            //Since all data is passed as linear arrays, those arrays need to be split up into vectors of N size in this case 3 to represent x, y, and z coordinates for a single point.
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        //Vertex Array Object - This array holds all the stuff that gets passed into the Vertex shader.
+        vaoID = glGenVertexArrays();
+        //Setting this array as the active "working directory"
+        glBindVertexArray(vaoID);
     
-            vbo = glGenBuffers();
-            vboIDs.add(vbo);
-            FloatBuffer textureBuffer = stack.callocFloat(textureCoordinates.length);
-            textureBuffer.put(0, textureCoordinates);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
-            
-            //Indices
-            vbo = glGenBuffers();
-            vboIDs.add(vbo);
-            IntBuffer indicesBuffer = stack.callocInt(indices.length);
-            indicesBuffer.put(0, indices);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+        int vbo = glGenBuffers();
+        vboIDs.add(vbo);
+        FloatBuffer pointsBuffer = MemoryUtil.memAllocFloat(vertices.length);
+        //FloatBuffer pointsBuffer = stack.callocFloat(vertices.length);
+        pointsBuffer.put(0, vertices);
+        //Bind a new buffer within the vertex array context, and specifies the type of data stored.
+        //More buffer types - https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBindBuffer.xhtml
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
     
-            //Set buffer 0 and vertex array 0 as active.
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-        }
+        //https://docs.gl/gl4/glBufferData
+        //Add the data to the previously bound buffer. Re-specifying the type of data held within.
+        //Usage is entirely for optimization and allows open gl to more intelligently handle the data but never interferes with its access.
+        glBufferData(GL_ARRAY_BUFFER, pointsBuffer, GL_STATIC_DRAW);
+    
+        //Marks the buffer at index 0 as ready for use.
+        glEnableVertexAttribArray(0);
+        //Tells OpenGL how to use the data.
+        //Since all data is passed as linear arrays, those arrays need to be split up into vectors of N size in this case 3 to represent x, y, and z coordinates for a single point.
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        vbo = glGenBuffers();
+        vboIDs.add(vbo);
+        FloatBuffer textureBuffer = MemoryUtil.memCallocFloat(textureCoordinates.length);
+        //FloatBuffer textureBuffer = stack.callocFloat(textureCoordinates.length);
+        textureBuffer.put(0, textureCoordinates);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+        
+        //Indices
+        vbo = glGenBuffers();
+        vboIDs.add(vbo);
+        IntBuffer indicesBuffer = MemoryUtil.memCallocInt(indices.length);
+        //IntBuffer indicesBuffer = stack.callocInt(indices.length);
+        indicesBuffer.put(0, indices);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+
+        //Set buffer 0 and vertex array 0 as active.
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
         initialized = true;
     }
     
