@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -85,6 +86,7 @@ public class EditorNode extends Node
     private final Texture materialIcon;
     private final Texture projectIcon;
     private final Texture textureIcon;
+    private final Texture shaderIcon;
     private final FrameBuffer viewportFrameBuffer;
     private final SceneRenderer sceneRenderer;
     
@@ -137,6 +139,7 @@ public class EditorNode extends Node
         modelIcon = new ImageTexture("AstroEngine/resources/icons/modeling.png");
         projectIcon = new ImageTexture("AstroEngine/resources/icons/project.png");
         materialIcon = new ImageTexture("AstroEngine/resources/icons/paint-bucket.png");
+        shaderIcon = new ImageTexture("AstroEngine/resources/icons/shader.png");
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
 
         this.hadIni = hadIni;
@@ -213,7 +216,8 @@ public class EditorNode extends Node
         createConsole();
         
         ImGui.setNextWindowDockID(center, ImGuiCond.FirstUseEver);
-        createSceneViewport(delta);
+        createCenterContent(delta);
+
         ImGui.popStyleColor();
 
         if(hasPopup())
@@ -691,6 +695,7 @@ public class EditorNode extends Node
                                 case PROJECT -> projectIcon.getTextureID();
                                 case MATERIAL -> materialIcon.getTextureID();
                                 case TEXTURE -> textureIcon.getTextureID();
+                                case SHADER -> shaderIcon.getTextureID();
                                 case DIRECTORY -> folderIcon.getTextureID();
                                 case TEXT -> textIcon.getTextureID();
                                 case SCENE -> sceneIcon.getTextureID();
@@ -714,10 +719,19 @@ public class EditorNode extends Node
                                 {
                                     loadScene(AssetManager.getInstance().instantiateScene(child));
                                 }
+                                else if(type == FileType.SHADER)
+                                {
+                                    loadTextEditor(new File(Toml.getAssetHeader(child).filePath()));
+                                }
+                                else if(type == FileType.MODEL || type == FileType.TEXTURE || type == FileType.MATERIAL)
+                                {
+                                
+                                }
                                 else
                                 {
                                     //figure out how to make it open to a specific child.
-                                    getIntellij().open(EditorIO.getProjectDirectory());
+                                    //getIntellij().open(EditorIO.getProjectDirectory());
+                                    loadTextEditor(child);
                                 }
                                 
                                 assetBrowserFileSelected = -1;
@@ -751,14 +765,16 @@ public class EditorNode extends Node
         ImGui.end();
     }
     
-    private void createSceneViewport(float delta)
+    boolean isViewport = true;
+    private void createCenterContent(float delta)
     {
+        boolean wasViewport = isViewport;
         int frameConfig = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
-        
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f);
         if(ImGui.begin("Scene Viewport Window", frameConfig))
         {
-            if(ImGui.isWindowHovered(ImGuiHoveredFlags.ChildWindows) && Input.getInstance().isMiddleMouseButtonPressed())
+            if(ImGui.isWindowHovered(ImGuiHoveredFlags.ChildWindows) && Input.getInstance()
+                    .isMiddleMouseButtonPressed())
             {
                 ImGui.setWindowFocus();
             }
@@ -766,43 +782,164 @@ public class EditorNode extends Node
             {
                 camera.update(delta);
             }
-            if(ImGui.button("Reset Camera"))
+            if(isViewport)
             {
-                camera.reset();
-            }
-            if(ImGui.beginChild("Scene actual Viewport"))
-            {
-
-                int windowWidth = engine.getWindow().getWidth();
-                int windowHeight = engine.getWindow().getHeight();
-                
-                ImVec2 contentRegion = ImGui.getWindowContentRegionMax();
-                int width = (int) contentRegion.x;
-                int height = (int) (contentRegion.y - ImGui.getFrameHeight());
-                viewportFrameBuffer.resize(width, height);
-                
-                viewportFrameBuffer.bind();
-                
-        
-                glClearColor(0f, 1f, 0f, 0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                
-                if(sceneManagerNode != null)
+                if(ImGui.button("Text Editor"))
                 {
-                    sceneRenderer.render(sceneManagerNode, camera, engine.getProjection());
+                    isViewport = false;
                 }
-                
-                ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
-                viewportFrameBuffer.unbind();
-        
-        
-                glViewport(0, 0, windowWidth, windowHeight);
+
+                createSceneViewport();
             }
-            ImGui.endChild();
+            else
+            {
+                if(ImGui.button("Scene Viewport"))
+                {
+                    isViewport = true;
+                }
+    
+                createTextEditor();
+            }
         }
-        ImGui.popStyleVar();
-        //ImGui.popStyleVar();
         ImGui.end();
+        ImGui.popStyleVar();
+    }
+    File textEditorLoadedFile = null;
+    ImString textEditorContent = new ImString(1000);
+    String textEditorLines = "";
+    boolean lightMode = false;
+    int textEditorDarkBG = astroColor.getInt();
+    int textEditorLightBG = ImColor.rgba(1f, 1f, 1f, 1f);
+    int textEditorDarkText = ImColor.rgba(1f, 1f, 1f, 1f);
+    int textEditorLightText = ImColor.rgba(0f, 0f, 0f, 1f);
+    
+
+    private void saveTextEditor()
+    {
+        if(textEditorLoadedFile != null)
+        {
+            try
+            {
+                Files.writeString(textEditorLoadedFile.toPath(), textEditorContent.toString());
+            } catch(IOException e)
+            {
+                EditorLogger.log(e);
+            }
+        }
+    }
+    private void loadTextEditor(File file)
+    {
+        String text;
+        try
+        {
+            text = Files.readString(file.toPath());
+            isViewport = false;
+            textEditorLoadedFile = file;
+        } catch(IOException e)
+        {
+            EditorLogger.log(e);
+            text = "";
+        }
+        
+        int length = text.length();
+        int lineCount = 0;
+        StringBuilder lineString = new StringBuilder();
+        for(int i = 0; i < length; i++)
+        {
+            char ch = text.charAt(i);
+            if(ch == '\0' || ch == '\n')
+            {
+                lineCount++;
+                lineString.append(lineCount).append('\n');
+            }
+        }
+        ImGuiUtils.resizeTextBuffer(textEditorContent, (int) (length * 1.1));
+        textEditorContent.set(text);
+        textEditorLines = lineString.toString();
+    }
+
+    private void createTextEditor()
+    {
+        ImGui.sameLine();
+        if(ImGui.button((lightMode ? "Light" : "Dark") + " Mode"))
+        {
+            lightMode = !lightMode;
+        }
+        
+        
+        
+        ImGui.separator();
+        if(lightMode)
+        {
+            ImGui.pushStyleColor(ImGuiCol.ChildBg, textEditorLightBG);
+            ImGui.pushStyleColor(ImGuiCol.Text, textEditorLightText);
+        }
+        else
+        {
+            ImGui.pushStyleColor(ImGuiCol.ChildBg, textEditorDarkBG);
+            ImGui.pushStyleColor(ImGuiCol.Text, textEditorDarkText);
+        }
+        if(ImGui.beginChild("Text Editor"))
+        {
+            ImGui.text(textEditorLines);
+            
+            ImGui.sameLine();
+            if(ImGui.inputTextMultiline("## Text Editor Content", textEditorContent,
+                    ImGui.getContentRegionAvailX(), ImGui.getContentRegionAvailY(), ImGuiInputTextFlags.AllowTabInput))
+            {
+                int textSize = textEditorContent.getLength();
+                int bufSize = textEditorContent.getBufferSize();
+                if(bufSize - textSize < 50)
+                {
+                    ImGuiUtils.resizeTextBuffer(textEditorContent, (int) (textSize * 1.1));
+                }
+                saveTextEditor();
+            }
+        }
+        ImGui.popStyleColor(2);
+        ImGui.endChild();
+    }
+    
+    private void createSceneViewport()
+    {
+        ImGui.sameLine();
+        if(ImGui.button("Reset Camera"))
+        {
+            camera.reset();
+        }
+        
+        
+        
+        ImGui.separator();
+        if(ImGui.beginChild("Scene actual Viewport"))
+        {
+
+            int windowWidth = engine.getWindow().getWidth();
+            int windowHeight = engine.getWindow().getHeight();
+            
+            ImVec2 contentRegion = ImGui.getWindowContentRegionMax();
+            int width = (int) contentRegion.x;
+            int height = (int) (contentRegion.y - ImGui.getFrameHeight());
+            viewportFrameBuffer.resize(width, height);
+            
+            viewportFrameBuffer.bind();
+            
+    
+            glClearColor(0f, 1f, 0f, 0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            
+            if(sceneManagerNode != null)
+            {
+                sceneRenderer.render(sceneManagerNode, camera, engine.getProjection());
+            }
+            
+            ImGui.image(viewportFrameBuffer.getTextureID(), width, height);
+            viewportFrameBuffer.unbind();
+    
+    
+            glViewport(0, 0, windowWidth, windowHeight);
+        }
+        ImGui.endChild();
     }
     
 }

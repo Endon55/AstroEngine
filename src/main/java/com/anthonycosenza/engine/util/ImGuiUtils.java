@@ -12,6 +12,7 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDragDropFlags;
 import imgui.flag.ImGuiWindowFlags;
+import imgui.type.ImString;
 import org.joml.Vector2i;
 
 import java.io.File;
@@ -158,4 +159,13 @@ public class ImGuiUtils
         return ImGui.getScrollY() / ImGui.getScrollMaxY();
     }
     
+    
+    public static void resizeTextBuffer(ImString string, int newSize)
+    {
+        int oldSize = string.getBufferSize();
+        if(newSize > oldSize)
+        {
+            string.resize(newSize);
+        }
+    }
 }
