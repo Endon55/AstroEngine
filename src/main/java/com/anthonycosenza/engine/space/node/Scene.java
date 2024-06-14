@@ -12,14 +12,5 @@ public class Scene extends Node implements Asset
         return AssetManager.getInstance().generateResourceID();
     }
     
-    public long getResourceID()
-    {
-        return resourceID;
-    }
     
-    @Override
-    public void setResourceID(long resourceID)
-    {
-        this.resourceID = resourceID;
-    }
 }

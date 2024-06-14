@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.space.rendering.shader;
 
 import com.anthonycosenza.editor.GLSLBuilder;
 import com.anthonycosenza.engine.assets.AssetManager;
+import com.anthonycosenza.engine.loader.Resources;
 import com.anthonycosenza.engine.util.FileUtils;
 import org.lwjgl.opengl.GL20;
 
@@ -9,8 +10,8 @@ import java.io.File;
 
 public class VertexShader implements Shader
 {
-    public static final VertexShader DEFAULT = new VertexShader("AstroEngine/resources/shaders/scene.vert", -10000);
-    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.vert");
+    public static final VertexShader DEFAULT = new VertexShader(Resources.get("shaders/scene.vert"), -10000);
+    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents(Resources.get("shaders/default.vert"));
     private long resourceID = -1;
     private String shaderpath;
     public transient boolean assemble = false;

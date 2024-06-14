@@ -8,12 +8,16 @@ import java.util.List;
 
 public class Node
 {
-    public long resourceID;
-    public String name;
+    private long resourceID;
+    private String name;
     
-    public transient Node parent;
-    public List<Node> children;
-    
+    protected transient Node bound;
+    private transient Node parent;
+    private List<Node> children;
+    public Node(Node bindNode)
+    {
+        bind(bindNode);
+    }
     public Node(List<Node> children)
     {
         this("", children);
@@ -28,6 +32,7 @@ public class Node
     }
     public Node(String name, List<Node> children)
     {
+        bound = this;
         this.name = name;
         if(children != null)
         {
@@ -37,6 +42,38 @@ public class Node
         
         this.resourceID = createNodeID();
     }
+    public void bind(Node node)
+    {
+        bound = node;
+    }
+    public void unbind()
+    {
+        bound = this;
+    }
+    public void setParent(Node parent)
+    {
+        bound.parent = parent;
+    }
+    
+    public Node getParent()
+    {
+        return bound.parent;
+    }
+    
+    public String getName()
+    {
+        return bound.name;
+    }
+    
+    public List<Node> getChildren()
+    {
+        return bound.children;
+    }
+    
+    public void setName(String name)
+    {
+        bound.name = name;
+    }
     
     protected long createNodeID()
     {
@@ -45,8 +82,8 @@ public class Node
     
     public void addChild(Node child)
     {
-        child.parent = this;
-        children.add(child);
+        child.parent = bound;
+        bound.children.add(child);
     }
     public void initialize()
     {
@@ -70,7 +107,7 @@ public class Node
     
     public void updateChildren(float delta)
     {
-        for(Node child : children)
+        for(Node child : bound.children)
         {
             child.update(delta);
             child.updateChildren(delta);
@@ -79,7 +116,7 @@ public class Node
     
     public void updateChildrenPhysics(float delta)
     {
-        for(Node child : children)
+        for(Node child : bound.children)
         {
             child.updatePhysics(delta);
             child.updateChildrenPhysics(delta);
@@ -88,24 +125,29 @@ public class Node
     
     public void updateChildrenUI(float delta)
     {
-        for(Node child : children)
+        for(Node child : bound.children)
         {
             child.updateUI(delta);
             child.updateChildrenUI(delta);
         }
     }
     
-    public long getId()
+    public void setResourceID(long resourceID)
     {
-        return resourceID;
+        bound.resourceID = resourceID;
+    }
+    
+    public long getResourceID()
+    {
+        return bound.resourceID;
     }
     
     @Override
     public String toString()
     {
         return "Node{" +
-                "name='" + name + '\'' +
-                ", children=" + children +
+                "name='" + bound.name + '\'' +
+                ", children=" + bound.children +
                 '}';
     }
     

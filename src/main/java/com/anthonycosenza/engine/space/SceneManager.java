@@ -36,7 +36,7 @@ public class SceneManager
                 Node node = nodes.pop();
                 node.initialize();
     
-                nodes.addAll(node.children);
+                nodes.addAll(node.getChildren());
             }
             initialized = true;
         }
@@ -86,7 +86,7 @@ public class SceneManager
                     camera = (Camera) node;
                     return camera;
                 }
-                nodes.addAll(node.children);
+                nodes.addAll(node.getChildren());
             }
             camera = Camera.DEFAULT_CAMERA;
         }

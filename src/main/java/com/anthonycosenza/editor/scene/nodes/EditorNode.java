@@ -17,6 +17,7 @@ import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.input.Input;
+import com.anthonycosenza.engine.loader.Resources;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
 import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
@@ -37,6 +38,7 @@ import imgui.ImGuiListClipper;
 import imgui.ImGuiViewport;
 import imgui.ImVec2;
 import imgui.callback.ImListClipperCallback;
+import imgui.extension.texteditor.TextEditor;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiCond;
 import imgui.flag.ImGuiDir;
@@ -127,19 +129,19 @@ public class EditorNode extends Node
         super();
         sceneRenderer = new SceneRenderer();
         this.engine = engine;
-        name = "Editor";
+        setName("Editor");
 
         camera = new MoveableCamera();
-        folderIcon = new ImageTexture("AstroEngine/resources/icons/folder.png");
-        settingsIcon = new ImageTexture("AstroEngine/resources/icons/settingsPaper.png");
-        textIcon = new ImageTexture("AstroEngine/resources/icons/txtPaper.png");
-        codeIcon = new ImageTexture("AstroEngine/resources/icons/codePaper.png");
-        sceneIcon = new ImageTexture("AstroEngine/resources/icons/diagram.png");
-        textureIcon = new ImageTexture("AstroEngine/resources/icons/picture.png");
-        modelIcon = new ImageTexture("AstroEngine/resources/icons/modeling.png");
-        projectIcon = new ImageTexture("AstroEngine/resources/icons/project.png");
-        materialIcon = new ImageTexture("AstroEngine/resources/icons/paint-bucket.png");
-        shaderIcon = new ImageTexture("AstroEngine/resources/icons/shader.png");
+        folderIcon = new ImageTexture(Resources.get("icons/folder.png"));
+        settingsIcon = new ImageTexture(Resources.get("icons/settingsPaper.png"));
+        textIcon = new ImageTexture(Resources.get("icons/txtPaper.png"));
+        codeIcon = new ImageTexture(Resources.get("icons/codePaper.png"));
+        sceneIcon = new ImageTexture(Resources.get("icons/diagram.png"));
+        textureIcon = new ImageTexture(Resources.get("icons/picture.png"));
+        modelIcon = new ImageTexture(Resources.get("icons/modeling.png"));
+        projectIcon = new ImageTexture(Resources.get("icons/project.png"));
+        materialIcon = new ImageTexture(Resources.get("icons/paint-bucket.png"));
+        shaderIcon = new ImageTexture(Resources.get("icons/shader.png"));
         viewportFrameBuffer = new FrameBuffer(1920, 1080);
 
         this.hadIni = hadIni;
@@ -400,10 +402,10 @@ public class EditorNode extends Node
     
     private void drawTree(Node node, int flags)
     {
-        boolean hasChildren = node.children != null && !node.children.isEmpty();
-        String name = (node.name.isEmpty() ? "" + node.getId() : node.name);
+        boolean hasChildren = node.getChildren() != null && !node.getChildren().isEmpty();
+        String name = (node.getName().isEmpty() ? "" + node.getResourceID() : node.getName());
         
-        if(ImGui.treeNodeEx(node.getId(), flags |
+        if(ImGui.treeNodeEx(node.getResourceID(), flags |
                 (hasChildren ? 0 : ImGuiTreeNodeFlags.Leaf) |
                 (node.equals(sceneManagerSelected) ? ImGuiTreeNodeFlags.Selected : 0), name))
         {
@@ -414,7 +416,7 @@ public class EditorNode extends Node
             
             if(hasChildren)
             {
-                for(Node child : node.children)
+                for(Node child : node.getChildren())
                 {
                     drawTree(child, flags);
                 }
@@ -475,7 +477,7 @@ public class EditorNode extends Node
                     ImGui.beginTooltip();
                     ImGui.setTooltip("Set as the starting scene your game will load into");
                     ProjectSettings settings = EditorIO.getProjectSettings();
-                    settings.mainScene = sceneManagerNode.resourceID;
+                    settings.mainScene = sceneManagerNode.getResourceID();
                     Toml.updateProjectSettings(settings);
                     ImGui.endTooltip();
                 }
@@ -504,7 +506,7 @@ public class EditorNode extends Node
             if(selectedNode != null)
             {
                 //Header
-                ImGui.text("id: " + selectedNode.resourceID);
+                ImGui.text("id: " + selectedNode.getResourceID());
                 String className = selectedNode.getClass().getSimpleName();
                 ImGui.text(className + ".class");
                 ImGui.separator();
@@ -805,22 +807,17 @@ public class EditorNode extends Node
         ImGui.popStyleVar();
     }
     File textEditorLoadedFile = null;
-    ImString textEditorContent = new ImString(1000);
-    String textEditorLines = "";
     boolean lightMode = false;
-    int textEditorDarkBG = astroColor.getInt();
-    int textEditorLightBG = ImColor.rgba(1f, 1f, 1f, 1f);
-    int textEditorDarkText = ImColor.rgba(1f, 1f, 1f, 1f);
-    int textEditorLightText = ImColor.rgba(0f, 0f, 0f, 1f);
+    boolean textEditorBigFont = false;
     
-
+    TextEditor editor = new TextEditor();
     private void saveTextEditor()
     {
         if(textEditorLoadedFile != null)
         {
             try
             {
-                Files.writeString(textEditorLoadedFile.toPath(), textEditorContent.toString());
+                Files.writeString(textEditorLoadedFile.toPath(), editor.getText());
             } catch(IOException e)
             {
                 EditorLogger.log(e);
@@ -840,63 +837,55 @@ public class EditorNode extends Node
             EditorLogger.log(e);
             text = "";
         }
-        
-        int length = text.length();
-        int lineCount = 0;
-        StringBuilder lineString = new StringBuilder();
-        for(int i = 0; i < length; i++)
-        {
-            char ch = text.charAt(i);
-            if(ch == '\0' || ch == '\n')
-            {
-                lineCount++;
-                lineString.append(lineCount).append('\n');
-            }
-        }
-        ImGuiUtils.resizeTextBuffer(textEditorContent, (int) (length * 1.1));
-        textEditorContent.set(text);
-        textEditorLines = lineString.toString();
+        editor.setText(text);
     }
 
     private void createTextEditor()
     {
         ImGui.sameLine();
-        if(ImGui.button((lightMode ? "Light" : "Dark") + " Mode"))
-        {
-            lightMode = !lightMode;
-        }
-        
-        
-        
-        ImGui.separator();
         if(lightMode)
         {
-            ImGui.pushStyleColor(ImGuiCol.ChildBg, textEditorLightBG);
-            ImGui.pushStyleColor(ImGuiCol.Text, textEditorLightText);
+            if(ImGui.button("Light Mode"))
+            {
+                lightMode = !lightMode;
+                editor.setPalette(editor.getLightPalette());
+            }
         }
         else
         {
-            ImGui.pushStyleColor(ImGuiCol.ChildBg, textEditorDarkBG);
-            ImGui.pushStyleColor(ImGuiCol.Text, textEditorDarkText);
-        }
-        if(ImGui.beginChild("Text Editor"))
-        {
-            ImGui.text(textEditorLines);
-            
-            ImGui.sameLine();
-            if(ImGui.inputTextMultiline("## Text Editor Content", textEditorContent,
-                    ImGui.getContentRegionAvailX(), ImGui.getContentRegionAvailY(), ImGuiInputTextFlags.AllowTabInput))
+            if(ImGui.button("Dark Mode"))
             {
-                int textSize = textEditorContent.getLength();
-                int bufSize = textEditorContent.getBufferSize();
-                if(bufSize - textSize < 50)
-                {
-                    ImGuiUtils.resizeTextBuffer(textEditorContent, (int) (textSize * 1.1));
-                }
-                saveTextEditor();
+                lightMode = !lightMode;
+                editor.setPalette(editor.getDarkPalette());
             }
         }
-        ImGui.popStyleColor(2);
+        ImGui.sameLine();
+        
+        if(ImGui.button((textEditorBigFont ? "Small" : "Big") +  " font"))
+        {
+            textEditorBigFont = !textEditorBigFont;
+        }
+
+        
+        
+        ImGui.separator();
+        
+        if(ImGui.beginChild("Text Editor"))
+        {
+            if(textEditorBigFont)
+            {
+                AstroFonts.push(24);
+            }
+            editor.render("Text Editor");
+            if(editor.isTextChanged())
+            {
+                saveTextEditor();
+            }
+            if(textEditorBigFont)
+            {
+                AstroFonts.pop();
+            }
+        }
         ImGui.endChild();
     }
     

@@ -198,7 +198,7 @@ public class AssetManager
         
         if(asset instanceof Scene scene)
         {
-            scene.name = filename;
+            scene.setName(filename);
             Toml.updateScene(scene, projectPath);
         }
         else
@@ -227,7 +227,7 @@ public class AssetManager
     public Scene createSceneAsset(File directory, String filename)
     {
         Scene scene = new Scene();
-        scene.name = filename;
+        scene.setName(filename);
         scene.getResourceID();
         String filepath = directory.getPath() + "\\" + filename + AssetType.SCENE.getExtension();
         assetInfoMap.put(scene.getResourceID(), new AssetInfo(scene.getResourceID(), AssetType.SCENE, filepath));

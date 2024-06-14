@@ -4,6 +4,7 @@ import com.google.common.reflect.ClassPath;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,14 @@ import java.util.stream.Collectors;
 
 public class ClassUtils
 {
+    public static Method getMethod(Class<?> clazz, String methodName)
+    {
+        for(Method method : clazz.getDeclaredMethods())
+        {
+            if(method.getName().equals(methodName)) return method;
+        }
+        return null;
+    }
     public static Field getField(Class<?> clazz, String fieldName)
     {
         for(Field field : clazz.getDeclaredFields())

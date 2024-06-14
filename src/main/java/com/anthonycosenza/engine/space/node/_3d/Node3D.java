@@ -22,6 +22,11 @@ public class Node3D extends Node implements Positional
         scale = new Vector3f(1, 1, 1);
     }
     
+    public Vector3f getPosition()
+    {
+        return position;
+    }
+    
     /*
      * Turning in place. Seeing 360 around you. Equivalent to rotateY.
      */
@@ -47,47 +52,47 @@ public class Node3D extends Node implements Positional
     
     public void rotateX(float angle)
     {
-        rotation.rotateX(angle);
+        ((Node3D) bound).rotation.rotateX(angle);
     }
     
     public void rotateY(float angle)
     {
-        rotation.rotateY(angle);
+        ((Node3D) bound).rotation.rotateY(angle);
     }
     
     public void rotateZ(float angle)
     {
-        rotation.rotateZ(angle);
+        ((Node3D) bound).rotation.rotateZ(angle);
     }
     public void setRotationDeg(float x, float y, float z, float angle)
     {
-        rotation.fromAxisAngleDeg(x, y, z, angle);
+        ((Node3D) bound).rotation.fromAxisAngleDeg(x, y, z, angle);
     }
     
     public void setRotationRad(float x, float y, float z, float angle)
     {
-        rotation.fromAxisAngleRad(x, y, z, angle);
+        ((Node3D) bound).rotation.fromAxisAngleRad(x, y, z, angle);
     }
     
     public void setPosition(float x, float y, float z)
     {
-        this.position.set(x, y , z);
+        ((Node3D) bound).position.set(x, y , z);
         //updateMatrix();
     }
     public Vector3f getEulerAngle()
     {
-        return rotation.getEulerAnglesXYZ(new Vector3f());
+        return ((Node3D) bound).rotation.getEulerAnglesXYZ(new Vector3f());
     }
     
     public Matrix4f getTransformation()
     {
         //This is expensive, find a better way to do this. Maybe convert the serializer to use getters and setters instead.
         updateMatrix();
-        return matrix;
+        return ((Node3D) bound).matrix;
     }
     
     public void updateMatrix()
     {
-        matrix.translationRotateScale(position, rotation, scale);
+        ((Node3D) bound).matrix.translationRotateScale(position, rotation, scale);
     }
 }

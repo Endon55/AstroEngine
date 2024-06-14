@@ -18,6 +18,7 @@ public class EditorIO
     private static File astroDirectory = null;
     private static File projectConfig = null;
     private static File userDirectory = null;
+    private static File tempDirectory = null;
     private static File projectHistory = null;
     private static String engineVersion = "0.1";
     private static File shaderDirectory = null;
@@ -177,7 +178,7 @@ public class EditorIO
         }
         return file;
     }
-    private static File getUserDirectory()
+    public static File getUserDirectory()
     {
         if(userDirectory == null)
         {
@@ -192,6 +193,23 @@ public class EditorIO
         }
         return userDirectory;
     }
+    
+    public static File getTempDirectory()
+    {
+        if(tempDirectory == null)
+        {
+            tempDirectory = new File(getUserDirectory().getPath() + "\\tmp");
+            if(!tempDirectory.exists())
+            {
+                if(!tempDirectory.mkdirs())
+                {
+                    throw new RuntimeException("Failed to create Temp User Folder.");
+                }
+            }
+        }
+        return tempDirectory;
+    }
+    
     
     private static File getProjectHistory()
     {

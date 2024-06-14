@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.ui;
 
+import com.anthonycosenza.engine.loader.Resources;
 import imgui.ImFont;
 import imgui.ImFontAtlas;
 import imgui.ImFontConfig;
@@ -22,9 +23,9 @@ public class AstroFonts
     public static final String DEFAULT_FONT = "verdana";
     public static void setupFonts()
     {
-        setupFonts(List.of("AstroEngine/resources/fonts/" + DEFAULT_FONT + ".ttf",
-                        "AstroEngine/resources/fonts/" + DEFAULT_FONT + ".ttf",
-                        "AstroEngine/resources/fonts/" + DEFAULT_FONT + ".ttf"),
+        setupFonts(List.of(Resources.get("fonts/" + DEFAULT_FONT + ".ttf"),
+                Resources.get("fonts/" + DEFAULT_FONT + ".ttf"),
+                        Resources.get("fonts/" + DEFAULT_FONT + ".ttf")),
                 List.of(16, 24,32));
     }
     public static void setupFonts(List<String> fontPaths, List<Integer> fontSizes)
@@ -59,6 +60,11 @@ public class AstroFonts
     public static void push(String fontName, int fontSize)
     {
         push(fontName + fontSize);
+    }
+    
+    public static void push(int fontSize)
+    {
+        push(DEFAULT_FONT + fontSize);
     }
     public static void pop()
     {

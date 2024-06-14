@@ -25,7 +25,7 @@ public class Camera extends Node
     
     public Camera()
     {
-        name = "Camera";
+        setName("Camera");
         position = new Vector3f();
         rotation = new Vector3f();
         

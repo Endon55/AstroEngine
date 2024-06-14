@@ -269,18 +269,17 @@ public class Toml
         {
             throw new RuntimeException("Cannot instantiate class: " + type + " - " + e);
         }
-        
-        node.parent = parent;
+        node.setParent(parent);
         if(parent == null)
         {
             parent = node;
         }
         else
         {
-            parent.children.add(node);
+            parent.addChild(node);
         }
         
-        node.name = name;
+        node.setName(name);
         Map.Entry<String, Object> nodeRoot;
         for(Map.Entry<String, Object> attribute : map.entrySet())
         {
@@ -565,9 +564,9 @@ public class Toml
 
         private void saveNode(List<String> path, CommentedConfig config, Node node)
         {
-            path.add(node.name);
+            path.add(node.getName());
     
-            for(Node child : node.children)
+            for(Node child : node.getChildren())
             {
                 saveNode(new ArrayList<>(path), config, child);
             }

@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.space.rendering.shader;
 
 import com.anthonycosenza.editor.GLSLBuilder;
 import com.anthonycosenza.engine.assets.AssetManager;
+import com.anthonycosenza.engine.loader.Resources;
 import com.anthonycosenza.engine.util.FileUtils;
 import org.lwjgl.opengl.GL20;
 
@@ -10,8 +11,8 @@ import java.io.File;
 
 public class FragmentShader implements Shader
 {
-    public static final FragmentShader DEFAULT = new FragmentShader("AstroEngine/resources/shaders/scene.frag", -10002);
-    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents("AstroEngine/resources/shaders/default.frag");
+    public static final FragmentShader DEFAULT = new FragmentShader(Resources.get("shaders/scene.frag"), -10002);
+    public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents(Resources.get("shaders/default.frag"));
     private long resourceID = -1;
     private String shaderpath;
     public transient boolean assemble = false;

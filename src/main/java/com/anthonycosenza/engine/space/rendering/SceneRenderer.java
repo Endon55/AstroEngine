@@ -68,7 +68,7 @@ public class SceneRenderer
                     glDrawElements(GL_TRIANGLES, mesh.getVertexCount(), GL_UNSIGNED_INT, 0);
                 }
             }
-            pipeline.unbind();;
+            pipeline.unbind();
         }
         
     }
@@ -84,7 +84,7 @@ public class SceneRenderer
         while(!nodes.isEmpty())
         {
             Node node = nodes.pop();
-            nodes.addAll(node.children);
+            nodes.addAll(node.getChildren());
             
             if(node instanceof Renderable renderable)
             {

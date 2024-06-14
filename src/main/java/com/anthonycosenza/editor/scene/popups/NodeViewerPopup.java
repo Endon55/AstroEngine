@@ -103,7 +103,7 @@ public class NodeViewerPopup implements Popup
             try
             {
                 node = clazz.getConstructor().newInstance();
-                node.name = "New " + clazz.getSimpleName();
+                node.setName("New " + clazz.getSimpleName());
             } catch(NoSuchMethodException | InvocationTargetException | IllegalAccessException |
                     InstantiationException e)
             {
