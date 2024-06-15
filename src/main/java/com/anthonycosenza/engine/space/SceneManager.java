@@ -11,7 +11,6 @@ public class SceneManager
     private static int sceneIndex = 0;
     private static Node currentScene = null;
     private static Camera camera = null;
-    private static boolean initialized = false;
     private static boolean isModified = false;
     
     private static Map<Long, Node> sceneMap = new HashMap<>();
@@ -20,25 +19,12 @@ public class SceneManager
     {
         SceneManager.sceneIndex = sceneIndex;
     }
-    
+
     public static Node getScene()
     {
         if(currentScene == null)
         {
             throw new RuntimeException("Scene doesn't exist.");
-        }
-        if(!initialized)
-        {
-            Stack<Node> nodes = new Stack<>();
-            nodes.add(currentScene);
-            while(!nodes.isEmpty())
-            {
-                Node node = nodes.pop();
-                node.initialize();
-    
-                nodes.addAll(node.getChildren());
-            }
-            initialized = true;
         }
         
         return currentScene;
@@ -47,29 +33,22 @@ public class SceneManager
     {
         SceneManager.currentScene = scene;
         camera = null;
-        initialized = false;
         getCamera();
     }
-    
+
     public static void update(float delta)
     {
-        Node scene = getScene();
-        scene.update(delta);
-        scene.updateChildren(delta);
+        getScene().update(delta);
     }
     
     public static void updatePhysics(float delta)
     {
-        Node scene = getScene();
-        scene.updatePhysics(delta);
-        scene.updateChildrenPhysics(delta);
+        getScene().updatePhysics(delta);
     }
     
     public static void updateUI(float delta)
     {
-        Node scene = getScene();
-        scene.updateUI(delta);
-        scene.updateChildrenUI(delta);
+        getScene().updateUI(delta);
     }
     
     public static Camera getCamera()
@@ -92,5 +71,4 @@ public class SceneManager
         }
         return camera;
     }
-    
 }

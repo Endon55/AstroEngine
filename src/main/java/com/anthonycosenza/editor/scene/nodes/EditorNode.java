@@ -175,7 +175,6 @@ public class EditorNode extends Node
         }
     }
     
-    
     int left;
     int right;
     int center;
@@ -185,6 +184,8 @@ public class EditorNode extends Node
     @Override
     public void updateUI(float delta)
     {
+        super.updateUI(delta);
+        
         if(projectProcess != null && !projectProcess.isAlive())
         {
             projectProcess.destroy();

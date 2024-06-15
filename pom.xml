@@ -16,7 +16,6 @@
 
 
     <build>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -37,22 +36,47 @@
                 <version>3.5.2</version>
                 <executions>
                     <execution>
+                        <id>Engine</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputDirectory>
+                                ${basedir}/build/AstroEngine
+                            </outputDirectory>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.anthonycosenza.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                            <finalName>AstroEngine</finalName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>API</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputDirectory>
+                                ${basedir}/build/AstroEngine
+                            </outputDirectory>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.anthonycosenza.editor.external.APIMain</mainClass>
+                                </transformer>
+                            </transformers>
+                            <finalName>AstroAPI</finalName>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <outputDirectory>
-                        ${basedir}/build/AstroEngine
-                    </outputDirectory>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>com.anthonycosenza.Main</mainClass>
-                        </transformer>
-                    </transformers>
-                </configuration>
+
             </plugin>
         </plugins>
     </build>

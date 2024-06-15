@@ -19,7 +19,6 @@ import java.io.File;
 
 public class LoadWindowNode extends Node
 {
-    
     private boolean creatingProject = false;
     private ImString newProjectName = new ImString();
     private String newProjectDirectory = "";
@@ -45,7 +44,7 @@ public class LoadWindowNode extends Node
             }
         }
     }
-    
+
     public void loadProject(String projectDirectory)
     {
         EditorIO.loadProject(projectDirectory);

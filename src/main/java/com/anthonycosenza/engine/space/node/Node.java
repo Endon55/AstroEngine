@@ -11,13 +11,10 @@ public class Node
     private long resourceID;
     private String name;
     
-    protected transient Node bound;
     private transient Node parent;
-    private List<Node> children;
-    public Node(Node bindNode)
-    {
-        bind(bindNode);
-    }
+    private transient boolean initialized = false;
+    private final List<Node> children;
+
     public Node(List<Node> children)
     {
         this("", children);
@@ -32,7 +29,6 @@ public class Node
     }
     public Node(String name, List<Node> children)
     {
-        bound = this;
         this.name = name;
         if(children != null)
         {
@@ -42,37 +38,30 @@ public class Node
         
         this.resourceID = createNodeID();
     }
-    public void bind(Node node)
-    {
-        bound = node;
-    }
-    public void unbind()
-    {
-        bound = this;
-    }
+    
     public void setParent(Node parent)
     {
-        bound.parent = parent;
+        this.parent = parent;
     }
     
     public Node getParent()
     {
-        return bound.parent;
+        return this.parent;
     }
     
     public String getName()
     {
-        return bound.name;
+        return this.name;
     }
     
     public List<Node> getChildren()
     {
-        return bound.children;
+        return this.children;
     }
     
     public void setName(String name)
     {
-        bound.name = name;
+        this.name = name;
     }
     
     protected long createNodeID()
@@ -82,72 +71,57 @@ public class Node
     
     public void addChild(Node child)
     {
-        child.parent = bound;
-        bound.children.add(child);
+        child.parent = this;
+        this.children.add(child);
     }
     public void initialize()
     {
-    
+        
+        initialized = true;
     }
     
     public void update(float delta)
     {
-    
+        if(!initialized) initialize();
+        for(Node child : this.children)
+        {
+            child.update(delta);
+        }
     }
     
     public void updatePhysics(float delta)
     {
-    
+        if(!initialized) initialize();
+        for(Node child : this.children)
+        {
+            child.updatePhysics(delta);
+        }
     }
     
     public void updateUI(float delta)
     {
-    
-    }
-    
-    public void updateChildren(float delta)
-    {
-        for(Node child : bound.children)
-        {
-            child.update(delta);
-            child.updateChildren(delta);
-        }
-    }
-    
-    public void updateChildrenPhysics(float delta)
-    {
-        for(Node child : bound.children)
-        {
-            child.updatePhysics(delta);
-            child.updateChildrenPhysics(delta);
-        }
-    }
-    
-    public void updateChildrenUI(float delta)
-    {
-        for(Node child : bound.children)
+        if(!initialized) initialize();
+        for(Node child : this.children)
         {
             child.updateUI(delta);
-            child.updateChildrenUI(delta);
         }
     }
-    
     public void setResourceID(long resourceID)
     {
-        bound.resourceID = resourceID;
+        this.resourceID = resourceID;
     }
     
     public long getResourceID()
     {
-        return bound.resourceID;
+        return this.resourceID;
     }
     
     @Override
     public String toString()
     {
         return "Node{" +
-                "name='" + bound.name + '\'' +
-                ", children=" + bound.children +
+                "name='" + this.name + '\'' +
+                ", children=" + this.children +
                 '}';
     }
     

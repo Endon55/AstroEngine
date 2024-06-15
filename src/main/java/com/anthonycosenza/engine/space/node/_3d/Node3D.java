@@ -52,47 +52,47 @@ public class Node3D extends Node implements Positional
     
     public void rotateX(float angle)
     {
-        ((Node3D) bound).rotation.rotateX(angle);
+        this.rotation.rotateX(angle);
     }
     
     public void rotateY(float angle)
     {
-        ((Node3D) bound).rotation.rotateY(angle);
+        this.rotation.rotateY(angle);
     }
     
     public void rotateZ(float angle)
     {
-        ((Node3D) bound).rotation.rotateZ(angle);
+        this.rotation.rotateZ(angle);
     }
     public void setRotationDeg(float x, float y, float z, float angle)
     {
-        ((Node3D) bound).rotation.fromAxisAngleDeg(x, y, z, angle);
+        this.rotation.fromAxisAngleDeg(x, y, z, angle);
     }
     
     public void setRotationRad(float x, float y, float z, float angle)
     {
-        ((Node3D) bound).rotation.fromAxisAngleRad(x, y, z, angle);
+        this.rotation.fromAxisAngleRad(x, y, z, angle);
     }
     
     public void setPosition(float x, float y, float z)
     {
-        ((Node3D) bound).position.set(x, y , z);
+        this.position.set(x, y , z);
         //updateMatrix();
     }
     public Vector3f getEulerAngle()
     {
-        return ((Node3D) bound).rotation.getEulerAnglesXYZ(new Vector3f());
+        return this.rotation.getEulerAnglesXYZ(new Vector3f());
     }
     
     public Matrix4f getTransformation()
     {
         //This is expensive, find a better way to do this. Maybe convert the serializer to use getters and setters instead.
         updateMatrix();
-        return ((Node3D) bound).matrix;
+        return this.matrix;
     }
     
     public void updateMatrix()
     {
-        ((Node3D) bound).matrix.translationRotateScale(position, rotation, scale);
+        this.matrix.translationRotateScale(position, rotation, scale);
     }
 }

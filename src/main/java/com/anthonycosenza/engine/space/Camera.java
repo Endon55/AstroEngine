@@ -36,14 +36,7 @@ public class Camera extends Node
         cameraMatrix = new Matrix4f();
         updateMatrix();
     }
-    
-    
-    @Override
-    public void update(float delta)
-    {
-        super.update(delta);
-    }
-    
+  
     public void addRotation(float x, float y)
     {
         rotation.add(x, y, 0);
