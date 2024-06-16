@@ -109,21 +109,23 @@ public class AssetCreationPopup implements Popup
             ImGui.spacing();
             ImGui.separator();
             ImGui.spacing();
-        
-            
-            for(int i = 0; i < getTypesString().size(); i++)
+            if(ImGui.beginChild("Asset Type Selector"))
             {
-                if(ImGui.selectable(getTypesString().get(i), typeSelection == i))
+                for(int i = 0; i < getTypesString().size(); i++)
                 {
-                    typeSelection = i;
-                    ImGui.setItemDefaultFocus();
-                    shouldSelectText = true;
-                }
-                else if(typeSelection == i)
-                {
-                    ImGui.setItemDefaultFocus();
+                    if(ImGui.selectable(getTypesString().get(i), typeSelection == i))
+                    {
+                        typeSelection = i;
+                        ImGui.setItemDefaultFocus();
+                        shouldSelectText = true;
+                    }
+                    else if(typeSelection == i)
+                    {
+                        ImGui.setItemDefaultFocus();
+                    }
                 }
             }
+            ImGui.endChild();
         }
         ImGui.end();
     }

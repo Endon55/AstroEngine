@@ -1,5 +1,6 @@
 package com.anthonycosenza.editor;
 
+import com.anthonycosenza.editor.external.Intellij;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.util.FileUtils;
 import com.anthonycosenza.engine.util.Toml;
@@ -25,8 +26,24 @@ public class EditorIO
     private static File outDirectory = null;
     private static File projectHistory = null;
     private static String engineVersion = "0.1";
-    private static File shaderDirectory = null;
     
+    private static File shaderDirectory = null;
+    private static File scriptsDirectory = null;
+    
+    public static File getScriptsDirectory()
+    {
+        if(scriptsDirectory == null)
+        {
+            scriptsDirectory = new File(getProjectDirectory().getPath() + "\\Scripts");
+            if(!scriptsDirectory.exists())
+            {
+                scriptsDirectory.mkdirs();
+                Intellij intellij = new Intellij();
+                intellij.open(scriptsDirectory);
+            }
+        }
+        return scriptsDirectory;
+    }
     
     public static File getProjectConfig()
     {

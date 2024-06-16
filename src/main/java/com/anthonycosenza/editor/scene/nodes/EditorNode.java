@@ -27,6 +27,7 @@ import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.ui.AstroFonts;
+import com.anthonycosenza.engine.util.FileUtils;
 import com.anthonycosenza.engine.util.ImGuiUtils;
 import com.anthonycosenza.engine.util.FileType;
 import com.anthonycosenza.engine.util.Toml;
@@ -127,6 +128,7 @@ public class EditorNode extends Node
     public EditorNode(Engine engine, boolean hadIni)
     {
         super();
+        intellij = new Intellij();
         sceneRenderer = new SceneRenderer();
         this.engine = engine;
         setName("Editor");
@@ -673,12 +675,19 @@ public class EditorNode extends Node
                 ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0);
                 ImGui.pushStyleColor(ImGuiCol.ButtonHovered, hoveredTableColor);
                 File[] files = Objects.requireNonNull(assetBrowserPath.listFiles());
-
+                
                 for(int i = 0; i < files.length; i++)
                 {
                     File child = files[i];
-                    String[] split = child.getAbsolutePath().split("\\\\");
-                    String fileNameWithExtension = split[split.length - 1];
+                    String fileNameWithExtension = FileUtils.getFileNameWithExtension(child);
+                    if(child.isDirectory() && (fileNameWithExtension.startsWith(".") || fileNameWithExtension.startsWith("out")))
+                    {
+                        continue;
+                    }
+                    else if(fileNameWithExtension.endsWith(".iml") || fileNameWithExtension.endsWith(".astro"))
+                    {
+                        continue;
+                    }
                     
                     if(i == assetBrowserFileSelected)
                     {
@@ -866,7 +875,12 @@ public class EditorNode extends Node
         {
             textEditorBigFont = !textEditorBigFont;
         }
-
+        
+        ImGui.sameLine();
+        if(ImGui.button("Open in Editor"))
+        {
+            intellij.open(EditorIO.getScriptsDirectory());
+        }
         
         
         ImGui.separator();

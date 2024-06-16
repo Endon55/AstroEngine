@@ -25,18 +25,18 @@ public class ScriptCompiler
     public static String getDefaultScript(String scriptName)
     {
         StringBuilder builder = new StringBuilder();
-        builder.append("import com.anthonycosenza.engine.space.node._3d.Node;").append("\n\n");
+        builder.append("import com.anthonycosenza.engine.space.node.Node;").append("\n\n");
         builder.append("public class ").append(scriptName).append(" extends Node");
         builder.append("\n{\n");
         
         builder.append("\t@Override\n");
-        builder.append("\tpublic void update(float delta)\n\t{\n\t\tsuper.update(delta)\n\n\t}\n\n");
+        builder.append("\tpublic void update(float delta)\n\t{\n\t\tsuper.update(delta);\n\n\t}\n\n");
         
         builder.append("\t@Override\n");
-        builder.append("\tpublic void updatePhysics(float delta)\n\t{\n\t\tsuper.updatePhysics(delta)\n\n\t}\n\n");
+        builder.append("\tpublic void updatePhysics(float delta)\n\t{\n\t\tsuper.updatePhysics(delta);\n\n\t}\n\n");
         
         builder.append("\t@Override\n");
-        builder.append("\tpublic void updateUI(float delta)\n\t{\n\t\tsuper.updateUI(delta)\n\n\t}\n\n");
+        builder.append("\tpublic void updateUI(float delta)\n\t{\n\t\tsuper.updateUI(delta);\n\n\t}\n\n");
     
         builder.append("\n}");
         return builder.toString();

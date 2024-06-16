@@ -149,7 +149,7 @@ public class AssetManager
     {
         if(assetType == AssetType.SCRIPT)
         {
-            String path = directory.getAbsolutePath() + "\\" + filename + ".java";
+            String path = EditorIO.getScriptsDirectory().getAbsolutePath() + "\\" + filename + ".java";
             File script = new File(path);
             try
             {
