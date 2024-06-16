@@ -20,13 +20,13 @@ public class ScriptCompiler
     //Place jar file in IDE resources.
     private static URLClassLoader loader;
     private ScriptCompiler() { }
-
+    
     
     private static void checkLoader()
     {
         if(loader == null)
         {
-            throw new RuntimeException("Loader used without first compiling sources.");
+            compile();
         }
     }
 
@@ -41,7 +41,6 @@ public class ScriptCompiler
             throw new RuntimeException("Failed to load class(" + className + ") -" + e);
         }
     }
-    
     public static void compile()
     {
         compile(findSources(EditorIO.getProjectDirectory()), EditorIO.getOutDirectory());

@@ -33,7 +33,7 @@ public class AssetCreationPopup implements Popup
     {
         if(typesStrings == null)
         {
-            typesStrings = types.stream().map(Enum::name).toList();
+            typesStrings = getTypes().stream().map(Enum::name).toList();
         }
         return typesStrings;
     }

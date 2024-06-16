@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.util;
 
 import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.editor.logger.EditorLogger;
+import com.anthonycosenza.editor.scripts.ScriptCompiler;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -153,10 +154,9 @@ public class Toml
         Camera camera;
         try
         {
-            camera = (Camera) Class.forName(config.get("type")).getConstructor().newInstance();
+            camera = (Camera) getClass(config.get("type")).getConstructor().newInstance();
             
-        } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                ClassNotFoundException e)
+        } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
         {
             throw new RuntimeException(e);
         }
@@ -223,16 +223,31 @@ public class Toml
         
         return (Scene) node;
     }
-    
+    private static Class<?> getClass(String type)
+    {
+        if(type.startsWith("script"))
+        {
+            String[] split = ((String) type).split("\\s*[()]");
+            return ScriptCompiler.load(split[1]);
+            
+        }
+        else
+        {
+            try
+            {
+                return Class.forName(type);
+            } catch(ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+    }
     public static Object parseObject(CommentedConfig config, Map<Long, Asset> assets)
     {
-        
         try
         {
-            Class<?> clazz = Class.forName(config.get("type"));
-            //if(type == null) throw new RuntimeException("Couldn't parse Object: " + config);
-    
-    
+            Class<?> clazz = getClass(config.get("type"));
+            
             Object object = clazz.getDeclaredConstructor().newInstance();
             for(Map.Entry<String, Object> entry : config.valueMap().entrySet())
             {
@@ -244,7 +259,7 @@ public class Toml
     
             return object;
         } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
-                NoSuchFieldException | ClassNotFoundException e)
+                NoSuchFieldException e)
         {
             throw new RuntimeException(e);
         }
@@ -260,11 +275,8 @@ public class Toml
         Class<? extends Node> clazz;
         try
         {
-            clazz = (Class<? extends Node>) Class.forName(type);
+            clazz = (Class<? extends Node>) getClass(type);
             node = clazz.getConstructor().newInstance();
-        } catch(ClassNotFoundException e)
-        {
-            throw new RuntimeException("Cannot get class: " + type + " - " + e);
         } catch(InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e)
         {
             throw new RuntimeException("Cannot instantiate class: " + type + " - " + e);
@@ -503,7 +515,8 @@ public class Toml
             }
             else //It's a user defined class
             {
-                config.set(path, name);
+                System.out.println("user class");
+                config.set(path, "script(" + name + ")");
             }
             return this;
         }
@@ -571,7 +584,7 @@ public class Toml
             saveNode(new ArrayList<>(), config, node);
             return this;
         }
-
+        
         private void saveNode(List<String> path, CommentedConfig config, Node node)
         {
             path.add(node.getName());
