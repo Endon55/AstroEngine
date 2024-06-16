@@ -36,4 +36,39 @@ public class FileUtils
         return split[split.length - 1];
     }
     
+    public static String getFileName(File file)
+    {
+        String filepath = file.getName();
+        int index = 0;
+        int extIndex = filepath.length();
+        for(int i = filepath.length() - 1; i >= 0; i--)
+        {
+            char ch = filepath.charAt(i);
+            if(ch == '.')
+            {
+                extIndex = i;
+            }
+            if(ch == '\\' || ch == '/')
+            {
+                break;
+            }
+            index = i;
+        }
+        return filepath.substring(index, extIndex);
+    }
+    public static String getFileNameWithExtension(File file)
+    {
+        String filepath = file.getName();
+        int index = filepath.length();
+        for(int i = filepath.length() - 1; i >= 0; i--)
+        {
+            char ch = filepath.charAt(i);
+            if(ch == '\\' || ch == '/')
+            {
+                break;
+            }
+            index = i;
+        }
+        return filepath.substring(index);
+    }
 }

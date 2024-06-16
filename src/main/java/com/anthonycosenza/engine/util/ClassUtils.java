@@ -77,12 +77,11 @@ public class ClassUtils
         return fields;
     }
     
-    
-    public static <T> Set<Class<? extends T>>  findAllClasses(String basePackage, Class<T> supertype)
+    public static <T> Set<Class<? extends T>> findAllClasses(String basePackage, Class<T> supertype, ClassLoader loader)
     {
         try
         {
-            return ClassPath.from(ClassLoader.getSystemClassLoader()).getTopLevelClassesRecursive("com.anthonycosenza")
+            return ClassPath.from(loader).getTopLevelClassesRecursive(basePackage)
                     .stream()
                     .map(ClassPath.ClassInfo::load)
                     .filter(supertype::isAssignableFrom).map(clazz -> (Class<? extends T>) clazz)
@@ -93,5 +92,9 @@ public class ClassUtils
         {
             throw new RuntimeException(e);
         }
+    }
+    public static <T> Set<Class<? extends T>>  findAllClasses(String basePackage, Class<T> supertype)
+    {
+        return findAllClasses(basePackage, supertype, ClassLoader.getSystemClassLoader());
     }
 }

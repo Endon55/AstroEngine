@@ -1,4 +1,4 @@
-package com.anthonycosenza.editor.external;
+package com.anthonycosenza.editor.scripts;
 
 import com.anthonycosenza.engine.space.node.Node;
 

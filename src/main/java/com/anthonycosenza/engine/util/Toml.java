@@ -413,8 +413,7 @@ public class Toml
         public Toml.builder serializeObject(List<Field> fields, List<String> path, Object object)
         {
             int lastItem = path.size();
-            path.add("type");
-            config.set(path, object.getClass().getName());
+            type(path, object);
             for(Field field : fields)
             {
                 field.setAccessible(true);
@@ -488,20 +487,31 @@ public class Toml
             
             List<String> path = new ArrayList<>(2);
             path.add(asset.getClass().getSimpleName());
-            path.add("type");
-            config.add(path, asset.getClass().getName());
+            type(path, asset);
             path.remove(path.size() - 1);
             
             serializeObject(path, asset);
             return this;
         }
-        
+        public Toml.builder type(List<String> path, Object node)
+        {
+            path.add("type");
+            String name = node.getClass().getName();
+            if(name.startsWith("com.anthonycosenza"))
+            {
+                config.set(path, name);
+            }
+            else //It's a user defined class
+            {
+                config.set(path, name);
+            }
+            return this;
+        }
         public Toml.builder camera(Camera camera)
         {
             List<String> path = new ArrayList<>();
             path.add(CAMERA);
-            path.add("type");
-            config.set(path, camera.getClass().getName());
+            type(path, camera);
             for(Field field : ClassUtils.getAllFields(Camera.class))
             {
                 path.set(1, field.getName());

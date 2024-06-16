@@ -1,6 +1,7 @@
 package com.anthonycosenza.editor;
 
 import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.util.FileUtils;
 import com.anthonycosenza.engine.util.Toml;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.toml.TomlFormat;
@@ -8,9 +9,11 @@ import com.electronwill.nightconfig.toml.TomlFormat;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 public class EditorIO
 {
@@ -19,6 +22,7 @@ public class EditorIO
     private static File projectConfig = null;
     private static File userDirectory = null;
     private static File tempDirectory = null;
+    private static File outDirectory = null;
     private static File projectHistory = null;
     private static String engineVersion = "0.1";
     private static File shaderDirectory = null;
@@ -60,6 +64,15 @@ public class EditorIO
     public static File getProjectDirectory()
     {
         return projectDirectory;
+    }
+    
+    public static File getOutDirectory()
+    {
+        if(outDirectory == null)
+        {
+            outDirectory = new File(getProjectDirectory().getPath() + "\\out");
+        }
+        return outDirectory;
     }
     
     public static ProjectSettings loadProjectData(String directory)
@@ -234,4 +247,44 @@ public class EditorIO
             throw new RuntimeException(e);
         }
     }
+    
+    public static List<File> getAllProjectScripts()
+    {
+        return getAllProjectFilesRecursive((file) ->
+            FileUtils.getExtension(file).equals("java"));
+    }
+    
+    public static List<File> getAllProjectFilesRecursive(FilterFunc filterFunc)
+    {
+        List<File> files = new ArrayList<>();
+        Stack<File> stack = new Stack<>();
+        stack.add(getProjectDirectory());
+        while(!stack.isEmpty())
+        {
+            File file = stack.pop();
+            
+            if(file.isDirectory())
+            {
+                File[] children = file.listFiles();
+                if(children != null && children.length > 0)
+                {
+                    for(int i = 0; i < children.length; i++)
+                    {
+                        stack.add(children[i]);
+                    }
+                }
+            }
+            else if(filterFunc.filter(file))
+            {
+                files.add(file);
+            }
+        }
+        return files;
+    }
+    
+    private interface FilterFunc
+    {
+        boolean filter(File file);
+    }
+    
 }

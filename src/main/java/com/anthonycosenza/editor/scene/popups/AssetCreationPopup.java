@@ -16,8 +16,27 @@ import java.util.List;
 
 public class AssetCreationPopup implements Popup
 {
-    private static final List<AssetType> types = new ArrayList<>(List.of(AssetType.values())).stream().filter(AssetType::isImplemented).toList();
-    private static final List<String> typesString = types.stream().map(Enum::name).toList();
+    private static List<AssetType> types;
+    private static List<String> typesStrings;
+    
+    
+    private static List<AssetType> getTypes()
+    {
+        if(types == null)
+        {
+            types = new ArrayList<>(List.of(AssetType.values())).stream().filter(AssetType::isImplemented).toList();
+        }
+        return types;
+    }
+    
+    private static List<String> getTypesString()
+    {
+        if(typesStrings == null)
+        {
+            typesStrings = types.stream().map(Enum::name).toList();
+        }
+        return typesStrings;
+    }
     
     private boolean finished = false;
     private Vector2i windowSize = new Vector2i(350, 150);
@@ -31,7 +50,7 @@ public class AssetCreationPopup implements Popup
     
     public AssetCreationPopup(AssetType defaultType, File directory)
     {
-        typeSelection = types.indexOf(defaultType);
+        typeSelection = getTypes().indexOf(defaultType);
         if(typeSelection == -1)
         {
             System.out.println("Default Type either doesn't exist or doesn't have a creation function. Defaulting to element 0");
@@ -73,7 +92,7 @@ public class AssetCreationPopup implements Popup
             }
             if(ImGui.inputText("##2", filename, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                AssetType assetType = types.get(typeSelection);
+                AssetType assetType = getTypes().get(typeSelection);
                 String filename = directory.getPath() + "\\" + this.filename.get() + "." + assetType.getExtension();
                 File file = new File(filename);
                 if(file.exists())
@@ -91,9 +110,10 @@ public class AssetCreationPopup implements Popup
             ImGui.separator();
             ImGui.spacing();
         
-            for(int i = 0; i < typesString.size(); i++)
+            
+            for(int i = 0; i < getTypesString().size(); i++)
             {
-                if(ImGui.selectable(typesString.get(i), typeSelection == i))
+                if(ImGui.selectable(getTypesString().get(i), typeSelection == i))
                 {
                     typeSelection = i;
                     ImGui.setItemDefaultFocus();
