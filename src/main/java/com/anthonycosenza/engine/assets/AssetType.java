@@ -17,6 +17,7 @@ public enum AssetType
     MATERIAL(StandardMaterial::new, true),
     VERTEX(VertexShader::new, true),
     FRAGMENT(FragmentShader::new, true),
+    SCRIPT(null, true),
     
     ;
     final AssetFunction createNewFunction;

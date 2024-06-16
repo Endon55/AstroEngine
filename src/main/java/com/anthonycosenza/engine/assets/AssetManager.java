@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.assets;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.scripts.ScriptCompiler;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.rendering.shader.FragmentShader;
@@ -137,7 +138,7 @@ public class AssetManager
                     case MESH, TEXTURE, MATERIAL -> throw new RuntimeException("Implement: " + info.assetType());
                     case VERTEX ->  new VertexShader(info.filePath(), info.assetID());
                     case FRAGMENT -> new FragmentShader(info.filePath(), info.assetID());
-                    case SCENE -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
+                    case SCENE, SCRIPT -> throw new RuntimeException("Shouldn't be trying to load scenes like this.");
                 };
         asset.setResourceID(info.assetID());
         assetMap.put(info.assetID(), asset);
@@ -146,6 +147,20 @@ public class AssetManager
     
     public Asset createNewAsset(File directory, String filename, AssetType assetType)
     {
+        if(assetType == AssetType.SCRIPT)
+        {
+            String path = directory.getAbsolutePath() + "\\" + filename + ".java";
+            File script = new File(path);
+            try
+            {
+                Files.write(script.toPath(), ScriptCompiler.getDefaultScript(filename).getBytes());
+            } catch(IOException e)
+            {
+                throw new RuntimeException(e);
+            }
+            return null;
+        }
+        
         if(!assetType.hasFunction()) throw new RuntimeException("Cannot create assets of type: " + assetType);
         
         long resourceID = generateResourceID();
@@ -188,6 +203,7 @@ public class AssetManager
                         yield path;
                     }
                     case SCENE, TEXTURE, MESH, MODEL, MATERIAL -> projectPath;
+                    case SCRIPT -> throw new RuntimeException("Shouldn't be here loading scripts");
                 };
         
         AssetInfo info = new AssetInfo(resourceID, assetType, rawAssetPath);
