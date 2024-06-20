@@ -74,6 +74,10 @@ public class Node
         child.parent = this;
         this.children.add(child);
     }
+    public void removeChild(Node child)
+    {
+        this.children.remove(child);
+    }
     public void initialize()
     {
         

@@ -27,7 +27,7 @@ import static org.lwjgl.stb.STBImage.stbi_load;
 public class ImageTexture extends Texture implements Asset
 {
     public long resourceID = -1;
-    public String filepath;
+    private String filepath;
     
     public ImageTexture() { }
     
@@ -63,6 +63,11 @@ public class ImageTexture extends Texture implements Asset
             
             stbi_image_free(pixelData);
         }
+    }
+    
+    public String getFilepath()
+    {
+        return filepath;
     }
     
     @Override

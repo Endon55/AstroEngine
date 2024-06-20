@@ -16,15 +16,14 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 
 public class StandardMaterial implements Material
 {
-    public static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
-    public static final Texture DEFAULT_TEXTURE = new ImageTexture("AstroEngine/resources/images/Default_Texture.png");
+    private static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 1f);
+    private static final Texture DEFAULT_TEXTURE = new ImageTexture("AstroEngine/resources/images/Default_Texture.png");
     
     public long resourceID = -1;
-    public Color diffuseColor;
-    public Texture texture;
+    private Color diffuseColor;
+    private Texture texture;
     
     transient Set<Mesh> meshes;
-    
     
     public StandardMaterial()
     {
@@ -52,6 +51,15 @@ public class StandardMaterial implements Material
     public void setDiffuseColor(Color diffuseColor)
     {
         this.diffuseColor = diffuseColor;
+    }
+    
+    public void setDiffuseColor(float r, float g, float b, float a)
+    {
+        if(diffuseColor.equals(DEFAULT_COLOR))
+        {
+            diffuseColor = new Color(r, g, b, a);
+        }
+        else diffuseColor.set(r, g, b, a);
     }
     
     public Texture getTexture()

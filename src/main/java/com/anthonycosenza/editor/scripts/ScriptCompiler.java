@@ -63,7 +63,7 @@ public class ScriptCompiler
     }
     public static void compile()
     {
-        compile(findSources(EditorIO.getProjectDirectory()), EditorIO.getOutDirectory());
+        compile(findSources(EditorIO.getScriptsDirectory()), EditorIO.getOutDirectory());
     }
     
     public static void compile(List<File> sourceFiles,  File outputDirectory)

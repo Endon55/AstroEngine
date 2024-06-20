@@ -1,6 +1,7 @@
 package com.anthonycosenza.engine.assets;
 
 import com.anthonycosenza.editor.EditorIO;
+import com.anthonycosenza.editor.logger.EditorLogger;
 import com.anthonycosenza.editor.scripts.ScriptCompiler;
 import com.anthonycosenza.engine.space.ModelLoader;
 import com.anthonycosenza.engine.space.node.Scene;
@@ -68,15 +69,17 @@ public class AssetManager
                 if(AssetType.FILE_EXTENSIONS.contains(extension))
                 {
                     AssetInfo info = Toml.getAssetHeader(file);
-                    long id = info.assetID();
-                    if(id == -1)
+                    if(info != null)
                     {
-                        id = generateResourceID();
-                        Toml.updateAssetHeader(id, info.assetType(), info.filePath(), file);
+                        long id = info.assetID();
+                        if(id == -1)
+                        {
+                            id = generateResourceID();
+                            Toml.updateAssetHeader(id, info.assetType(), info.filePath(), file);
+                        }
+                        assetInfoMap.put(id, info);
                     }
-                    
-                    
-                    assetInfoMap.put(id, info);
+                    else EditorLogger.error("File doesn't have an asset header: " + file);
                 }
             }
         }
@@ -111,6 +114,17 @@ public class AssetManager
     public AssetInfo getAssetInfo(long assetID)
     {
         return assetInfoMap.get(assetID);
+    }
+    
+    public Asset getAsset(File file)
+    {
+        AssetInfo info = Toml.getAssetHeader(file);
+        if(info == null)
+        {
+            EditorLogger.error("File doesn't have an asset header: " + file);
+            return null;
+        }
+        return getAsset(info.assetID());
     }
     
     public Asset getAsset(long assetID)

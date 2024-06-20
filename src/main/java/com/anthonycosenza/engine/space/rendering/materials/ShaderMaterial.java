@@ -17,8 +17,8 @@ public class ShaderMaterial implements Material
     private final transient Set<Mesh> meshes;
     private transient ShaderPipeline pipeline = null;
     
-    public VertexShader vertexShader;
-    public FragmentShader fragmentShader;
+    private VertexShader vertexShader;
+    private FragmentShader fragmentShader;
     
     public ShaderMaterial()
     {
@@ -34,12 +34,31 @@ public class ShaderMaterial implements Material
         return resourceID;
     }
     
+    public void setVertexShader(VertexShader vertexShader)
+    {
+        this.vertexShader = vertexShader;
+    }
+    
+    public void setFragmentShader(FragmentShader fragmentShader)
+    {
+        this.fragmentShader = fragmentShader;
+    }
+    
     @Override
     public void setResourceID(long resourceID)
     {
         this.resourceID = resourceID;
     }
     
+    public FragmentShader getFragmentShader()
+    {
+        return fragmentShader;
+    }
+    
+    public VertexShader getVertexShader()
+    {
+        return vertexShader;
+    }
     
     @Override
     public Set<Mesh> getMeshes()

@@ -1,7 +1,7 @@
 package com.anthonycosenza.engine.space.rendering;
 
 import com.anthonycosenza.engine.assets.ShaderManager;
-import com.anthonycosenza.engine.space.Camera;
+import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.node._3d.Node3D;

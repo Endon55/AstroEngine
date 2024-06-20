@@ -20,7 +20,7 @@ public class MaterialEditorPopup implements Popup
     public MaterialEditorPopup(StandardMaterial material)
     {
         this.material = material;
-        diffuse = material.diffuseColor.getAsArray();
+        diffuse = material.getDiffuseColor().getAsArray();
     }
     @Override
     public void create()
@@ -67,7 +67,7 @@ public class MaterialEditorPopup implements Popup
     }
     private void copyOver()
     {
-        material.diffuseColor = new Color(diffuse);
+        material.setDiffuseColor(new Color(diffuse));
     }
     
     @Override

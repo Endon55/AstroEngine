@@ -1,10 +1,9 @@
-package com.anthonycosenza.engine.space.node._3d;
+package com.anthonycosenza.engine.space.node;
 
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.input.Key;
 import com.anthonycosenza.engine.input.KeyAction;
-import com.anthonycosenza.engine.space.Camera;
 import com.anthonycosenza.engine.util.math.EngineMath;
 import org.joml.Vector2f;
 

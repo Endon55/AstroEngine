@@ -21,16 +21,16 @@ public class ClassUtils
         }
         return null;
     }
-    public static Field getField(Class<?> clazz, String fieldName)
+    public static Field getField(Class<?> clazz, String fieldName) throws NoSuchFieldException
     {
         for(Field field : clazz.getDeclaredFields())
         {
             if(field.getName().equals(fieldName)) return field;
         }
-        return null;
+        throw new NoSuchFieldException(fieldName);
     }
     
-    public static Field getFieldInclSuper(Class<?> clazz, String fieldName)
+    public static Field getFieldInclSuper(Class<?> clazz, String fieldName) throws NoSuchFieldException
     {
         Class<?> current = clazz;
         while(current != null)
@@ -41,7 +41,7 @@ public class ClassUtils
             }
             current = current.getSuperclass();
         }
-        return null;
+        throw new NoSuchFieldException(fieldName);
     }
     public static List<Field> getAllFieldsInclSuper(Class<?> clazz)
     {

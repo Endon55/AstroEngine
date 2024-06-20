@@ -102,7 +102,6 @@ public class ModelLoader
             if(texturePath.length() > 0)
             {
                 material.setTexture(new ImageTexture(parentDirectory + File.separator + new File(texturePath).getName()));
-                material.setDiffuseColor(StandardMaterial.DEFAULT_COLOR);
             }
         }
         return material;

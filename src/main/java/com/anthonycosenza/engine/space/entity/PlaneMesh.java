@@ -3,10 +3,10 @@ package com.anthonycosenza.engine.space.entity;
 
 public class PlaneMesh extends GeneratedMesh
 {
-    public int quadsWide = 10;
-    public int quadsDeep = 10;
-    public float quadWidth = 1;
-    public float quadDepth = 1;
+    private int quadsWide = 10;
+    private int quadsDeep = 10;
+    private float quadWidth = 1;
+    private float quadDepth = 1;
     
     public void setPlane(int quadsWide, int quadsDeep, float quadWidth, float quadDepth)
     {
@@ -83,4 +83,50 @@ public class PlaneMesh extends GeneratedMesh
         }
         set(vertices, indices, textureCoordinates);
     }
+    
+    
+    public int getQuadsWide()
+    {
+        return quadsWide;
+    }
+    
+    public void setQuadsWide(int quadsWide)
+    {
+        this.quadsWide = quadsWide;
+        initialize();
+    }
+    
+    public int getQuadsDeep()
+    {
+        return quadsDeep;
+    }
+    
+    public void setQuadsDeep(int quadsDeep)
+    {
+        this.quadsDeep = quadsDeep;
+        initialize();
+    }
+    
+    public float getQuadWidth()
+    {
+        return quadWidth;
+    }
+    
+    public void setQuadWidth(float quadWidth)
+    {
+        this.quadWidth = quadWidth;
+        initialize();
+    }
+    
+    public float getQuadDepth()
+    {
+        return quadDepth;
+    }
+    
+    public void setQuadDepth(float quadDepth)
+    {
+        this.quadDepth = quadDepth;
+        initialize();
+    }
+    
 }

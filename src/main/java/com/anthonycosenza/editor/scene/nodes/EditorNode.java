@@ -19,11 +19,12 @@ import com.anthonycosenza.engine.assets.AssetType;
 import com.anthonycosenza.engine.input.Input;
 import com.anthonycosenza.engine.loader.Resources;
 import com.anthonycosenza.engine.space.ProjectSettings;
+import com.anthonycosenza.engine.space.node._3d.Mesh3D;
 import com.anthonycosenza.engine.space.rendering.materials.texture.ImageTexture;
 import com.anthonycosenza.engine.space.rendering.materials.texture.Texture;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
-import com.anthonycosenza.engine.space.node._3d.MoveableCamera;
+import com.anthonycosenza.engine.space.node.MoveableCamera;
 import com.anthonycosenza.engine.space.rendering.FrameBuffer;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.ui.AstroFonts;
@@ -60,12 +61,8 @@ import imgui.type.ImString;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -93,13 +90,12 @@ public class EditorNode extends Node
     private final FrameBuffer viewportFrameBuffer;
     private final SceneRenderer sceneRenderer;
     
-    float[] assetBrowserScale = new float[]{.5f};
+    private float[] assetBrowserScale = new float[]{.5f};
     private final float defaultAssetBrowserSize = 100f;
     private final float assetBrowserPadding = 50;
     private final int defaultTableColor = ImColor.rgba(0, 0, 0, 0);
     private final int hoveredTableColor = ImColor.rgba(22, 71, 62, 255);
     private final int selectedTableColor = ImColor.rgba(22, 57, 71, 255);
-    private final Color propertyTableColor = new Color(.2f, .6f, .8f);
     private int assetBrowserFileSelected = -1;
     private File assetBrowserPath = EditorIO.getProjectDirectory();
     private long assetBrowserLastClickTime = -1;
@@ -109,8 +105,8 @@ public class EditorNode extends Node
     private boolean hadIni;
     private boolean firstDockBuild = true;
     
-    int headerFontSize = 24;
-    String defaultFont = AstroFonts.DEFAULT_FONT;
+    private int headerFontSize = 24;
+    private String defaultFont = AstroFonts.DEFAULT_FONT;
     
     private Scene sceneManagerNode;
     private Node sceneManagerSelected;
@@ -119,7 +115,6 @@ public class EditorNode extends Node
     private Popup popup;
     
     private MoveableCamera camera;
-    private ProjectSettings settings;
     private Process projectProcess;
     private long lastSceneSave = 0;
     private final long minSaveTime = 5000;
@@ -467,13 +462,25 @@ public class EditorNode extends Node
                     sceneManagerSelected = sceneManagerNode;
                 }
                 
-                if(ImGui.button("+"))
+                if(ImGui.button("+", 20, 0))
                 {
                     if(!hasPopup())
                     {
                         popup = new NodeViewerPopup();
                     }
                 }
+                
+                ImGui.sameLine();
+                if(ImGui.button("-", 20, 0))
+                {
+                    if(sceneManagerSelected != null)
+                    {
+                        Node parent = sceneManagerSelected.getParent();
+                        parent.removeChild(sceneManagerSelected);
+                        modified = true;
+                    }
+                }
+                
                 ImGui.sameLine();
                 if(ImGui.button("Set Main"))
                 {
@@ -504,9 +511,14 @@ public class EditorNode extends Node
             ImGui.text(ImGuiUtils.centerAlignOffset("Property Inspector", ImGui.getContentRegionAvailX()));
             ImGui.separator();
             AstroFonts.pop();
-            
+            ImBoolean modified = new ImBoolean(false);
             Node selectedNode = sceneManagerSelected;
-            if(selectedNode != null)
+            if(selectedNode instanceof Mesh3D mesh3D)
+            {
+                EditorProperty.mesh3D(mesh3D, modified);
+            }
+
+            /*if(selectedNode != null)
             {
                 //Header
                 ImGui.text("id: " + selectedNode.getResourceID());
@@ -536,6 +548,10 @@ public class EditorNode extends Node
                     }
                     nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
                 }
+            }*/
+            if(modified.get())
+            {
+                this.modified = true;
             }
         }
         ImGui.end();
@@ -604,6 +620,7 @@ public class EditorNode extends Node
     {
         return assetBrowserPath;
     }
+    
     int scaleSliderWidth = 150;
     private void createAssetBrowser()
     {

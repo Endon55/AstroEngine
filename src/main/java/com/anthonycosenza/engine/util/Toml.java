@@ -7,7 +7,7 @@ import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
-import com.anthonycosenza.engine.space.Camera;
+import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
 import com.anthonycosenza.engine.space.node.Scene;
@@ -86,7 +86,11 @@ public class Toml
     
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
         config = config.get(ASSET);
-        return new AssetInfo(config.getLong("handle"), AssetType.valueOf(config.get("type")), config.get("path"));
+        if(config == null)
+        {
+            return null;
+        }
+        else return new AssetInfo(config.getLong("handle"), AssetType.valueOf(config.get("type")), config.get("path"));
     }
     public static Camera getCamera(File file)
     {
@@ -96,6 +100,7 @@ public class Toml
     
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
         config = config.get(CAMERA);
+        
         Camera camera;
         if(config == null)
         {
@@ -188,7 +193,6 @@ public class Toml
         }
         reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
         
-        Node node = null;
         Map<String, Object> map = config.valueMap();
         Map<Long, Asset> assetRefs = new HashMap<>();
         Map.Entry<String, Object> nodeEntry = null;
@@ -211,6 +215,8 @@ public class Toml
                 
             }
         }
+    
+        Node node;
         if(nodeEntry != null)
         {
             node = parseNode((Config) nodeEntry.getValue(), nodeEntry.getKey(), null, assetRefs);
@@ -219,7 +225,6 @@ public class Toml
         {
             throw new RuntimeException("Couldn't find scene entry node.");
         }
-        
         
         return (Scene) node;
     }
@@ -252,7 +257,8 @@ public class Toml
             for(Map.Entry<String, Object> entry : config.valueMap().entrySet())
             {
                 if(entry.getKey().equals("type")) continue;
-                Field field = object.getClass().getField(entry.getKey());
+                
+                Field field = ClassUtils.getFieldInclSuper(object.getClass(), entry.getKey());
                 field.setAccessible(true);
                 field.set(object, deserializeValue(field.getType(), entry.getValue(), assets));
             }
@@ -311,21 +317,15 @@ public class Toml
             {
                 Field field = null;
                 Class<? extends Node> nodeClass = node.getClass();
-                while(field == null && nodeClass != null && !Object.class.equals(nodeClass))
-                {
-                    field = ClassUtils.getField(nodeClass, key);
-                    nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
-                }
-                if(field == null)
-                {
-                    throw new RuntimeException("Couldn't find the parent class the property(" + key + ") belongs to.");
-                }
+                
                 
                 try
                 {
+                    field = ClassUtils.getFieldInclSuper(nodeClass, key);
+                    
                     field.setAccessible(true);
                     field.set(node, deserializeValue(field.getType(), value, assets));
-                } catch(IllegalAccessException e)
+                } catch(IllegalAccessException | NoSuchFieldException e)
                 {
                     throw new RuntimeException(e);
                 }
@@ -365,7 +365,7 @@ public class Toml
             {
                 String[] values = split[2].split(",");
                 StandardMaterial material = new StandardMaterial();
-                material.diffuseColor = new Color(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
+                material.setDiffuseColor(Float.parseFloat(values[0]), Float.parseFloat(values[1]), Float.parseFloat(values[2]), Float.parseFloat(values[3]));
                 value = material;
             }
             else if(split[0].equals("String"))
@@ -515,7 +515,6 @@ public class Toml
             }
             else //It's a user defined class
             {
-                System.out.println("user class");
                 config.set(path, "script(" + name + ")");
             }
             return this;

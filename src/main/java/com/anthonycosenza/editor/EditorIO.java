@@ -64,7 +64,7 @@ public class EditorIO
     {
        if(shaderDirectory == null)
        {
-           shaderDirectory = new File(getProjectDirectory().getPath() + "\\shaders");
+           shaderDirectory = new File(getScriptsDirectory().getPath() + "\\Shaders");
            if(!shaderDirectory.exists() && !shaderDirectory.mkdirs())
            {
                throw new RuntimeException("Failed to create Shader directory.");

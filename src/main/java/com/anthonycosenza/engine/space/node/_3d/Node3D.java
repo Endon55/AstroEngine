@@ -74,6 +74,21 @@ public class Node3D extends Node implements Positional
         this.rotation.fromAxisAngleRad(x, y, z, angle);
     }
     
+    public void setScale(Vector3f scale)
+    {
+        setScale(scale.x, scale.y, scale.z);
+    }
+    public void setScale(float x, float y, float z)
+    {
+        this.scale.set(x, y, z);
+        updateMatrix();
+    }
+    
+    public Vector3f getScale()
+    {
+        return scale;
+    }
+    
     public void setPosition(float x, float y, float z)
     {
         this.position.set(x, y , z);

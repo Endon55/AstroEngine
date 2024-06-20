@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.space;
 
+import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.node.Node;
 
 import java.util.HashMap;

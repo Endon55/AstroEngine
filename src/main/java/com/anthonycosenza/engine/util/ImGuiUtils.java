@@ -72,27 +72,10 @@ public class ImGuiUtils
             ImGui.endDragDropSource();
         }
     }
-    public static <T> void createDragAndDropTarget(Class<T> targetClass, DragAndDropTarget target)
-    {
-        if(ImGui.beginDragDropTarget())
-        {
-            T payload = ImGui.acceptDragDropPayload(targetClass, ImGuiDragDropFlags.AcceptBeforeDelivery);
-            if(ImGui.isMouseDragging(0)) //Peek at payload
-            {
-                target.peek(payload);
-            }
-            else
-            {
-                target.accept(payload);
-            }
-            ImGui.endDragDropTarget();
-        }
-    }
+
     private static boolean ddValidAsset = false;
-    private static int RED = -167711939;
-    private static int GREEN = -16711936;
-    
-    
+    private static int RED = ImColor.rgba(255, 0, 0, 255);
+    private static int GREEN = ImColor.rgba(0, 255, 0, 255);
     public static Asset assetDragAndDropTarget(AssetType assetType)
     {
         final Asset[] asset = {null};
@@ -106,6 +89,35 @@ public class ImGuiUtils
         return asset[0];
     }
     
+    public static File createDragAndDropTarget(DragAndDropFilter filter)
+    {
+        //System.out.println("R" + ImColor.rgba(1f, 0, 0, 1f));
+        //System.out.println(ImColor.rgba(0, 1f, 0, 1f));
+        ImGui.pushStyleColor(ImGuiCol.DragDropTarget, (ddValidAsset ? GREEN : RED));
+        File out = null;
+        if(ImGui.beginDragDropTarget())
+        {
+            File payload = ImGui.acceptDragDropPayload(File.class, ImGuiDragDropFlags.AcceptBeforeDelivery);
+            if(payload != null)
+            {
+                if(filter.filter(payload))
+                {
+                    ddValidAsset = true;
+                    if(!ImGui.isMouseDragging(0))
+                    {
+                        out = payload;
+                    }
+                }
+                else
+                {
+                    ddValidAsset = false;
+                }
+            }
+            ImGui.endDragDropTarget();
+        }
+        ImGui.popStyleColor();
+        return out;
+    }
     public static void createDragAndDropAssetTarget(AssetType assetType, DragAndDropAssetTarget target)
     {
         //System.out.println("R" + ImColor.rgba(1f, 0, 0, 1f));
@@ -168,4 +180,18 @@ public class ImGuiUtils
             string.resize(newSize);
         }
     }
+    
+    
+    public interface DragAndDropFilter
+    {
+        boolean filter(File payload);
+    }
+    
+    public interface DragAndDropTarget
+    {
+        void peek(File payload);
+    
+        void accept(File payload);
+    }
+    
 }
