@@ -115,7 +115,6 @@ public class ScriptCompiler
         {
             if(source.lastModified() != modifiedMap.get(source.getAbsolutePath()))
             {
-                System.out.println("Modified: " + source);
                 return true;
             }
         }

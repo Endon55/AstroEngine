@@ -10,8 +10,12 @@ import org.lwjgl.system.MemoryUtil;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
+import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_FOCUSED;
+import static org.lwjgl.glfw.GLFW.GLFW_ICONIFIED;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
+import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
@@ -19,6 +23,7 @@ import static org.lwjgl.glfw.GLFW.glfwGetFramebufferSize;
 import static org.lwjgl.glfw.GLFW.glfwGetMonitorPos;
 import static org.lwjgl.glfw.GLFW.glfwGetMonitors;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
+import static org.lwjgl.glfw.GLFW.glfwGetWindowAttrib;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
@@ -92,6 +97,7 @@ public class Window
         glfwSetWindowPosCallback(windowHandle, this::windowPosCallback);
     }
     
+    
     private void windowPosCallback(long handle, int posX, int posY)
     {
         windowPosition.set(posX, posY);
@@ -147,6 +153,12 @@ public class Window
         return getPosY() + getHeight();
     }
     
+    public boolean isActive()
+    {
+        return glfwGetWindowAttrib(windowHandle, GLFW_VISIBLE) == GLFW_TRUE &&
+                glfwGetWindowAttrib(windowHandle, GLFW_FOCUSED) == GLFW_TRUE &&
+                glfwGetWindowAttrib(windowHandle, GLFW_ICONIFIED) == GLFW_FALSE;
+    }
     
     public void resize(int width, int height)
     {

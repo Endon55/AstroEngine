@@ -97,7 +97,7 @@ public class Engine
     public void run()
     {
         running = true;
-
+        boolean createdFrame = false;
         //Gives the number of physics updates per second
         float updateInterval = Constants.NANOS_IN_SECOND / physicsUpdatesSecond;
         //Cache this value to avoid repeated calculation.
@@ -113,12 +113,11 @@ public class Engine
             long frameTime = newTime - currentTime;
             accumulator += frameTime;
             currentTime = newTime;
-            
+    
             //Enables the window to be interacted with by checking for and processing events and summoning the relevant callbacks.
             glfwPollEvents();
     
-    
-            imGuiImpl.newFrame();
+
             input.resetFrame();
             
             Node scene = SceneManager.getScene();
@@ -145,30 +144,35 @@ public class Engine
                 }
             }
             float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
-            
+            if(window.isActive())
+            {
+                imGuiImpl.newFrame();
+                SceneManager.updateUI(delta);
+                imGuiImpl.endFrame();
+                imGuiImpl.render();
+                
+                if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
+                {
+                    final long backupWindowPtr = glfwGetCurrentContext();
+                    ImGui.updatePlatformWindows();
+                    ImGui.renderPlatformWindowsDefault();
+                    glfwMakeContextCurrent(backupWindowPtr);
+                }
+            }
             handleGuiInput();
             
             if(settings.enableSystemDiagnostics)
             {
                 systemDiagnostics(Constants.NANOS_IN_SECOND / (double) frameTime);
             }
-            
-            SceneManager.updateUI(delta);
+    
             SceneManager.update(delta);
+            
     
     
             renderer.render(scene, projection);
-            imGuiImpl.endFrame();
-            imGuiImpl.render();
-            
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
-            if(ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable))
-            {
-                final long backupWindowPtr = glfwGetCurrentContext();
-                ImGui.updatePlatformWindows();
-                ImGui.renderPlatformWindowsDefault();
-                glfwMakeContextCurrent(backupWindowPtr);
-            }
+
             //imGuiImpl.endFrame();
             glfwSwapBuffers(window.getWindowHandle());
     
