@@ -6,4 +6,5 @@ public interface Shader extends Asset
 {
     int getShaderType();
     String getShaderCode();
+    boolean isDefaultShader();
 }

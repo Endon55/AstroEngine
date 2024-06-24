@@ -12,13 +12,12 @@ import java.util.Set;
 
 public class ShaderMaterial implements Material
 {
-    
     public long resourceID = -1;
     private final transient Set<Mesh> meshes;
     private transient ShaderPipeline pipeline = null;
     
-    private VertexShader vertexShader;
-    private FragmentShader fragmentShader;
+    public VertexShader vertexShader;
+    public FragmentShader fragmentShader;
     
     public ShaderMaterial()
     {

@@ -13,15 +13,25 @@ public class VertexShader implements Shader
     public static final VertexShader DEFAULT = new VertexShader(Resources.get("shaders/scene.vert"), -10000);
     public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents(Resources.get("shaders/default.vert"));
     private long resourceID = -1;
-    private String shaderpath;
+    private String shaderPath;
     public transient boolean assemble = false;
 
     public VertexShader(String filepath, long resourceID)
     {
         setResourceID(resourceID);
-        shaderpath = filepath;
+        shaderPath = filepath;
     }
     public VertexShader() { }
+    
+    public void setShaderPath(String shaderPath)
+    {
+        this.shaderPath = shaderPath;
+    }
+    
+    public String getShaderPath()
+    {
+        return shaderPath;
+    }
     
     @Override
     public long getResourceID()
@@ -50,8 +60,14 @@ public class VertexShader implements Shader
     {
         if(assemble)
         {
-            return new GLSLBuilder(new File(shaderpath)).build();
+            return new GLSLBuilder(new File(shaderPath)).build();
         }
-        else return FileUtils.getFileContents(shaderpath);
+        else return FileUtils.getFileContents(shaderPath);
+    }
+    
+    @Override
+    public boolean isDefaultShader()
+    {
+        return this.equals(DEFAULT);
     }
 }

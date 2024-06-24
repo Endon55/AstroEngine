@@ -58,5 +58,9 @@ public class FragmentShader implements Shader
         }
        else return FileUtils.getFileContents(shaderpath);
     }
-    
+    @Override
+    public boolean isDefaultShader()
+    {
+        return this.equals(DEFAULT);
+    }
 }

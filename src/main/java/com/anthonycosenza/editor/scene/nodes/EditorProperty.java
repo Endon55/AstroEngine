@@ -393,12 +393,14 @@ public class EditorProperty
             if(dropdownVertex != null)
             {
                 shaderMaterial.setVertexShader(dropdownVertex);
+                modified = true;
             }
             FragmentShader fragmentShader = shaderMaterial.getFragmentShader();
             FragmentShader dropdownFragment = fragmentShaderDropdown((fragmentShader != null ? "Fragment Shader" : "Create new Fragment Shader"));
             if(dropdownFragment != null)
             {
                 shaderMaterial.setFragmentShader(dropdownFragment);
+                modified = true;
             }
             ImGui.unindent();
         }
