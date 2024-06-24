@@ -564,8 +564,14 @@ public class EditorNode extends Node
         {
             AstroFonts.push(defaultFont, headerFontSize);
             ImGui.text("Console");
-            ImGui.separator();
             AstroFonts.pop();
+            ImGui.sameLine();
+            if(ImGui.button("Clear Console"))
+            {
+                EditorLogger.clearMessages();
+            }
+            
+            ImGui.separator();
             if(ImGui.beginChild("Console Child"))
             {
                 if(ImGui.beginTable("Console Table", 2, ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.BordersInner))

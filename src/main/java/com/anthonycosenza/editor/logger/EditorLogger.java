@@ -40,4 +40,9 @@ public class EditorLogger
     {
         return messages;
     }
+    
+    public static void clearMessages()
+    {
+        messages.clear();
+    }
 }
