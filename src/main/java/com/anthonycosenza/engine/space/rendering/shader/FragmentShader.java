@@ -14,18 +14,24 @@ public class FragmentShader implements Shader
     public static final FragmentShader DEFAULT = new FragmentShader(Resources.get("shaders/scene.frag"), -10002);
     public static final String DEFAULT_SHADER_CODE = FileUtils.getFileContents(Resources.get("shaders/default.frag"));
     private long resourceID = -1;
-    private String shaderpath;
+    private String shaderPath;
     public transient boolean assemble = false;
   
     public FragmentShader(String filepath, long resourceID)
     {
         setResourceID(resourceID);
-        shaderpath = filepath;
+        shaderPath = filepath;
     }
     public FragmentShader()
     {
     
     }
+    
+    public String getShaderPath()
+    {
+        return shaderPath;
+    }
+    
     
     @Override
     public long getResourceID()
@@ -54,13 +60,21 @@ public class FragmentShader implements Shader
     {
         if(assemble)
         {
-            return new GLSLBuilder(new File(shaderpath)).build();
+            return new GLSLBuilder(new File(shaderPath)).build();
         }
-       else return FileUtils.getFileContents(shaderpath);
+       else return FileUtils.getFileContents(shaderPath);
     }
     @Override
     public boolean isDefaultShader()
     {
         return this.equals(DEFAULT);
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "FragmentShader{" +
+                "shaderPath='" + shaderPath + '\'' +
+                '}';
     }
 }

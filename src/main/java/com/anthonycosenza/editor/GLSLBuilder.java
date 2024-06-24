@@ -89,7 +89,7 @@ public class GLSLBuilder
         }
     
         if(mainLine == null) throw new RuntimeException("No primary function in vertex shader");
-        lines.add("void main() \n{\n" + mainLine + "\n}\n");
+        lines.add("void main() \n{\n" + mainLine + "\noutTextureCoordinate = textureCoordinate;\n}\n");
         
         
         return lines;

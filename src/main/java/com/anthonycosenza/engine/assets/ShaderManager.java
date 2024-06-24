@@ -48,6 +48,13 @@ public class ShaderManager
         return shaderPipelines.get(pipelineID);
     }
  
+    public static long hashShaders(VertexShader vertexShader, FragmentShader fragmentShader)
+    {
+        if(vertexShader == null) vertexShader = VertexShader.DEFAULT;
+        if(fragmentShader == null) fragmentShader = FragmentShader.DEFAULT;
+    
+       return hash(vertexShader, fragmentShader);
+    }
     private static long hash(Shader... shaders)
     {
         long total = 0;
@@ -57,7 +64,7 @@ public class ShaderManager
         }
         return total;
     }
-    
+   
     /*
      * The goal here is to verify that we're not making more ShaderPipelines than we should.
      * If 2 pipelines are using the same shaders then there should only be 1 pipeline.

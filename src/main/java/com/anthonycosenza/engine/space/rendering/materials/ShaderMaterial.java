@@ -15,9 +15,11 @@ public class ShaderMaterial implements Material
     public long resourceID = -1;
     private final transient Set<Mesh> meshes;
     private transient ShaderPipeline pipeline = null;
+    private transient long shaderHash;
     
     public VertexShader vertexShader;
     public FragmentShader fragmentShader;
+    
     
     public ShaderMaterial()
     {
@@ -92,13 +94,14 @@ public class ShaderMaterial implements Material
     {
         if(vertexShader != null) vertexShader.assemble = true;
         if(fragmentShader != null) fragmentShader.assemble = true;
+        shaderHash = ShaderManager.hashShaders(vertexShader, fragmentShader);
         
         pipeline = ShaderManager.createPipeline(vertexShader, fragmentShader);
     }
     @Override
     public ShaderPipeline getShaderPipeline()
     {
-        if(pipeline == null)
+        if(pipeline == null || shaderHash != ShaderManager.hashShaders(vertexShader, fragmentShader))
         {
             updatePipeline();
         }

@@ -70,4 +70,12 @@ public class VertexShader implements Shader
     {
         return this.equals(DEFAULT);
     }
+    
+    @Override
+    public String toString()
+    {
+        return "VertexShader{" +
+                "shaderPath='" + shaderPath + '\'' +
+                '}';
+    }
 }
