@@ -179,6 +179,15 @@ public class EditorNode extends Node
     int bottomLeft;
     int bottomRight;
     int top;
+    private void save(boolean force)
+    {
+        if(modified && ((System.currentTimeMillis() - lastSceneSave) >= minSaveTime || force))
+        {
+            Toml.updateScene(sceneManagerNode);
+            modified = false;
+            lastSceneSave = System.currentTimeMillis();
+        }
+    }
     @Override
     public void updateUI(float delta)
     {
@@ -189,13 +198,7 @@ public class EditorNode extends Node
             projectProcess.destroy();
             projectProcess = null;
         }
-        
-        if(modified && (System.currentTimeMillis() - lastSceneSave) >= minSaveTime)
-        {
-            Toml.updateScene(sceneManagerNode);
-            modified = false;
-            lastSceneSave = System.currentTimeMillis();
-        }
+        save(false);
 
         createMainDockspace();
     
@@ -380,6 +383,7 @@ public class EditorNode extends Node
             {
                 if(ImGui.arrowButton("PlayButton", 1))
                 {
+                    save(true);
                     try
                     {
                         String mainFolder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation()

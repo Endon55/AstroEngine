@@ -20,7 +20,7 @@ public class PlaneMesh extends GeneratedMesh
     @Override
     public void initialize()
     {
-        if(quadsWide < 1 || quadsDeep < 1 || quadWidth == -1 || quadDepth == -1) throw new RuntimeException("Plane Mesh not properly initialized");
+        if(quadsWide < 1 || quadsDeep < 1 || quadWidth <= 0 || quadDepth <= 0) throw new RuntimeException("Plane Mesh not properly initialized");
         
         int vertsWide = quadsWide + 1;
         int vertsDeep = quadsDeep + 1;
@@ -50,13 +50,16 @@ public class PlaneMesh extends GeneratedMesh
         index = 0;
         int thisVert = 0;
         int nextVert = 0;
-        for(int i = 0; i < quadsDeep; i++)
+        int thisRow = 0;
+        int nextRow = 1;
+        for(int i = 0; i < quadsWide; i++)
         {
-            thisVert = i * vertsWide;
-            nextVert = (i + 1) * vertsWide;
-            
-            for(int j = 0; j < quadsWide; j++)
+            thisRow = i * vertsDeep;
+            nextRow = (i + 1) * vertsDeep;
+            for(int j = 0; j < quadsDeep; j++)
             {
+                thisVert = thisRow + j;
+                nextVert = nextRow + j;
                 //First Triangle
                 indices[index++] = thisVert;
                 indices[index++] = thisVert + 1;
