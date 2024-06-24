@@ -62,6 +62,11 @@ public class UniformMap
         glUniform1f(getUniformID(uniformName), data);
     }
     
+    public void setUniform(String uniformName, float data1, float data2)
+    {
+        glUniform2f(getUniformID(uniformName), data1, data2);
+    }
+    
     public void setUniform(String uniformName, Color data)
     {
         glUniform4f(getUniformID(uniformName), data.r(), data.g(), data.b(), data.a());

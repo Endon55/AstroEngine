@@ -79,10 +79,21 @@ public class ShaderMaterial implements Material
     
     }
     
+    public void setUniform(String uniform, int data)
+    {
+        getShaderPipeline().bind();
+        getShaderPipeline().getUniforms().setUniform(uniform, data);
+    }
     public void setUniform(String uniform, float data)
     {
         getShaderPipeline().bind();
         getShaderPipeline().getUniforms().setUniform(uniform, data);
+    }
+    
+    public void setUniform(String uniform, float data1, float data2)
+    {
+        getShaderPipeline().bind();
+        getShaderPipeline().getUniforms().setUniform(uniform, data1, data2);
     }
     
     @Override

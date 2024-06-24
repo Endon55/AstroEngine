@@ -79,6 +79,7 @@ public class GLSLBuilder
         for(int i = 0; i < functions.size(); i++)
         {
             String name = functionNames.get(i);
+            
             if(name.equals("modelToWorld"))
             {
                 if(mainLine != null) throw new RuntimeException("Multiple shader functions in one file");
@@ -88,7 +89,7 @@ public class GLSLBuilder
             lines.add(functions.get(i));
         }
     
-        if(mainLine == null) throw new RuntimeException("No primary function in vertex shader");
+        if(mainLine == null) throw new RuntimeException("No primary function in vertex shader: " + functionNames);
         lines.add("void main() \n{\n" + mainLine + "\noutTextureCoordinate = textureCoordinate;\n}\n");
         
         
@@ -161,15 +162,34 @@ public class GLSLBuilder
     
     private void stripFunctions()
     {
+        boolean foundFunction = false;
         boolean inside = false;
+        int depth = 0;
         StringBuilder function = new StringBuilder();
         for(int i = 0; i < fileContents.size(); i++)
         {
             String line = fileContents.get(i);
-            if(inside && (line.startsWith("}") || line.endsWith("}")))
+            if(!foundFunction && line.contains("(") && line.contains(")") && line.split("\\(")[0].split(" ").length == 2)
             {
-                function.append(line);
+                foundFunction = true;
+            }
+            if(foundFunction)
+            {
+                function.append(line).append(" ");
+            }
+            if(line.contains("{"))
+            {
+                if(foundFunction) inside = true;
+                depth++;
+            }
+            else if(line.contains("}"))
+            {
+                depth--;
+            }
+            if(inside && function.length() > 0 && depth == 0)//inside && (line.startsWith("}") || line.endsWith("}")))
+            {
                 inside = false;
+                foundFunction = false;
                 String[] funcSignature = function.toString().split("\\{");
                 String[] splitSignature = funcSignature[0].split(" ");
                 String type = splitSignature[0];
@@ -181,16 +201,17 @@ public class GLSLBuilder
                     functions.add(funcBody);
                     functionNames.add(name);
                     functionTypes.add(type);
+                    function.setLength(0);
                 }
             }
-            else if(inside || line.endsWith(")"))
+            /*else if(depth > 0)
             {
                 if(!line.startsWith("//"))
                 {
                     function.append(line).append(" ");
                 }
                 inside = true;
-            }
+            }*/
         }
     }
     
