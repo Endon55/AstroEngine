@@ -10,7 +10,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 public class ScriptCompiler
@@ -20,6 +22,7 @@ public class ScriptCompiler
     //Place jar file in IDE resources.
     
     private static URLClassLoader loader;
+    private static Map<String, Long> modifiedMap = new HashMap<>();
     private ScriptCompiler() { }
     
     public static String getDefaultScript(String scriptName)
@@ -44,9 +47,10 @@ public class ScriptCompiler
     
     private static void checkLoader()
     {
-        if(loader == null)
+        List<File> sources = findSources(EditorIO.getScriptsDirectory());
+        if(loader == null || anyModified(sources))
         {
-            compile();
+            compile(sources, EditorIO.getOutDirectory());
         }
     }
 
@@ -61,28 +65,33 @@ public class ScriptCompiler
             throw new RuntimeException("Failed to load class(" + className + ") -" + e);
         }
     }
+    
+    
     public static void compile()
     {
+        checkLoader();
         compile(findSources(EditorIO.getScriptsDirectory()), EditorIO.getOutDirectory());
     }
     
-    public static void compile(List<File> sourceFiles,  File outputDirectory)
+    private static void compile(List<File> sourceFiles,  File outputDirectory)
     {
-        File tmp = EditorIO.getTempDirectory();
-        ProcessBuilder builder = new ProcessBuilder();
-        //, "C:\\Coding\\Astro\\AstroEngine\\build\\AstroEngine\\AstroAPI.jar"
-        builder.command("javac",
-                "-cp", "C:\\Coding\\Astro\\AstroEngine\\build\\AstroEngine\\AstroAPI.jar",
-                "-d", outputDirectory.getAbsolutePath(),
-                sourceFiles.get(0).getAbsolutePath());
-        
-        builder.inheritIO();
-        try
+        for(File source : sourceFiles)
         {
-            builder.start();
-        } catch(IOException e)
-        {
-            throw new RuntimeException(e);
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command("javac",
+                    "-cp", "C:\\Coding\\Astro\\AstroEngine\\build\\AstroEngine\\AstroAPI.jar",
+                    "-d", outputDirectory.getAbsolutePath(),
+                    source.getAbsolutePath());
+    
+            builder.inheritIO();
+            try
+            {
+                Process process = builder.start();
+            } catch(IOException e)
+            {
+                throw new RuntimeException(e);
+            }
+            modifiedMap.put(source.getAbsolutePath(), source.lastModified());
         }
         try
         {
@@ -99,6 +108,18 @@ public class ScriptCompiler
         {
             throw new RuntimeException("Failed to close class loader -" + e);
         }
+    }
+    private static boolean anyModified(List<File> sources)
+    {
+        for(File source : sources)
+        {
+            if(source.lastModified() != modifiedMap.get(source.getAbsolutePath()))
+            {
+                System.out.println("Modified: " + source);
+                return true;
+            }
+        }
+        return false;
     }
     private static List<File> findSources(File directory)
     {

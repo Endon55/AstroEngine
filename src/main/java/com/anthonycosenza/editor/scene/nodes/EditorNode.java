@@ -12,6 +12,7 @@ import com.anthonycosenza.editor.scene.popups.MaterialEditorPopup;
 import com.anthonycosenza.editor.scene.popups.NodeViewerPopup;
 import com.anthonycosenza.editor.scene.popups.Popup;
 import com.anthonycosenza.editor.scene.popups.ProjectSettingsPopup;
+import com.anthonycosenza.editor.scripts.ScriptCompiler;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetManager;
@@ -383,7 +384,7 @@ public class EditorNode extends Node
                     {
                         String mainFolder = new File(Main.class.getProtectionDomain().getCodeSource().getLocation()
                                 .toURI()).getPath();
-                        
+                        ScriptCompiler.compile();
                         ProcessBuilder builder = new ProcessBuilder("java", "-jar", mainFolder, EditorIO
                                 .getProjectDirectory().getAbsolutePath());
                                 builder.inheritIO();
