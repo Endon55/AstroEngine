@@ -22,27 +22,21 @@ public class ScriptCompiler
     //Place jar file in IDE resources.
     
     private static URLClassLoader loader;
-    private static Map<String, Long> modifiedMap = new HashMap<>();
+    private static final Map<String, Long> modifiedMap = new HashMap<>();
     private ScriptCompiler() { }
     
     public static String getDefaultScript(String scriptName)
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append("import com.anthonycosenza.engine.space.node.Node;").append("\n\n");
-        builder.append("public class ").append(scriptName).append(" extends Node");
-        builder.append("\n{\n");
-        
-        builder.append("\t@Override\n");
-        builder.append("\tpublic void update(float delta)\n\t{\n\t\tsuper.update(delta);\n\n\t}\n\n");
-        
-        builder.append("\t@Override\n");
-        builder.append("\tpublic void updatePhysics(float delta)\n\t{\n\t\tsuper.updatePhysics(delta);\n\n\t}\n\n");
-        
-        builder.append("\t@Override\n");
-        builder.append("\tpublic void updateUI(float delta)\n\t{\n\t\tsuper.updateUI(delta);\n\n\t}\n\n");
-    
-        builder.append("\n}");
-        return builder.toString();
+        return "import com.anthonycosenza.engine.space.node.Node;" + "\n\n" +
+                "public class " + scriptName + " extends Node" +
+                "\n{\n" +
+                "\t@Override\n" +
+                "\tpublic void update(float delta)\n\t{\n\t\tsuper.update(delta);\n\n\t}\n\n" +
+                "\t@Override\n" +
+                "\tpublic void updatePhysics(float delta)\n\t{\n\t\tsuper.updatePhysics(delta);\n\n\t}\n\n" +
+                "\t@Override\n" +
+                "\tpublic void updateUI(float delta)\n\t{\n\t\tsuper.updateUI(delta);\n\n\t}\n\n" +
+                "\n}";
     }
     
     private static void checkLoader()
@@ -50,7 +44,7 @@ public class ScriptCompiler
         List<File> sources = findSources(EditorIO.getScriptsDirectory());
         if(loader == null || anyModified(sources))
         {
-            compile(sources, EditorIO.getOutDirectory());
+            compile(sources,EditorIO.getOutDirectory());
         }
     }
 
@@ -70,50 +64,46 @@ public class ScriptCompiler
     public static void compile()
     {
         checkLoader();
-        compile(findSources(EditorIO.getScriptsDirectory()), EditorIO.getOutDirectory());
     }
     
-    private static void compile(List<File> sourceFiles,  File outputDirectory)
+    private static void compile(List<File> sources, File outputDirectory)
     {
-        for(File source : sourceFiles)
+        ProcessBuilder builder = new ProcessBuilder();
+        builder.command("javac",
+                EditorIO.getScriptsDirectory().getAbsolutePath() + "/*.java",
+                "-cp", "C:\\Coding\\Astro\\AstroEngine\\build\\AstroEngine\\AstroAPI.jar",
+                "-d", outputDirectory.getAbsolutePath());
+        builder.inheritIO();
+        try
         {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command("javac",
-                    "-cp", "C:\\Coding\\Astro\\AstroEngine\\build\\AstroEngine\\AstroAPI.jar",
-                    "-d", outputDirectory.getAbsolutePath(),
-                    source.getAbsolutePath());
-    
-            builder.inheritIO();
-            try
-            {
-                Process process = builder.start();
-            } catch(IOException e)
-            {
-                throw new RuntimeException(e);
-            }
-            modifiedMap.put(source.getAbsolutePath(), source.lastModified());
+            builder.start();
+        } catch(IOException e)
+        {
+            throw new RuntimeException(e);
         }
         try
         {
-            if(loader != null)
+            if(loader == null)
             {
-                loader.close();
+                loader = new URLClassLoader(new URL[]{
+                        EditorIO.getOutDirectory().toURI().toURL()});
             }
-            loader = new URLClassLoader(new URL[]{
-                    EditorIO.getOutDirectory().toURI().toURL()});
+            
         } catch(MalformedURLException e)
         {
             throw new RuntimeException(e);
-        } catch(IOException e)
+        }
+        for(File source : sources)
         {
-            throw new RuntimeException("Failed to close class loader -" + e);
+            modifiedMap.put(source.getAbsolutePath(), source.lastModified());
         }
     }
     private static boolean anyModified(List<File> sources)
     {
         for(File source : sources)
         {
-            if(source.lastModified() != modifiedMap.get(source.getAbsolutePath()))
+            Long lastModified = modifiedMap.get(source.getAbsolutePath());
+            if(lastModified == null || source.lastModified() != lastModified)
             {
                 return true;
             }
@@ -135,7 +125,7 @@ public class ScriptCompiler
                 File[] children = file.listFiles();
                 if(children != null)
                 {
-                    Collections.addAll(files, file.listFiles());
+                    Collections.addAll(files, children);
                 }
             }
             else if(FileUtils.getExtension(file).equals("java"))
