@@ -38,7 +38,8 @@ public class Mesh3D extends Node3D implements Renderable
     public void setMesh(Mesh mesh)
     {
         this.mesh = mesh;
-        material.addMesh(this.mesh);
+        
+        getMaterial().addMesh(this.mesh);
     }
     
     public Mesh getMesh()

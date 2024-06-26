@@ -144,9 +144,19 @@ public class Engine
                 }
             }
             float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
+            
+            renderer.render(scene, projection);
+            
             if(window.isActive())
             {
                 imGuiImpl.newFrame();
+                if(settings.enableSystemDiagnostics)
+                {
+                    systemDiagnostics(Constants.NANOS_IN_SECOND / (double) frameTime);
+                }
+                
+                
+                
                 SceneManager.updateUI(delta);
                 imGuiImpl.endFrame();
                 imGuiImpl.render();
@@ -159,18 +169,10 @@ public class Engine
                     glfwMakeContextCurrent(backupWindowPtr);
                 }
             }
-            handleGuiInput();
             
-            if(settings.enableSystemDiagnostics)
-            {
-                systemDiagnostics(Constants.NANOS_IN_SECOND / (double) frameTime);
-            }
-    
+            handleGuiInput();
             SceneManager.update(delta);
             
-    
-    
-            renderer.render(scene, projection);
             //Swaps the visible frame buffer for the just compiled frame buffer. Essentially loads the next frame and begins working on the next next frame.
 
             //imGuiImpl.endFrame();

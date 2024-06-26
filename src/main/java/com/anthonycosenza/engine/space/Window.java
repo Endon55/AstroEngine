@@ -11,11 +11,9 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_FOCUSED;
 import static org.lwjgl.glfw.GLFW.GLFW_ICONIFIED;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
-import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
 import static org.lwjgl.glfw.GLFW.glfwDestroyWindow;
@@ -55,7 +53,7 @@ public class Window
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, Constants.OPENGL_MAJOR_VERSION);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, Constants.OPENGL_MINOR_VERSION);
     
-        //Get the x,y coordiantes for the specific monitor chosen
+        //Get the x,y coordinates for the specific monitor chosen
         PointerBuffer monitors = glfwGetMonitors();
         GLFWVidMode videoMode = glfwGetVideoMode(monitors.get(settings.monitor));
         glfwGetMonitorPos(monitors.get(settings.monitor), arrWidth, arrHeight);
@@ -155,8 +153,8 @@ public class Window
     
     public boolean isActive()
     {
-        return glfwGetWindowAttrib(windowHandle, GLFW_VISIBLE) == GLFW_TRUE &&
-                glfwGetWindowAttrib(windowHandle, GLFW_FOCUSED) == GLFW_TRUE &&
+        return //glfwGetWindowAttrib(windowHandle, GLFW_VISIBLE) == GLFW_TRUE &&
+                //glfwGetWindowAttrib(windowHandle, GLFW_FOCUSED) == GLFW_TRUE &&
                 glfwGetWindowAttrib(windowHandle, GLFW_ICONIFIED) == GLFW_FALSE;
     }
     

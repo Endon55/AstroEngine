@@ -421,7 +421,7 @@ public class EditorProperty
                 if(meshDropdown != null)
                 {
                     modified.set(true);
-                    mesh3d.setMesh(mesh);
+                    mesh3d.setMesh(meshDropdown);
                     mesh = meshDropdown;
                 }
                 if(meshInspector(mesh))

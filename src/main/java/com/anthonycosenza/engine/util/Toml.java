@@ -84,7 +84,11 @@ public class Toml
     
         TomlParser reader = new TomlParser();
     
-        reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+        reader.parse(file, config, ParsingMode.REPLACE, FileNotFoundAction.CREATE_EMPTY);
+        if(config.isEmpty())
+        {
+            throw new RuntimeException("Failed to read config: " + file);
+        }
         config = config.get(ASSET);
         if(config == null)
         {
@@ -627,7 +631,8 @@ public class Toml
                 writer.write(config, destination, WritingMode.REPLACE);
             }catch(WritingException e)
             {
-                EditorLogger.log(e);
+                EditorLogger.error("Toml Build Failure: " + e);
+                System.out.println(e);
             }
         }
     }

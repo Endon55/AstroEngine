@@ -4,6 +4,7 @@ import com.anthonycosenza.engine.assets.ShaderManager;
 import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.entity.Mesh;
+import com.anthonycosenza.engine.space.node.ComputeNode;
 import com.anthonycosenza.engine.space.node._3d.Node3D;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.node.Node;
@@ -25,7 +26,8 @@ import static org.lwjgl.opengl.GL11.glDrawElements;
 
 public class SceneRenderer
 {
-    private Map<Long, List<Map.Entry<Material, Matrix4f>>> pipelineMap;
+    private Map<Long, List<Map.Entry<Material, Matrix4f>>> pipelineMap = new HashMap<>();
+    private List<ComputeNode> computeNodes = new ArrayList<>();
     
     public SceneRenderer()
     {
@@ -47,6 +49,16 @@ public class SceneRenderer
     {
         //TODO only do this when stuff changes.
         mapScene(scene);
+        
+        for(ComputeNode computeNode : computeNodes)
+        {
+            ShaderPipeline pipeline = computeNode.getPipeline();
+            if(pipeline != null)
+            {
+                computeNode.getPipeline().bind();
+                computeNode.compute();
+            }
+        }
         
         for(Map.Entry<Long, List<Map.Entry<Material, Matrix4f>>> shader : pipelineMap.entrySet())
         {
@@ -75,7 +87,8 @@ public class SceneRenderer
    
     private void mapScene(Node scene)
     {
-        pipelineMap = new HashMap<>();
+        pipelineMap.clear();
+        computeNodes.clear();
         
         Stack<Node> nodes = new Stack<>();
         nodes.add(scene);
@@ -111,6 +124,10 @@ public class SceneRenderer
                         materialPairs.add(materialPair);
                     }
                 }
+            }
+            else if(node instanceof ComputeNode computeNode)
+            {
+                computeNodes.add(computeNode);
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.anthonycosenza.engine.assets;
 
+import com.anthonycosenza.engine.space.rendering.shader.ComputeShader;
 import com.anthonycosenza.engine.space.rendering.shader.FragmentShader;
 import com.anthonycosenza.engine.space.rendering.shader.Shader;
 import com.anthonycosenza.engine.space.rendering.shader.ShaderPipeline;
@@ -74,11 +75,26 @@ public class ShaderManager
         if(vertex == null) vertex = VertexShader.DEFAULT;
         if(fragment == null) fragment = FragmentShader.DEFAULT;
         
-        long hash = hash(vertex, fragment);
+        return createPipe(vertex, fragment);
+    }
+
+    public static ShaderPipeline createPipeline(ComputeShader compute)
+    {
+        return createPipe(compute);
+    }
+    
+    private static ShaderPipeline createPipe(Shader... shaders)
+    {
+        long hash = hash(shaders);
         ShaderPipeline pipeline = shaderPipelines.get(hash);
         if(pipeline == null)
         {
-            pipeline = new ShaderPipeline(hash, getCompileID(vertex), getCompileID(fragment));
+            int[] shaderIDs = new int[shaders.length];
+            for(int i = 0; i < shaderIDs.length; i++)
+            {
+                shaderIDs[i] = compile(shaders[i]);
+            }
+            pipeline = new ShaderPipeline(hash, shaderIDs);
             shaderPipelines.put(hash, pipeline);
         }
         return pipeline;
