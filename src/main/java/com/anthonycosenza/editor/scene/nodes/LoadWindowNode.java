@@ -5,7 +5,7 @@ import com.anthonycosenza.editor.EditorIO;
 import com.anthonycosenza.engine.Engine;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.space.SceneManager;
-import com.anthonycosenza.engine.space.node.Node;
+import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.util.NativeFileDialogue;
 import imgui.ImColor;
 import imgui.ImGui;
@@ -17,7 +17,7 @@ import imgui.type.ImString;
 
 import java.io.File;
 
-public class LoadWindowNode extends Node
+public class LoadWindowNode extends Scene
 {
     private boolean creatingProject = false;
     private ImString newProjectName = new ImString();

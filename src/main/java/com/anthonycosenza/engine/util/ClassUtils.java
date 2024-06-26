@@ -4,6 +4,7 @@ import com.google.common.reflect.ClassPath;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -13,6 +14,19 @@ import java.util.stream.Collectors;
 
 public class ClassUtils
 {
+    
+    public static <T> T instantiate(Class<T> clazzType)
+    {
+        try
+        {
+            return clazzType.getConstructor().newInstance();
+        } catch(InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+        {
+            System.out.println("Failed to instantiate class: " + e);
+        }
+        return null;
+    }
+    
     public static Method getMethod(Class<?> clazz, String methodName)
     {
         for(Method method : clazz.getDeclaredMethods())

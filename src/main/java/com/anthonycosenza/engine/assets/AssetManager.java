@@ -33,10 +33,11 @@ public class AssetManager
         assetInfoMap = new HashMap<>();
         assetMap = new HashMap<>();
 
-        
-        updateAssets();
+        if(assetRoot != null)
+        {
+            updateAssets();
+        }
     }
-
     /* ------------------------------------------
     
             Asset Loading from Disc
@@ -269,6 +270,7 @@ public class AssetManager
     {
         return Toml.getScene(Toml.getAssetHeader(sceneAsset));
     }
+    
     public Scene instantiateScene(long assetID)
     {
         AssetInfo info = getAssetInfo(assetID);
@@ -297,7 +299,7 @@ public class AssetManager
     {
         if(INSTANCE == null)
         {
-            throw new RuntimeException("Asset Manager wasn't instantiated.");
+            INSTANCE = new AssetManager(false, null);
         }
         return INSTANCE;
     }

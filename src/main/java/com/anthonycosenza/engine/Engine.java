@@ -1,12 +1,13 @@
 package com.anthonycosenza.engine;
 
 import com.anthonycosenza.engine.assets.ShaderManager;
+import com.anthonycosenza.engine.compute.Execution;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.SceneManager;
 import com.anthonycosenza.engine.space.Window;
 import com.anthonycosenza.engine.events.MessageEvent;
 import com.anthonycosenza.engine.input.Input;
-import com.anthonycosenza.engine.space.node.Node;
+import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.rendering.SceneRenderer;
 import com.anthonycosenza.engine.space.rendering.projection.Projection;
 import com.anthonycosenza.engine.ui.ImGuiImpl;
@@ -120,7 +121,7 @@ public class Engine
 
             input.resetFrame();
             
-            Node scene = SceneManager.getScene();
+            Scene scene = SceneManager.getScene();
             
             //Don't wake up the physics simulation for less this much of a frame
             //We do this so that the physics simulation smooths out compared to the rendering
@@ -146,6 +147,11 @@ public class Engine
             float delta = (float) frameTime / Constants.NANOS_IN_SECOND;
             
             renderer.render(scene, projection);
+            
+            for(Execution execution : scene.getExecutions())
+            {
+                execution.execute();
+            }
             
             if(window.isActive())
             {

@@ -73,7 +73,7 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glViewport;
 
-public class EditorNode extends Node
+public class EditorNode extends Scene
 {
     private final long doubleClickInterval = 250;
     
@@ -522,38 +522,11 @@ public class EditorNode extends Node
             {
                 EditorProperty.mesh3D(mesh3D, modified);
             }
-
-            /*if(selectedNode != null)
+            else if(selectedNode instanceof Scene scene)
             {
-                //Header
-                ImGui.text("id: " + selectedNode.getResourceID());
-                String className = selectedNode.getClass().getSimpleName();
-                ImGui.text(className + ".class");
-                ImGui.separator();
-                
-                //Creating a dropdown for each superclass
-                Class<? extends Node> nodeClass = selectedNode.getClass();
-                while(nodeClass != null && !Object.class.equals(nodeClass))
-                {
-                    List<Field> fields = Arrays.stream(nodeClass.getDeclaredFields())
-                            .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
-                                    !field.getName().equals("parent") &&
-                                    !field.getName().equals("children") &&
-                                    !field.getName().equals("resourceID")).toList();
-                    if(!fields.isEmpty())
-                    {
-                        if(ImGui.collapsingHeader(nodeClass.getSimpleName() + " Properties", ImGuiTreeNodeFlags.DefaultOpen))//set as scene name
-                        {
-                            ImBoolean modified = new ImBoolean(false);
-    
-                            EditorProperty.propertyTable(nodeClass, selectedNode, modified, astroColor);
-                            
-                            if(modified.get()) this.modified = true;
-                        }
-                    }
-                    nodeClass = (Class<? extends Node>) nodeClass.getSuperclass();
-                }
-            }*/
+                EditorProperty.scene(scene, modified);
+            }
+            
             if(modified.get())
             {
                 this.modified = true;

@@ -1,13 +1,16 @@
 package com.anthonycosenza.editor.scene.nodes;
 
 import com.anthonycosenza.editor.logger.EditorLogger;
+import com.anthonycosenza.editor.scripts.ScriptCompiler;
 import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.compute.Execution;
 import com.anthonycosenza.engine.space.entity.Mesh;
 import com.anthonycosenza.engine.space.entity.Model;
 import com.anthonycosenza.engine.space.entity.PlaneMesh;
+import com.anthonycosenza.engine.space.node.Scene;
 import com.anthonycosenza.engine.space.node._3d.Mesh3D;
 import com.anthonycosenza.engine.space.rendering.materials.Material;
 import com.anthonycosenza.engine.space.rendering.materials.ShaderMaterial;
@@ -39,6 +42,7 @@ import org.joml.Vector3f;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
@@ -465,6 +469,87 @@ public class EditorProperty
         }
     }
     
+    public static void scene(Scene scene, ImBoolean modified)
+    {
+        if(header("Scene"))
+        {
+            ImGui.indent();
+            List<Execution> executions = scene.getExecutions();
+            
+            ImGui.text("Executions");
+            if(list(executions, ListType.CLASS_SIMPLE))
+            {
+                modified.set(true);
+            }
+            File dragAndDrop = ImGuiUtils.createDragAndDropTarget((File file) ->
+            {
+                String extension = FileUtils.getExtension(file);
+                return extension.equals("java") &&
+                      Execution.class.isAssignableFrom(ScriptCompiler.load(FileUtils.getFileName(file)));
+            });
+            if(dragAndDrop != null)
+            {
+                try
+                {
+                    Execution execution = (Execution) ScriptCompiler.load(FileUtils.getFileName(dragAndDrop)).getConstructor().newInstance();
+    
+                    scene.addExecution(execution);
+                } catch(InstantiationException | IllegalAccessException | InvocationTargetException |
+                        NoSuchMethodException e)
+                {
+                    EditorLogger.error("Failed to load class: " + e);
+                }
+                modified.set(true);
+            }
+        }
+    }
+    
+    public static boolean list(List list, ListType listType)
+    {
+        int removeIndex = -1;
+        
+        if(ImGui.beginTable("## - List: " + listType.toString(), COLUMN_COUNT,
+                ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.Borders))
+        {
+            ImGui.tableSetupColumn("## list button column", ImGuiTableColumnFlags.WidthFixed,
+                    ImGui.getStyle().getButtonTextAlignX() * 2 + ImGui.calcTextSize(" - ").x);
+            ImGui.tableSetupColumn("## list property column", ImGuiTableColumnFlags.WidthStretch);
+            if(list.isEmpty())
+            {
+                ImGui.tableNextColumn();
+                ImGui.tableNextColumn();
+                ImGui.text("Add or Drag and Drop");
+            }
+            for(int i = 0; i < list.size(); i++)
+            {
+                Object object = list.get(i);
+                String value = switch(listType)
+                {
+                    case CLASS -> object.getClass().getName();
+                    case CLASS_SIMPLE -> object.getClass().getSimpleName();
+                };
+                ImGui.tableNextColumn();
+                
+                if(ImGui.button(" - "))
+                {
+                    removeIndex = i;
+                }
+    
+                ImGui.tableNextColumn();
+                ImGui.text(value);
+            }
+            ImGui.endTable();
+        }
+    
+        if(removeIndex != -1)
+        {
+            list.remove(removeIndex);
+            return true;
+        }
+        return false;
+    }
+    
+    
     static float[] transformPosX = new float[]{0f};
     static float[] transformPosY = new float[]{0f};
     static float[] transformPosZ = new float[]{0f};
@@ -556,8 +641,7 @@ public class EditorProperty
         }
         return false;
     }
-    
-    
+
     
     private static boolean header(String headerName)
     {
@@ -910,7 +994,12 @@ public class EditorProperty
         return fieldValue;
     }
     
-    
+   public enum ListType
+   {
+       CLASS,
+       CLASS_SIMPLE,
+       
+   }
     
 
 }

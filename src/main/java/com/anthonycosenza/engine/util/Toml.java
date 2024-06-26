@@ -7,6 +7,7 @@ import com.anthonycosenza.engine.assets.Asset;
 import com.anthonycosenza.engine.assets.AssetInfo;
 import com.anthonycosenza.engine.assets.AssetManager;
 import com.anthonycosenza.engine.assets.AssetType;
+import com.anthonycosenza.engine.compute.Execution;
 import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.ProjectSettings;
 import com.anthonycosenza.engine.space.node.Node;
@@ -234,7 +235,7 @@ public class Toml
     }
     private static Class<?> getClass(String type)
     {
-        if(type.startsWith("script"))
+        if(type.startsWith("Script"))
         {
             String[] split = ((String) type).split("\\s*[()]");
             return ScriptCompiler.load(split[1]);
@@ -302,7 +303,6 @@ public class Toml
         }
         
         node.setName(name);
-        Map.Entry<String, Object> nodeRoot;
         for(Map.Entry<String, Object> attribute : map.entrySet())
         {
             String key = attribute.getKey();
@@ -342,9 +342,9 @@ public class Toml
     
     public static Object deserializeValue(Class<?> type, Object value, Map<Long, Asset> assets)
     {
-        if(value instanceof String)
+        if(value instanceof String valueStr)
         {
-            String[] split = ((String) value).split("\\s*[()]");
+            String[] split = valueStr.split("\\s*[()]");
             if(split[0].equals("Vector2f"))
             {
                 String[] values = split[1].split(",");
@@ -384,6 +384,30 @@ public class Toml
             {
                 //ref=resourceID
                 value = assets.get(Long.parseLong(split[1]));
+            }
+            else if(split[0].equals("Script"))
+            {
+                value = ClassUtils.instantiate(ScriptCompiler.load(split[1]));
+            }
+            else if(split[0].equals("List"))
+            {
+                String[] elements = valueStr.substring("List(".length(), valueStr.length() - 1).split(" ");
+                List list = new ArrayList<>();
+                for(String element : elements)
+                {
+                    list.add(deserializeValue(null, element, null));
+                }
+                value = list;
+            }
+            else if(split[0].equals("Array"))
+            {
+                String[] elements = valueStr.substring("List(".length(), valueStr.length() - 1).split(" ");
+                Object[] array = new Object[elements.length];
+                for(int i = 0; i < array.length; i++)
+                {
+                    array[i] = deserializeValue(null, array[i], null);
+                }
+                value = array;
             }
         }
         else if(short.class.equals(type) || Short.class.equals(type))
@@ -473,6 +497,10 @@ public class Toml
                     }
                     else serializedValue = "Asset(" + resourceID + ")";
                 }
+                else if(Execution.class.isAssignableFrom(clazz))
+                {
+                    serializedValue = "Script(" + clazz.getSimpleName() + ")";
+                }
                 else if(clazz == Vector2f.class)
                 {
                     serializedValue = "Vector2f(" + ((Vector2f) fieldValue).x() + "," + ((Vector2f) fieldValue).y() + ")";
@@ -519,7 +547,7 @@ public class Toml
             }
             else //It's a user defined class
             {
-                config.set(path, "script(" + name + ")");
+                config.set(path, "Script(" + name + ")");
             }
             return this;
         }
@@ -563,15 +591,59 @@ public class Toml
     
         public Toml.builder scene(Scene scene, AssetInfo info)
         {
-            assetHeader(info);
-            return node(scene);
+            return scene(scene, info.filePath());
         }
     
         public Toml.builder scene(Scene scene, String filePath)
         {
             assetHeader(scene.getResourceID(), AssetType.SCENE, filePath);
-            return node(scene);
+            List<String> path = new ArrayList<>();
+            path.add(scene.getName());
+            path.add("executions");
+            list(path, scene.getExecutions());
+            path.clear();
+            return node(path, scene);
         }
+        
+        public Toml.builder list(List<String> path, List list)
+        {
+            if(list.isEmpty()) return this;
+            StringBuilder listString = new StringBuilder();
+            listString.append("List(");
+            for(int i = 0; i < list.size(); i++)
+            {
+                if(i != 0)
+                {
+                    listString.append(" ");
+                }
+                Object object = list.get(i);
+                listString.append(serializeValue(object.getClass(), object));
+            }
+            listString.append(")");
+            
+            config.set(path, listString.toString());
+            return this;
+        }
+    
+        public Toml.builder array(List<String> path, Object[] array)
+        {
+            if(array.length == 0) return this;
+            StringBuilder arrayString = new StringBuilder();
+            arrayString.append("Array(");
+            for(int i = 0; i < array.length; i++)
+            {
+                if(i != 0)
+                {
+                    arrayString.append(" ");
+                }
+                Object object = array[i];
+                arrayString.append(serializeValue(object.getClass(), object));
+            }
+            arrayString.append(")");
+            config.set(path, arrayString.toString());
+            return this;
+        }
+        
         public Toml.builder settings(ProjectSettings settings)
         {
             List<String> path = new ArrayList<>(2);
@@ -581,28 +653,35 @@ public class Toml
             
             return this;
         }
-        
+    
         public Toml.builder node(Node node)
         {
-            saveNode(new ArrayList<>(), config, node);
+            saveNode(new ArrayList<>(), node);
+            return this;
+        }
+        public Toml.builder node(List<String> path, Node node)
+        {
+            saveNode(path, node);
             return this;
         }
         
-        private void saveNode(List<String> path, CommentedConfig config, Node node)
+        private void saveNode(List<String> path, Node node)
         {
             path.add(node.getName());
     
             for(Node child : node.getChildren())
             {
-                saveNode(new ArrayList<>(path), config, child);
+                saveNode(new ArrayList<>(path), child);
             }
             
             List<Field> fields = ClassUtils.getAllFieldsInclSuper(node.getClass()).stream()
                     .filter(field -> !Modifier.isTransient(field.getModifiers()) &&
                             !field.getName().equals("parent") &&
                             !field.getName().equals("children") &&
-                            !field.getName().equals("name")
+                            !field.getName().equals("name") &&
+                            !field.getName().equals("executions")
                     ).toList();
+            
             serializeObject(fields, path, node);
 
             

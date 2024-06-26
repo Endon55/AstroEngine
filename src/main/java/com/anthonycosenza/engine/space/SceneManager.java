@@ -2,6 +2,7 @@ package com.anthonycosenza.engine.space;
 
 import com.anthonycosenza.engine.space.node.Camera;
 import com.anthonycosenza.engine.space.node.Node;
+import com.anthonycosenza.engine.space.node.Scene;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,9 +11,8 @@ import java.util.Stack;
 public class SceneManager
 {
     private static int sceneIndex = 0;
-    private static Node currentScene = null;
+    private static Scene currentScene = null;
     private static Camera camera = null;
-    private static boolean isModified = false;
     
     private static Map<Long, Node> sceneMap = new HashMap<>();
     
@@ -21,7 +21,7 @@ public class SceneManager
         SceneManager.sceneIndex = sceneIndex;
     }
 
-    public static Node getScene()
+    public static Scene getScene()
     {
         if(currentScene == null)
         {
@@ -30,7 +30,7 @@ public class SceneManager
         
         return currentScene;
     }
-    public static void setScene(Node scene)
+    public static void setScene(Scene scene)
     {
         SceneManager.currentScene = scene;
         camera = null;
